@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title><% preact.title %></title>
+    <meta name="Description" content="Runs code in your browser">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="/assets/vendor/wasm-terminal/xterm.css">
+    <style>
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        font: 14px/1.21 "Times New Roman", Times, serif;
+        font-weight: 400;
+        margin: 0px;
+
+        height: 100%;
+        width: 100%;
+        background-color: #000;
+      }
+
+      html {
+        overflow: hidden;
+        width: 100%;
+      }
+
+      body {
+        position: fixed;
+        overflow-y: auto;
+      }
+    </style>
+    <% preact.headEnd %>
+	</head>
+	<body>
+    <noscript>Please enable JavaScript</noscript>
+		<% preact.bodyEnd %>
+	</body>
+</html>

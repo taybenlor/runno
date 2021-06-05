@@ -1,0 +1,43 @@
+button {
+  font-family: "Times New Roman", Times, serif;
+  cursor: pointer;
+}
+
+.fullscreen {
+  width: 100%;
+  height: 100%;
+}
+
+#wasm-terminal, #wasm-terminal > .xterm, #wasm-terminal > .xterm-viewport, #wasm-terminal > .xterm-screen {
+  width: 100%;
+  height: 100%;
+  padding: 1px 2px;
+}
+
+#drop-zone {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100vw;
+  height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+  color: #FFF;
+  background-color: rgba(0,0,0,0.75);
+  opacity: 0;
+
+  pointer-events: none;
+  z-index: 3;
+}
+
+#drop-zone.fade {
+  transition: opacity 0.5s;
+}
+
+#drop-zone.active {
+  opacity: 1.0;
+}
