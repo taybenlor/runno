@@ -8,7 +8,7 @@ import { lowerI64Imports } from "@wasmer/wasm-transformer";
 var COMPILED_MODULES = {};
 // const WAPM_COMMAND_GRAPHQL_QUERY = `query shellGetCommandQuery($command: String!) {
 //   command: getCommand(name: $command) {
-//     packageVersion 
+//     packageVersion
 //       package {
 //         displayName
 //       }
@@ -69,13 +69,13 @@ const execWapmQuery = async (query, variables) => {
     mode: "cors",
     headers: {
       Accept: "application/json",
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       // operationName: "shellGetCommandQuery",
       query,
-      variables
-    })
+      variables,
+    }),
   });
   const response = await fetchResponse.json();
   if (response && response.data) {
@@ -83,7 +83,7 @@ const execWapmQuery = async (query, variables) => {
   }
 };
 
-const getBinaryFromUrl = async url => {
+const getBinaryFromUrl = async (url) => {
   const fetched = await fetch(url);
   const buffer = await fetched.arrayBuffer();
   return new Uint8Array(buffer);
@@ -100,7 +100,7 @@ const getBinaryFromUrl = async url => {
 //   }
 // };
 
-const getWAPMPackageFromPackageName = async packageName => {
+const getWAPMPackageFromPackageName = async (packageName) => {
   let version;
   if (packageName.indexOf("@") > -1) {
     const splitted = packageName.split("@");
@@ -109,7 +109,7 @@ const getWAPMPackageFromPackageName = async packageName => {
   }
   let data = await execWapmQuery(WAPM_PACKAGE_QUERY, {
     name: packageName,
-    version: version
+    version: version,
   });
   if (data && data.packageVersion) {
     return data.packageVersion;
@@ -118,7 +118,7 @@ const getWAPMPackageFromPackageName = async packageName => {
   }
 };
 
-const getWasmBinaryFromUrl = async url => {
+const getWasmBinaryFromUrl = async (url) => {
   const fetched = await fetch(url);
   const buffer = await fetched.arrayBuffer();
   return new Uint8Array(buffer);
@@ -189,14 +189,13 @@ export default class WAPM {
   // Get a command from the wapm manager
   async runCommand(options) {
     let commandName = options.args[0];
-    
+
     // We convert the `wasmer run thecommand ...` to `thecommand ...`
     if (commandName == "wasmer") {
       if (options.args[1] == "run") {
         options.args = options.args.slice(2);
-      }
-      else {
-        options.args = options.args.slice(1)
+      } else {
+        options.args = options.args.slice(1);
       }
       commandName = options.args[0];
 
@@ -205,12 +204,10 @@ export default class WAPM {
       if (commandName.indexOf("/") == -1) {
         commandName = `./${commandName}`;
       }
-    }
-    else if (commandName == "wapm" && options.args[1] == "run") {
+    } else if (commandName == "wapm" && options.args[1] == "run") {
       options.args = options.args.slice(2);
       commandName = options.args[0];
-    }
-    else if (commandName == "wax") {
+    } else if (commandName == "wax") {
       options.args = options.args.slice(1);
       commandName = options.args[0];
     }
@@ -226,10 +223,9 @@ export default class WAPM {
       COMPILED_MODULES[modulePath] = await WebAssembly.compile(loweredBinary);
       return {
         args: options.args,
-        module: COMPILED_MODULES[modulePath]
+        module: COMPILED_MODULES[modulePath],
       };
     }
-
 
     // Check if the command was cached
     const cachedCommand = this._getCachedCommand(commandName);
@@ -272,7 +268,6 @@ export default class WAPM {
 
   async _syncToStorage() {
     // Do nothing for now.
-
     // const wapmStorage = {
     //   wapmInstalledPackages: this.wapmInstalledPackages,
     //   uploadedCommands: this.uploadedCommands,
@@ -339,14 +334,14 @@ SUBCOMMANDS:
 
   _list() {
     let packageModules = [];
-    Object.keys(this.wapmInstalledPackages).forEach(key => {
+    Object.keys(this.wapmInstalledPackages).forEach((key) => {
       let _package = this.wapmInstalledPackages[key];
-      _package.modules.forEach(mod => {
+      _package.modules.forEach((mod) => {
         packageModules.push([
           _package.package.displayName,
           _package.version,
           mod.name,
-          mod.abi
+          mod.abi,
         ]);
       });
     });
@@ -357,17 +352,17 @@ SUBCOMMANDS:
 
     let commands = [["COMMAND", "TYPE"]]
       .concat(
-        Object.keys(this.wapmCommands).map(key => {
+        Object.keys(this.wapmCommands).map((key) => {
           return [`${key}`, "WAPM"];
         })
       )
       .concat(
-        Object.keys(this.uploadedCommands).map(key => {
+        Object.keys(this.uploadedCommands).map((key) => {
           return [`${key}`, "uploaded by user"];
         })
       )
       .concat(
-        Object.keys(this.callbackCommands).map(key => {
+        Object.keys(this.callbackCommands).map((key) => {
           return [`${key}`, "builtin"];
         })
       );
@@ -393,11 +388,12 @@ Additional commands can be installed by:
     // console.log(`Running wapm install ${packageName}`);
     let installed = await this._installWapmPackage(packageVersion, wasmFs);
     if (!installed) {
-      return `Package ${packageName} already installed.`
+      return `Package ${packageName} already installed.`;
     }
     this.wapmInstalledPackages = this.wapmInstalledPackages.filter(
-      installedPackage =>
-        installedPackage.package.displayName !== packageVersion.package.displayName
+      (installedPackage) =>
+        installedPackage.package.displayName !==
+        packageVersion.package.displayName
     );
     this.wapmInstalledPackages.push(packageVersion);
     await this.regenerateWAPMCommands();
@@ -406,7 +402,7 @@ Additional commands can be installed by:
       packageVersion.version
     } installed successfully!
 → Installed commands: ${packageVersion.commands
-      .map(command => command.command)
+      .map((command) => command.command)
       .join(", ")}`;
   }
 
@@ -425,13 +421,13 @@ Additional commands can be installed by:
 
     // Uninstalling a wapm package
     let wapmInstalledPackage = this.wapmInstalledPackages.filter(
-      installedPackage =>
+      (installedPackage) =>
         installedPackage.package.displayName === packageOrCommandName
     );
     if (wapmInstalledPackage) {
       wapmInstalledPackage = wapmInstalledPackage[0];
       this.wapmInstalledPackages = this.wapmInstalledPackages.filter(
-        installedPackage => installedPackage !== wapmInstalledPackage
+        (installedPackage) => installedPackage !== wapmInstalledPackage
       );
       await this.regenerateWAPMCommands();
 
@@ -446,7 +442,7 @@ Additional commands can be installed by:
     // console.log("Install package", packageVersion)
     const packageUrl = packageVersion.distribution.downloadUrl;
     let binary = await getBinaryFromUrl(packageUrl);
-  
+
     const installedPath = `/_wasmer/wapm_packages/${packageVersion.package.name}@${packageVersion.version}`;
     if (wasmFs.fs.existsSync(installedPath)) {
       // console.log("package already installed");
@@ -482,33 +478,31 @@ Additional commands can be installed by:
   }
   `)();
       wasmFs.fs.writeFileSync(binaryName, mainFunction.toString());
-    };
+    }
     return true;
   }
   async _installFromWapmCommand({ args, env }, wasmFs) {
-      let commandName = args[0];
+    let commandName = args[0];
     // const wasmPackage = await getWAPMPackageFromCommandName(commandName);
     // await this.regenerateWAPMCommands();
     // await this._syncToStorage();
     // return this.wapmCommands[commandName];
     const binaryName = `/bin/${commandName}`;
     if (!wasmFs.fs.existsSync(binaryName)) {
-      let command = await fetchCommandFromWAPM({args, env});
+      let command = await fetchCommandFromWAPM({ args, env });
       await this._installWapmPackage(command.packageVersion, wasmFs);
     }
     // let time1 = performance.now();
     let fileContents = wasmFs.fs.readFileSync(binaryName, "utf8");
     let mainProgram = new Function(`return ${fileContents}`)();
-    let program = mainProgram({args, env});
+    let program = mainProgram({ args, env });
     // let time2 = performance.now();
     if (!(program.modulePath in COMPILED_MODULES)) {
       let wasmBinary;
       try {
         wasmBinary = wasmFs.fs.readFileSync(program.modulePath);
       } catch {
-        throw new Error(
-          `The module ${program.modulePath} doesn't exist`
-        );
+        throw new Error(`The module ${program.modulePath} doesn't exist`);
       }
       // time2 = performance.now();
       this.wasmTerminal.wasmTty.clearStatus(true);
@@ -516,7 +510,9 @@ Additional commands can be installed by:
 
       let loweredBinary = await lowerI64Imports(wasmBinary);
 
-      COMPILED_MODULES[program.modulePath] = await WebAssembly.compile(loweredBinary);
+      COMPILED_MODULES[program.modulePath] = await WebAssembly.compile(
+        loweredBinary
+      );
       this.wasmTerminal.wasmTty.clearStatus(true);
     }
     program.module = COMPILED_MODULES[program.modulePath];
@@ -526,7 +522,7 @@ Additional commands can be installed by:
   }
 
   async _installFromFile() {
-    const gotInputPromise = new Promise(resolve => {
+    const gotInputPromise = new Promise((resolve) => {
       this.currentInstallResolver = resolve;
     });
     this._hiddenInput.click();

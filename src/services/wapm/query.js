@@ -43,15 +43,15 @@ const getCommandFromWAPM = async (commandName) => {
     mode: "cors",
     headers: {
       Accept: "application/json",
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       operationName: "shellGetCommandQuery",
       query: WAPM_GRAPHQL_QUERY,
       variables: {
-        command: commandName
-      }
-    })
+        command: commandName,
+      },
+    }),
   });
   const response = await fetchResponse.json();
 
@@ -62,7 +62,7 @@ const getCommandFromWAPM = async (commandName) => {
   }
 };
 
-export const fetchCommandFromWAPM = async ({args, env}) => {
+export const fetchCommandFromWAPM = async ({ args, env }) => {
   const commandName = args[0];
   const command = await getCommandFromWAPM(commandName);
   if (command.module.abi !== "wasi") {
