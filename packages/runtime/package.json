@@ -6,7 +6,7 @@
   "version": "0.1.0",
   "license": "MIT",
   "engines": {
-    "node": ">=10"
+    "node": ">=12"
   },
   "scripts": {
     "postinstall": "npm run build:wasm-terminal && npm run build:wasm-transformer",
