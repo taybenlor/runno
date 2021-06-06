@@ -96,7 +96,7 @@ export default class App extends Component {
   render() {
     return (
       <div class="fullscreen">
-        <main ref={this.terminalRef} id="wasm-terminal"></main>
+        <main ref={this.terminalRef} id="wasm-terminal" />
       </div>
     );
   }

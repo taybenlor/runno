@@ -1,14 +1,7 @@
-# Standard stuff
-node_modules
-.DS_Store
-
 # Project specific
 build
-src/assets/vendor
 
-
-# https://github.com/github/gitignore/node.gitignore
-
+# Node: https://github.com/github/gitignore/node.gitignore
 # Logs
 logs
 *.log

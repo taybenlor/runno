@@ -1,0 +1,56 @@
+{
+  "private": true,
+  "name": "@make-run/runtime",
+  "author": "Ben Taylor",
+  "description": "Runtime for @make-run",
+  "version": "0.1.0",
+  "license": "MIT",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "postinstall": "npm run build:wasm-terminal && npm run build:wasm-transformer",
+    "build": "npm run build:wasm-terminal && npm run build:wasm-transformer build:preact",
+    "build:preact": "npx preact build --no-prerender",
+    "build:wasm-terminal": "npm run build:wasm-terminal:xterm && npm run build:wasm-terminal:workers",
+    "build:wasm-terminal:xterm": "npx cpy 'node_modules/@wasmer/wasm-terminal/lib/xterm/**/*' src/assets/vendor/wasm-terminal",
+    "build:wasm-terminal:workers": "npx cpy 'node_modules/@wasmer/wasm-terminal/lib/workers/**/*' src/assets/vendor/wasm-terminal",
+    "build:wasm-transformer": "npx cpy 'node_modules/@wasmer/wasm-transformer/lib/wasm-transformer.wasm' src/assets/vendor/wasm-transformer",
+    "dev": "npx preact watch -p 1234",
+    "serve": "npx serve -p 1234 build/",
+    "lint": "npx eslint src"
+  },
+  "eslintConfig": {
+    "extends": "preact",
+    "ignorePatterns": [
+      "build/"
+    ]
+  },
+  "devDependencies": {
+    "@babel/helper-compilation-targets": "^7.14.4",
+    "@babel/plugin-proposal-class-static-block": "^7.14.3",
+    "@babel/plugin-syntax-import-meta": "^7.2.0",
+    "copyfiles": "^2.1.1",
+    "cpy-cli": "^2.0.0",
+    "eslint": "^7.28.0",
+    "eslint-config-preact": "^1.1.0",
+    "if-env": "^1.0.0",
+    "npm-run-all": "^4.1.5",
+    "preact-cli": "^3.2.2",
+    "prettier": "2.3.1",
+    "replace": "^1.1.1",
+    "serve": "^11.1.0"
+  },
+  "dependencies": {
+    "@wasmer/wasm-terminal": "^0.10.0",
+    "@wasmer/wasm-transformer": "^0.10.0",
+    "@wasmer/wasmfs": "^0.10.0",
+    "idb-keyval": "^3.2.0",
+    "normalize.css": "^8.0.1",
+    "preact": "^10.5.13",
+    "preact-render-to-string": "^5.1.19",
+    "save-file": "^2.3.1",
+    "text-table": "^0.2.0",
+    "xterm": "^4.12.0"
+  }
+}
