@@ -1,5 +1,4 @@
 // import "normalize.css";
-// import "./style";
 import { Component } from "preact";
 // import WasmTerminal from "@wasmer/wasm-terminal";
 import WasmTerminal from "@wasmer/wasm-terminal/lib/optimized/wasm-terminal.esm";
@@ -12,8 +11,6 @@ export default class App extends Component {
     super();
 
     this.wasmFs = new WasmFs();
-    // For the file uploads
-    this.wasmFs.fs.mkdirSync("/tmp/", { recursive: true });
 
     const wasmTerminal = new WasmTerminal({
       processWorkerUrl: "/assets/vendor/wasm-terminal/process.worker.js",
@@ -24,7 +21,6 @@ export default class App extends Component {
 
     this.resizing = false;
     this.wasmTerminal = wasmTerminal;
-    this.dropZone = undefined;
 
     if (window) {
       window.addEventListener("resize", this.onResize.bind(this));
@@ -46,12 +42,12 @@ export default class App extends Component {
   componentDidMount() {
     const asyncTask = async () => {
       let params = this._handleQueryParams();
-      await this._setupWasmTerminal(params.inline);
-      this._setupDropZone();
       if (params.runCommand) {
-        // console.log(params.runCommand);
         setTimeout(() => this.wasmTerminal.runCommand(params.runCommand), 50);
       }
+
+      // TODO: There's a bug that prevents this promise from ever resolving
+      await this._setupWasmTerminal();
     };
     asyncTask();
   }
@@ -76,9 +72,6 @@ export default class App extends Component {
     return (
       <div class="fullscreen">
         <main id="wasm-terminal"></main>
-        <div id="drop-zone">
-          <h1>Please drop a `.wasm` module or any other asset.</h1>
-        </div>
       </div>
     );
   }
@@ -93,35 +86,13 @@ export default class App extends Component {
       resolveOpenPromise = resolve;
     });
 
-    // Xterm has this weird bug where it won' fit correctly
-    // Thus, create a watcher to force it to fit
-    // And stop watching once we fit to 90% height
-    const fitXtermOnLoadWatcher = () => {
-      const xtermScreen = document.querySelector(".xterm-screen");
-      const body = document.body;
-      if (xtermScreen) {
-        const xtermScreenHeight = xtermScreen.offsetHeight;
-        const bodyHeight = body.offsetHeight;
-        this.wasmTerminal.fit();
-        this.wasmTerminal.focus();
-        if (xtermScreenHeight / bodyHeight > 0.9) {
-          resolveOpenPromise();
-          return;
-        }
-      }
-
-      setTimeout(() => fitXtermOnLoadWatcher(), 50);
-    };
-    fitXtermOnLoadWatcher();
-
     return openedPromise;
   }
 
   _handleQueryParams() {
     const params = new URLSearchParams(window.location.search);
     return {
-      runCommand: params.get("run-command"),
-      inline: params.has("inline"),
+      runCommand: params.get("command"),
     };
   }
 }
