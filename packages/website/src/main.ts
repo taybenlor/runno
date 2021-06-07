@@ -5,5 +5,6 @@ const runtimeIframe = document.getElementById("runtime") as HTMLIFrameElement;
 runButton.addEventListener("click", function () {
   const code = codeEl.value;
   const encodedCode = encodeURIComponent(code);
-  runtimeIframe.src = `http://localhost:1234/?runtime=python&code=${encodedCode}`;
+  runtimeIframe.src = `http://localhost:1234/gday#runtime=python&code=${encodedCode}`;
+  runtimeIframe.src = `http://localhost:1234/#runtime=python&code=${encodedCode}`;
 });

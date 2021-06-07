@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" type="text/css" href="/src/style.css" />
+    <script>
+      // Hacky fix for dependencies that expect node global
+      window["global"] = globalThis;
+    </script>
+
+    <meta name="Description" content="Runs code in your browser" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+    <title>make.run</title>
+  </head>
+  <body class="fullscreen">
+    <main id="wasm-terminal"></main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
