@@ -29,5 +29,8 @@
     "tsdx": "^0.14.1",
     "tslib": "^2.2.0",
     "typescript": "^3.9.9"
+  },
+  "dependencies": {
+    "post-me": "^0.4.5"
   }
 }

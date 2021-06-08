@@ -1,10 +1,23 @@
+import { ParentHandshake, WindowMessenger } from "post-me";
+
 const runButton = document.getElementById("run") as HTMLButtonElement;
 const codeEl = document.getElementById("code") as HTMLTextAreaElement;
 const runtimeIframe = document.getElementById("runtime") as HTMLIFrameElement;
+const runtimeWindow = runtimeIframe.contentWindow!;
 
-runButton.addEventListener("click", function () {
-  const code = codeEl.value;
-  const encodedCode = encodeURIComponent(code);
-  runtimeIframe.src = `http://localhost:1234/gday#runtime=python&code=${encodedCode}`;
-  runtimeIframe.src = `http://localhost:1234/#runtime=python&code=${encodedCode}`;
+// For safety it is strongly adviced to pass the explicit child origin instead of '*'
+const messenger = new WindowMessenger({
+  localWindow: window,
+  remoteWindow: runtimeWindow,
+  remoteOrigin: "*",
+});
+
+ParentHandshake(messenger).then((connection) => {
+  const remoteHandle = connection.remoteHandle();
+
+  runButton.addEventListener("click", function () {
+    const code = codeEl.value;
+
+    remoteHandle.call("interactiveRunCode", "python", code);
+  });
 });
