@@ -123,7 +123,7 @@ export default class WasmFsDefault {
   }
 
   async getStdOut() {
-    let promise = new Promise((resolve) => {
+    let promise = new Promise<string | Buffer>((resolve) => {
       resolve(this.fs.readFileSync("/dev/stdout", "utf8"));
     });
     return promise;

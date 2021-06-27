@@ -41,7 +41,7 @@ export const extractContents = (
     } else if (
       file.type === "directory" ||
       file.type === "5" ||
-      file.type == 5
+      file.type === 5
     ) {
       (volume as any).mkdirpBase(fullname, 0o777);
     }

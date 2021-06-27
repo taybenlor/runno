@@ -9,7 +9,8 @@
   },
   "scripts": {
     "prepare": "husky install",
-    "bootstrap": "lerna bootstrap"
+    "bootstrap": "lerna bootstrap",
+    "dev": "lerna exec npm run dev"
   },
   "eslintConfig": {
     "extends": "preact",
