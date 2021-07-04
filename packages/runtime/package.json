@@ -26,8 +26,8 @@
     "vite": "^2.3.5"
   },
   "dependencies": {
-    "@wasmer/wasm-terminal": "^0.10.0",
-    "@wasmer/wasm-transformer": "^0.10.0",
+    "@make-run/terminal": "^0.10.2",
+    "@wasmer/wasm-transformer": "^0.10.2",
     "buffer": "^5.7.1",
     "events": "^3.3.0",
     "globalthis": "^1.0.2",

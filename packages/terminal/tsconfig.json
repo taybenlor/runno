@@ -1,0 +1,21 @@
+{
+  "include": ["**/node_modules/comlink/**/*", "3p-modules.d.ts"],
+  "compilerOptions": {
+    "target": "es5",
+    "moduleResolution": "node",
+    "lib": ["esnext", "dom"],
+    "strict": true,
+    "sourceMap": true,
+    "declaration": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "downlevelIteration": true,
+    "declarationDir": "lib/types",
+    "outDir": "lib/",
+    "jsx": "react",
+    "jsxFactory": "h",
+    "typeRoots": ["node_modules/@types"],
+    "preserveSymlinks": true
+  }
+}

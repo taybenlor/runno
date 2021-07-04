@@ -15,11 +15,17 @@
         </div>
         <textarea id="code" class="p-2 flex-grow font-mono"></textarea>
       </div>
-      <iframe
-        id="runtime"
-        src="http://localhost:1234"
-        class="flex-grow"
-      ></iframe>
+      <div class="flex-grow flex flex-row">
+        <iframe
+          id="runtime"
+          src="http://localhost:1234"
+          class="flex-grow"
+        ></iframe>
+        <div class="w-1/4">
+          <h2>Output:</h2>
+          <pre id="output"></pre>
+        </div>
+      </div>
     </main>
     <script type="module" src="/src/main.ts"></script>
   </body>
