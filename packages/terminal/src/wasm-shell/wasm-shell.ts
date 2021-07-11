@@ -50,12 +50,12 @@ export default class WasmShell {
       disablePrompt?: boolean;
     } = {}
   ) {
-    const defaults = {
+    const optionValues = {
       historySize: 10,
       maxAutocompleteEntries: 100,
       disablePrompt: false,
+      ...options,
     };
-    const optionValues = { ...defaults, ...options };
 
     this.wasmTerminalConfig = wasmTerminalConfig;
     this.wasmTty = wasmTty;

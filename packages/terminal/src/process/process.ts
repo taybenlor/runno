@@ -39,7 +39,8 @@ export default class Process {
   wasmFs: WasmFs;
   ioDevices: IoDevices;
   originalWasmFsJson: any;
-  dataCallback: Function;
+  stdoutCallback: Function;
+  stderrCallback: Function;
   endCallback: Function;
   errorCallback: Function;
   ioDeviceWindow: IoDeviceWindow;
@@ -57,7 +58,8 @@ export default class Process {
   constructor(
     commandOptions: CommandOptions,
     wasmFsJson: any,
-    dataCallback: Function,
+    stdoutCallback: Function,
+    stderrCallback: Function,
     endCallback: Function,
     errorCallback: Function,
     ioDeviceWindow: IoDeviceWindow,
@@ -109,7 +111,8 @@ export default class Process {
       }
     });
 
-    this.dataCallback = dataCallback;
+    this.stdoutCallback = stdoutCallback;
+    this.stderrCallback = stderrCallback;
     this.endCallback = endCallback;
     this.errorCallback = errorCallback;
 
@@ -132,7 +135,7 @@ export default class Process {
 
     this.wasmFs.volume.fds[0].node.read = this.stdinRead.bind(this);
     this.wasmFs.volume.fds[1].node.write = this.stdoutWrite.bind(this);
-    this.wasmFs.volume.fds[2].node.write = this.stdoutWrite.bind(this);
+    this.wasmFs.volume.fds[2].node.write = this.stderrWrite.bind(this);
     const ttyFd = this.wasmFs.volume.openSync("/dev/tty", "w+");
     this.wasmFs.volume.fds[ttyFd].node.read = this.stdinRead.bind(this);
     this.wasmFs.volume.fds[ttyFd].node.write = this.stdoutWrite.bind(this);
@@ -190,8 +193,8 @@ export default class Process {
     length: number = stdoutBuffer.byteLength,
     position?: number
   ) {
-    if (this.dataCallback) {
-      this.dataCallback(stdoutBuffer);
+    if (this.stdoutCallback) {
+      this.stdoutCallback(stdoutBuffer);
     }
     let dataLines = new TextDecoder("utf-8").decode(stdoutBuffer).split("\n");
     if (dataLines.length > 0) {
@@ -199,7 +202,22 @@ export default class Process {
     } else {
       this.stdinPrompt = "";
     }
+    console.log("wrote", dataLines);
     return stdoutBuffer.length;
+  }
+
+  stderrWrite(
+    stderrBuffer: Buffer | Uint8Array,
+    offset: number = 0,
+    length: number = stderrBuffer.byteLength,
+    position?: number
+  ) {
+    if (this.stderrCallback) {
+      this.stderrCallback(stderrBuffer);
+    }
+    let dataLines = new TextDecoder("utf-8").decode(stderrBuffer).split("\n");
+    console.log("error", dataLines);
+    return stderrBuffer.length;
   }
 
   // Handle read of stdin, similar to C read
@@ -236,12 +254,10 @@ export default class Process {
       }
       responseStdin = new TextDecoder("utf-8").decode(newStdinData);
     } else {
-      responseStdin = prompt(
-        `Please enter text for stdin:\n${this.stdinPrompt}`
-      );
+      responseStdin = prompt(this.stdinPrompt);
       if (responseStdin === null) {
-        if (this.dataCallback) {
-          this.dataCallback(new TextEncoder().encode("\n"));
+        if (this.stdoutCallback) {
+          this.stdoutCallback(new TextEncoder().encode("\n"));
         }
         const userError = new Error("Process killed by user");
         (userError as any).user = true;
@@ -249,8 +265,8 @@ export default class Process {
         return -1;
       }
       responseStdin += "\n";
-      if (this.dataCallback) {
-        this.dataCallback(new TextEncoder().encode(responseStdin));
+      if (this.stdoutCallback) {
+        this.stdoutCallback(new TextEncoder().encode(responseStdin));
       }
     }
 

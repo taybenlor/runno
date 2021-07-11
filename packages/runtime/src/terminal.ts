@@ -9,6 +9,8 @@ import WAPM from "./wapm/wapm";
 type CommandResult = {
   stdout: string;
   stdin: string;
+  stderr: string;
+  tty: string;
   fs: any;
 };
 

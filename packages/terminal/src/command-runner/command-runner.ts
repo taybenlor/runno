@@ -21,6 +21,8 @@ ROLLUP_REPLACE_INLINE*/
 export type CommandResult = {
   stdout: string;
   stdin: string;
+  stderr: string;
+  tty: string;
   fs: any;
 };
 
@@ -70,6 +72,8 @@ export default class CommandRunner {
 
   stdin: string;
   stdout: string;
+  stderr: string;
+  tty: string;
 
   constructor(
     wasmTerminalConfig: WasmTerminalConfig,
@@ -80,6 +84,8 @@ export default class CommandRunner {
   ) {
     this.stdin = "";
     this.stdout = "";
+    this.stderr = "";
+    this.tty = "";
     this.wasmTerminalConfig = wasmTerminalConfig;
     this.commandString = commandString;
     this.commandStartReadCallback = commandStartReadCallback;
@@ -124,7 +130,13 @@ export default class CommandRunner {
       }
       console.error(c);
       // TODO: Figure out what to pass through on error
-      this.commandEndCallback();
+      this.commandEndCallback({
+        stdin: this.stdin,
+        stdout: this.stdout,
+        stderr: this.stderr,
+        tty: this.tty,
+        fs: {},
+      });
       return;
     }
 
@@ -154,7 +166,13 @@ export default class CommandRunner {
     this.isRunning = false;
 
     // TODO: Figure out what to pass after being killed
-    this.commandEndCallback();
+    this.commandEndCallback({
+      stdin: this.stdin,
+      stdout: this.stdout,
+      stderr: this.stderr,
+      tty: this.tty,
+      fs: {},
+    });
   }
 
   _addStdinToSharedStdin(data: Uint8Array, processObjectIndex: number) {
@@ -183,7 +201,9 @@ export default class CommandRunner {
 
     Atomics.notify(sharedStdin, 0, 1);
 
-    this.stdin += new TextDecoder().decode(data);
+    const text = new TextDecoder().decode(data);
+    this.stdin += text;
+    this.tty += text;
   }
 
   async _tryToSpawnProcess(commandOptionIndex: number) {
@@ -279,9 +299,16 @@ export default class CommandRunner {
       this.commandOptionsForProcessesToRun[commandOptionIndex],
       // WasmFs File System JSON
       wasmFsJson,
-      // Data Callback
+      // Stdout Callback
       Comlink.proxy(
-        this._processDataCallback.bind(this, {
+        this._processStdoutCallback.bind(this, {
+          commandOptionIndex,
+          sync: false,
+        })
+      ),
+      // Stderr Callback
+      Comlink.proxy(
+        this._processStderrCallback.bind(this, {
           commandOptionIndex,
           sync: false,
         })
@@ -335,8 +362,16 @@ export default class CommandRunner {
       this.commandOptionsForProcessesToRun[commandOptionIndex],
       // WasmFs File System JSON
       wasmFsJson,
-      // Data Callback
-      this._processDataCallback.bind(this, { commandOptionIndex, sync: true }),
+      // Stdout Callback
+      this._processStdoutCallback.bind(this, {
+        commandOptionIndex,
+        sync: true,
+      }),
+      // Stderr Callback
+      this._processStderrCallback.bind(this, {
+        commandOptionIndex,
+        sync: true,
+      }),
       // End Callback
       this._processEndCallback.bind(this, { commandOptionIndex }),
       // Error Callback
@@ -352,13 +387,55 @@ export default class CommandRunner {
     };
   }
 
-  _processDataCallback(
+  _processStdoutCallback(
     { commandOptionIndex, sync }: { commandOptionIndex: number; sync: boolean },
     data: Uint8Array
   ) {
     // Write the output to our terminal
     let dataString = new TextDecoder("utf-8").decode(data);
     this.stdout += dataString;
+    this.tty += dataString;
+
+    if (!this.isRunning) return;
+
+    if (commandOptionIndex < this.commandOptionsForProcessesToRun.length - 1) {
+      // Pass along to the next spawned process
+      if (
+        // Ensure we can use shared array buffer,
+        // And We have more than one proccess spawned,
+        // And we are not the last spawned process we are trying to premptively write to
+        // The last && fixes a race condition from:
+        // https://github.com/wasmerio/wasmer-js/issues/160
+        this.supportsSharedArrayBuffer &&
+        this.spawnedProcessObjects.length > 1 &&
+        this.spawnedProcessObjects[this.spawnedProcessObjects.length - 1]
+          .commandOptionIndex > commandOptionIndex
+      ) {
+        // Send the output to stdin since we are being piped
+        this._addStdinToSharedStdin(data, 1);
+      } else {
+        const newPipedStdinData = new Uint8Array(
+          data.length + this.pipedStdinDataForNextProcess.length
+        );
+        newPipedStdinData.set(this.pipedStdinDataForNextProcess);
+        newPipedStdinData.set(data, this.pipedStdinDataForNextProcess.length);
+        this.pipedStdinDataForNextProcess = newPipedStdinData;
+      }
+    } else {
+      if (this.wasmTty) {
+        this.wasmTty.print(dataString, sync);
+      }
+    }
+  }
+
+  _processStderrCallback(
+    { commandOptionIndex, sync }: { commandOptionIndex: number; sync: boolean },
+    data: Uint8Array
+  ) {
+    // Write the output to our terminal
+    let dataString = new TextDecoder("utf-8").decode(data);
+    this.stderr += dataString;
+    this.tty += dataString;
 
     if (!this.isRunning) return;
 
@@ -422,6 +499,8 @@ export default class CommandRunner {
       this.commandEndCallback({
         stdin: this.stdin,
         stdout: this.stdout,
+        stderr: this.stderr,
+        tty: this.tty,
         fs: wasmFsJson,
       });
     }
@@ -448,7 +527,13 @@ export default class CommandRunner {
 
     // Kill the process
     this.kill();
-    this.commandEndCallback();
+    this.commandEndCallback({
+      stdin: this.stdin,
+      stdout: this.stdout,
+      stderr: this.stderr,
+      tty: this.tty,
+      fs: wasmFsJson,
+    });
   }
 
   _processStartStdinReadCallback() {

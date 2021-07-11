@@ -31,6 +31,9 @@ function handleParams() {
     if (runtimeName === "python") {
       terminal.runCommand(`python${args}`);
     }
+    if (runtimeName === "quickjs") {
+      terminal.runCommand(`quickjs --std${args}`);
+    }
   } else {
     // No command was specified
     return;
