@@ -3,7 +3,7 @@ export type ResultFS = {
   stdin: string;
   stdout: string;
   stderr: string;
-  terminal: string;
+  tty: string;
   fs: FS;
 };
 

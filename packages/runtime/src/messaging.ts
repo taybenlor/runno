@@ -12,6 +12,10 @@ function commandForRuntime(name: string, entryPath: string) {
   if (name === "python") {
     return `python ${entryPath}`;
   }
+  if (name === "quickjs") {
+    return `quickjs --std ${entryPath}`;
+  }
+
   throw new Error(`Unknown runtime ${name}`);
 }
 
@@ -47,13 +51,13 @@ class TerminalProvider {
 
     const result = await this.terminal.runCommand(command);
 
-    return Promise.resolve({
+    return {
       stdout: result.stdout,
       stdin: result.stdin,
-      stderr: "",
-      terminal: "",
+      stderr: result.stderr,
+      tty: result.tty,
       fs: result.fs,
-    });
+    };
   }
 
   headlessRunCode(runtime: Runtime, code: string): Promise<ResultFS> {
@@ -61,7 +65,7 @@ class TerminalProvider {
       stdin: "",
       stdout: "",
       stderr: "",
-      terminal: "",
+      tty: "",
       fs: {},
     });
   }
@@ -75,7 +79,7 @@ class TerminalProvider {
       stdin: "",
       stdout: "",
       stderr: "",
-      terminal: "",
+      tty: "",
       fs: {},
     });
   }
@@ -85,7 +89,7 @@ class TerminalProvider {
       stdin: "",
       stdout: "",
       stderr: "",
-      terminal: "",
+      tty: "",
       fs: {},
     });
   }
