@@ -63,7 +63,9 @@ export default class WasmTerminal {
 
     // Create our Shell and tty
     this.wasmTty = new WasmTty(this.xterm);
-    this.wasmShell = new WasmShell(this.wasmTerminalConfig, this.wasmTty);
+    this.wasmShell = new WasmShell(this.wasmTerminalConfig, this.wasmTty, {
+      disablePrompt: true,
+    });
     // tslint:disable-next-line
     this.dataEvent = this.xterm.onData(this.wasmShell.handleTermData);
 
@@ -176,6 +178,10 @@ export default class WasmTerminal {
       this.wasmTty.setInput(line);
       this.wasmShell.handleReadComplete();
     }
+  }
+
+  runCommandDirect(line: string) {
+    return this.wasmShell.runCommand(line);
   }
 
   destroy() {

@@ -18,6 +18,32 @@ import IoDeviceWindow from "../io-device-window/io-device-window";
 import processWorkerInlinedUrl from "../../lib/workers/process.worker.js";
 ROLLUP_REPLACE_INLINE*/
 
+export type CommandResult = {
+  stdout: string;
+  stdin: string;
+  fs: any;
+};
+
+type WorkerProcessData = {
+  process: Comlink.Remote<Process>;
+  commandOptionIndex: number;
+  ioDeviceWindow: IoDeviceWindow;
+  worker: Worker;
+  sharedStdin: Int32Array;
+};
+
+type ServiceProcessData = {
+  process: Process;
+  commandOptionIndex: number;
+  ioDeviceWindow: IoDeviceWindow;
+};
+
+type ProcessData = WorkerProcessData | ServiceProcessData;
+
+function isWorkerProcess(process: ProcessData): process is WorkerProcessData {
+  return "worker" in process;
+}
+
 const isFunction = (value: any) =>
   value &&
   (Object.prototype.toString.call(value) === "[object Function]" ||
@@ -28,7 +54,7 @@ let processWorkerBlobUrl: string | undefined;
 
 export default class CommandRunner {
   commandOptionsForProcessesToRun: Array<any>;
-  spawnedProcessObjects: Array<any>;
+  spawnedProcessObjects: Array<ProcessData>;
   spawnedProcesses: number;
   pipedStdinDataForNextProcess: Uint8Array;
   isRunning: boolean;
@@ -42,13 +68,18 @@ export default class CommandRunner {
 
   wasmTty?: WasmTty;
 
+  stdin: string;
+  stdout: string;
+
   constructor(
     wasmTerminalConfig: WasmTerminalConfig,
     commandString: string,
     commandStartReadCallback: Function,
-    commandEndCallback: Function,
+    commandEndCallback: (result: CommandResult) => void,
     wasmTty?: WasmTty
   ) {
+    this.stdin = "";
+    this.stdout = "";
     this.wasmTerminalConfig = wasmTerminalConfig;
     this.commandString = commandString;
     this.commandStartReadCallback = commandStartReadCallback;
@@ -92,6 +123,7 @@ export default class CommandRunner {
         this.wasmTty.print(`wasm shell: parse error (${c.toString()})\r\n`);
       }
       console.error(c);
+      // TODO: Figure out what to pass through on error
       this.commandEndCallback();
       return;
     }
@@ -108,7 +140,7 @@ export default class CommandRunner {
     }
 
     this.spawnedProcessObjects.forEach((processObject) => {
-      if (processObject.worker) {
+      if (isWorkerProcess(processObject)) {
         processObject.worker.terminate();
       }
 
@@ -121,18 +153,23 @@ export default class CommandRunner {
     this.spawnedProcessObjects = [];
     this.isRunning = false;
 
+    // TODO: Figure out what to pass after being killed
     this.commandEndCallback();
   }
 
   _addStdinToSharedStdin(data: Uint8Array, processObjectIndex: number) {
     // Pass along the stdin to the shared object
 
-    if (!this.spawnedProcessObjects[processObjectIndex]) {
+    const processData = this.spawnedProcessObjects[processObjectIndex];
+    if (!processData) {
       return;
     }
 
-    const sharedStdin =
-      this.spawnedProcessObjects[processObjectIndex].sharedStdin;
+    if (!isWorkerProcess(processData)) {
+      return;
+    }
+
+    const sharedStdin = processData.sharedStdin;
     let startingIndex = 1;
     if (sharedStdin[0] > 0) {
       startingIndex = sharedStdin[0];
@@ -145,6 +182,8 @@ export default class CommandRunner {
     sharedStdin[0] = startingIndex + data.length - 1;
 
     Atomics.notify(sharedStdin, 0, 1);
+
+    this.stdin += new TextDecoder().decode(data);
   }
 
   async _tryToSpawnProcess(commandOptionIndex: number) {
@@ -159,7 +198,7 @@ export default class CommandRunner {
   }
 
   async _spawnProcess(commandOptionIndex: number) {
-    let spawnedProcessObject = undefined;
+    let spawnedProcessObject: ProcessData;
 
     // Check if it is a Wasm command, that can be placed into a worker.
     if (
@@ -179,6 +218,8 @@ export default class CommandRunner {
     this.spawnedProcessObjects.push(spawnedProcessObject);
 
     // Start the process
+    // TODO: We know this has a start method but it doesnt seem to by
+    // typed that way need to investigate and fix
     spawnedProcessObject.process.start(
       this.pipedStdinDataForNextProcess.length > 0
         ? this.pipedStdinDataForNextProcess
@@ -202,7 +243,9 @@ export default class CommandRunner {
     }
   }
 
-  async _spawnProcessAsWorker(commandOptionIndex: number) {
+  async _spawnProcessAsWorker(
+    commandOptionIndex: number
+  ): Promise<WorkerProcessData> {
     if (!this.wasmTerminalConfig.processWorkerUrl) {
       throw new Error("Terminal Config missing the Process Worker URL");
     }
@@ -218,7 +261,7 @@ export default class CommandRunner {
       this.wasmTty
     );
     const processWorker = new Worker(workerBlobUrl);
-    const processComlink = Comlink.wrap(processWorker);
+    const ProcessComlink = Comlink.wrap<Process>(processWorker);
 
     // Generate our shared buffer
     const sharedStdinBuffer = new SharedArrayBuffer(8192);
@@ -231,7 +274,7 @@ export default class CommandRunner {
     const ioDeviceWindow = new IoDeviceWindow(sharedIoDeviceInputBuffer);
 
     // @ts-ignore
-    const process: any = await new processComlink(
+    const process: any = await new ProcessComlink(
       // Command Options
       this.commandOptionsForProcessesToRun[commandOptionIndex],
       // WasmFs File System JSON
@@ -278,7 +321,9 @@ export default class CommandRunner {
     };
   }
 
-  async _spawnProcessAsService(commandOptionIndex: number) {
+  async _spawnProcessAsService(
+    commandOptionIndex: number
+  ): Promise<ServiceProcessData> {
     // Get our filesystem state
     const wasmFsJson = this.wasmTerminalConfig.wasmFs.toJSON();
 
@@ -311,6 +356,10 @@ export default class CommandRunner {
     { commandOptionIndex, sync }: { commandOptionIndex: number; sync: boolean },
     data: Uint8Array
   ) {
+    // Write the output to our terminal
+    let dataString = new TextDecoder("utf-8").decode(data);
+    this.stdout += dataString;
+
     if (!this.isRunning) return;
 
     if (commandOptionIndex < this.commandOptionsForProcessesToRun.length - 1) {
@@ -337,8 +386,6 @@ export default class CommandRunner {
         this.pipedStdinDataForNextProcess = newPipedStdinData;
       }
     } else {
-      // Write the output to our terminal
-      let dataString = new TextDecoder("utf-8").decode(data);
       if (this.wasmTty) {
         this.wasmTty.print(dataString, sync);
       }
@@ -371,7 +418,12 @@ export default class CommandRunner {
       // We are now done!
       // Call the passed end callback
       this.isRunning = false;
-      this.commandEndCallback();
+
+      this.commandEndCallback({
+        stdin: this.stdin,
+        stdout: this.stdout,
+        fs: wasmFsJson,
+      });
     }
 
     // Remove ourself from the spawned workers

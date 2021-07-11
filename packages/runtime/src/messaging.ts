@@ -45,17 +45,14 @@ class TerminalProvider {
       this.terminal.writeFile(key, fs[key].content);
     }
 
-    await this.terminal.runCommand(command);
-
-    // TODO: This doesn't appear to return anything
-    const stdout = await this.terminal.getStdout();
+    const result = await this.terminal.runCommand(command);
 
     return Promise.resolve({
-      stdout,
-      stdin: "",
+      stdout: result.stdout,
+      stdin: result.stdin,
       stderr: "",
       terminal: "",
-      fs: {},
+      fs: result.fs,
     });
   }
 

@@ -16,7 +16,7 @@ import WasmTerminalConfig from "../wasm-terminal-config";
 
 import WasmTty from "../wasm-tty/wasm-tty";
 
-import CommandRunner from "../command-runner/command-runner";
+import CommandRunner, { CommandResult } from "../command-runner/command-runner";
 
 /**
  * A shell is the primary interface that is used to start other programs.
@@ -35,6 +35,7 @@ export default class WasmShell {
   commandRunner?: CommandRunner;
 
   maxAutocompleteEntries: number;
+  disablePrompt: boolean;
   _autocompleteHandlers: AutoCompleteHandler[];
   _active: boolean;
   _activePrompt?: ActivePrompt;
@@ -43,17 +44,26 @@ export default class WasmShell {
   constructor(
     wasmTerminalConfig: WasmTerminalConfig,
     wasmTty: WasmTty,
-    options: { historySize: number; maxAutocompleteEntries: number } = {
+    options: {
+      historySize?: number;
+      maxAutocompleteEntries?: number;
+      disablePrompt?: boolean;
+    } = {}
+  ) {
+    const defaults = {
       historySize: 10,
       maxAutocompleteEntries: 100,
-    }
-  ) {
+      disablePrompt: false,
+    };
+    const optionValues = { ...defaults, ...options };
+
     this.wasmTerminalConfig = wasmTerminalConfig;
     this.wasmTty = wasmTty;
-    this.history = new ShellHistory(options.historySize);
+    this.history = new ShellHistory(optionValues.historySize);
     this.commandRunner = undefined;
 
-    this.maxAutocompleteEntries = options.maxAutocompleteEntries;
+    this.maxAutocompleteEntries = optionValues.maxAutocompleteEntries;
+    this.disablePrompt = optionValues.disablePrompt;
     this._autocompleteHandlers = [
       (index, tokens) => {
         return this.history.entries;
@@ -64,7 +74,7 @@ export default class WasmShell {
 
   async prompt() {
     // If we are already prompting, do nothing...
-    if (this._activePrompt) {
+    if (this._activePrompt || this.disablePrompt) {
       return;
     }
 
@@ -100,6 +110,30 @@ export default class WasmShell {
       // tslint:disable-next-line
       this.prompt();
     }
+  }
+
+  runCommand(line: string): Promise<CommandResult> {
+    return new Promise<CommandResult>((resolve, reject) => {
+      this.commandRunner = new CommandRunner(
+        this.wasmTerminalConfig,
+        line,
+        // Command Read Callback
+        () => {
+          this._activePrompt = this.wasmTty.read("");
+          this._active = true;
+          return this._activePrompt.promise;
+        },
+        // Command End Callback
+        (result) => {
+          resolve(result);
+          setTimeout(() => {
+            this.prompt();
+          });
+        },
+        this.wasmTty
+      );
+      this.commandRunner.runCommand();
+    });
   }
 
   isPrompting() {
@@ -246,8 +280,9 @@ export default class WasmShell {
   /**
    * Handle input completion
    */
-  handleReadComplete = () => {
+  handleReadComplete = async (): Promise<any> => {
     if (this._activePrompt && this._activePrompt.resolve) {
+      // TODO: Need to do stuff with this in a promise
       this._activePrompt.resolve(this.wasmTty.getInput());
       this._activePrompt = undefined;
     }

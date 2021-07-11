@@ -1,10 +1,16 @@
 // TODO: Use this version when deploying?
 //import WasmTerminal from "@wasmer/wasm-terminal/lib/optimized/wasm-terminal.esm";
-import WasmTerminal from "@wasmer/wasm-terminal";
-import processWorkerURL from "@wasmer/wasm-terminal/lib/workers/process.worker.js?url";
+import WasmTerminal from "@make-run/terminal";
+import processWorkerURL from "@make-run/terminal/lib/workers/process.worker.js?url";
 import { WasmFs } from "./wasmfs";
 
 import WAPM from "./wapm/wapm";
+
+type CommandResult = {
+  stdout: string;
+  stdin: string;
+  fs: any;
+};
 
 async function waitForTimeout(millis: number): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -51,21 +57,10 @@ export class Terminal {
    *
    * @param command the raw terminal command to run
    */
-  async runCommand(command: string): Promise<void> {
-    // Wait for the terminal to open and start prompting
-    // this is necessary or the terminal won't execute the command
-    // (limitation of WasmTerminal)
-    while (!this.isReadyForCommand()) {
-      await waitForTimeout(50);
-    }
-
-    this.wasmTerminal.runCommand(command);
+  runCommand(command: string): Promise<CommandResult> {
+    const promise = this.wasmTerminal.runCommandDirect(command);
     this.focus();
-
-    // Now wait for it to complete running the command
-    while (!this.isReadyForCommand()) {
-      await waitForTimeout(50);
-    }
+    return promise;
   }
 
   isReadyForCommand(): boolean {

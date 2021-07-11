@@ -14,7 +14,8 @@
     "build:ts": "npx tsc -b",
     "build:prod": "npx rollup -c --environment LIB,WORKER,PROD",
     "build:dev": "npx rollup -c --environment LIB,WORKER,DEV",
-    "dev": "npx rollup -c --environment LIB,WORKER,DEV --watch",
+    "dev": "echo watch doesnt work in dev, have to use prod build for now",
+    "watch": "npx rollup -c --environment LIB,WORKER,DEV --watch",
     "test": "npx jest --config jest.config.js",
     "test:watch": "npx jest --config jest.config.js --watchAll",
     "docs": "npx typedoc src/ --out docs --target es6 --theme minimal --mode file"
