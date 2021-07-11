@@ -25,7 +25,7 @@ class TerminalProvider {
   // Public Interface
   //
 
-  async interactiveRunCode(runtime: Runtime, code: string): Promise<ResultFS> {
+  interactiveRunCode(runtime: Runtime, code: string): Promise<ResultFS> {
     return this.interactiveRunFS(runtime, "program", {
       program: { name: "program", content: code },
     });
@@ -40,22 +40,22 @@ class TerminalProvider {
     return this.interactiveUnsafeCommand(command, fs);
   }
 
-  interactiveUnsafeCommand(command: string, fs: FS): Promise<ResultFS> {
+  async interactiveUnsafeCommand(command: string, fs: FS): Promise<ResultFS> {
     for (const key of Object.keys(fs)) {
       this.terminal.writeFile(key, fs[key].content);
     }
 
-    this.terminal.runCommand(command);
-    this.terminal.focus();
+    const result = await this.terminal.runCommand(command);
 
     return Promise.resolve({
-      stdin: "",
-      stdout: "",
+      stdout: result.stdout,
+      stdin: result.stdin,
       stderr: "",
       terminal: "",
-      fs: {},
+      fs: result.fs,
     });
   }
+
   headlessRunCode(runtime: Runtime, code: string): Promise<ResultFS> {
     return Promise.resolve({
       stdin: "",
@@ -65,6 +65,7 @@ class TerminalProvider {
       fs: {},
     });
   }
+
   headlessRunFS(
     runtime: Runtime,
     entryPath: string,
@@ -78,6 +79,7 @@ class TerminalProvider {
       fs: {},
     });
   }
+
   headlessUnsafeCommand(command: string, fs: FS): Promise<ResultFS> {
     return Promise.resolve({
       stdin: "",

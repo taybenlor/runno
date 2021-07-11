@@ -1,0 +1,53 @@
+{
+  "name": "@make-run/terminal",
+  "version": "0.10.2",
+  "description": "A terminal-like component for the browser, that fetches and runs Wasm modules in the context of a shell. 🐚",
+  "module": "lib/unoptimized/wasm-terminal.esm.js",
+  "iife": "lib/unoptimized/wasm-terminal.iife.js",
+  "typings": "lib/unoptimized/packages/wasm-terminal/src/index.d.ts",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "build": "npm run build:clean && npm run build:prod",
+    "build:clean": "rm -rf lib",
+    "build:ts": "npx tsc -b",
+    "build:prod": "npx rollup -c --environment LIB,WORKER,PROD",
+    "build:dev": "npx rollup -c --environment LIB,WORKER,DEV",
+    "dev": "echo watch doesnt work in dev, have to use prod build for now",
+    "watch": "npx rollup -c --environment LIB,WORKER,DEV --watch",
+    "test": "npx jest --config jest.config.js",
+    "test:watch": "npx jest --config jest.config.js --watchAll",
+    "docs": "npx typedoc src/ --out docs --target es6 --theme minimal --mode file"
+  },
+  "author": "Wasmer Engineering Team <engineering@wasmer.io>",
+  "license": "MIT",
+  "dependencies": {
+    "@wasmer/io-devices": "^0.10.2",
+    "@wasmer/wasi": "^0.10.2",
+    "@wasmer/wasmfs": "^0.10.2",
+    "comlink": "^4.0.5",
+    "shell-parse": "0.0.2",
+    "shell-quote": "^1.7.1",
+    "xterm": "^4.1.0",
+    "xterm-addon-fit": "^0.2.1",
+    "xterm-addon-web-links": "^0.2.1",
+    "xterm-addon-webgl": "^0.2.1"
+  },
+  "devDependencies": {
+    "jest": "^27.0.6",
+    "rollup": "^2.52.7",
+    "rollup-plugin-alias": "^2.2.0",
+    "rollup-plugin-bundle-size": "^1.0.3",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-copy": "^3.4.0",
+    "rollup-plugin-json": "^4.0.0",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-node-globals": "^1.4.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-replace": "^2.2.0",
+    "rollup-plugin-typescript2": "^0.30.0",
+    "rollup-plugin-url": "^3.0.1",
+    "typescript": "^4.3.5"
+  }
+}
