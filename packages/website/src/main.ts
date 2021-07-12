@@ -1,10 +1,16 @@
 import { ParentHandshake, WindowMessenger } from "post-me";
 
 const runButton = document.getElementById("run") as HTMLButtonElement;
+const headlessButton = document.getElementById(
+  "run-headless"
+) as HTMLButtonElement;
 const runtimeSelect = document.getElementById(
   "runtime-select"
 ) as HTMLSelectElement;
 const codeEl = document.getElementById("code") as HTMLTextAreaElement;
+const headlessStdinEl = document.getElementById(
+  "headless-stdin"
+) as HTMLTextAreaElement;
 const stdoutEl = document.getElementById("stdout") as HTMLPreElement;
 const stderrEl = document.getElementById("stderr") as HTMLPreElement;
 const stdinEl = document.getElementById("stdin") as HTMLPreElement;
@@ -37,5 +43,22 @@ ParentHandshake(messenger).then((connection) => {
     ttyEl.textContent = tty;
 
     console.log("Resulting STDOUT", stdout);
+  });
+
+  headlessButton.addEventListener("click", async function () {
+    const code = codeEl.value;
+    const codeStdin = headlessStdinEl.value;
+
+    const { stdin, stdout, stderr, tty } = await remoteHandle.call(
+      "headlessRunCode",
+      runtimeSelect.value,
+      code,
+      codeStdin
+    );
+
+    stdoutEl.textContent = stdout;
+    stdinEl.textContent = stdin;
+    stderrEl.textContent = stderr;
+    ttyEl.textContent = tty;
   });
 });

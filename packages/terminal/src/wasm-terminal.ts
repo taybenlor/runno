@@ -7,7 +7,7 @@ import { FitAddon } from "xterm-addon-fit";
 import { WebLinksAddon } from "xterm-addon-web-links";
 // import { WebglAddon } from 'xterm-addon-webgl';
 
-import WasmTerminalConfig from "./wasm-terminal-config";
+import { default as WasmTerminalConfig } from "./wasm-terminal-config";
 import WasmTty from "./wasm-tty/wasm-tty";
 import WasmShell from "./wasm-shell/wasm-shell";
 

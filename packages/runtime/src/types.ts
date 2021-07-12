@@ -1,5 +1,5 @@
 export type Runtime = "python" | "quickjs";
-export type ResultFS = {
+export type CommandResult = {
   stdin: string;
   stdout: string;
   stderr: string;
@@ -17,19 +17,22 @@ export type File = {
 };
 
 export type RuntimeMethods = {
-  interactiveRunCode: (runtime: Runtime, code: string) => Promise<ResultFS>;
+  interactiveRunCode: (
+    runtime: Runtime,
+    code: string
+  ) => Promise<CommandResult>;
   interactiveRunFS: (
     runtime: Runtime,
     entryPath: string,
     fs: FS
-  ) => Promise<ResultFS>;
-  interactiveUnsafeCommand: (command: string, fs: FS) => Promise<ResultFS>;
+  ) => Promise<CommandResult>;
+  interactiveUnsafeCommand: (command: string, fs: FS) => Promise<CommandResult>;
 
-  headlessRunCode: (runtime: Runtime, code: string) => Promise<ResultFS>;
+  headlessRunCode: (runtime: Runtime, code: string) => Promise<CommandResult>;
   headlessRunFS: (
     runtime: Runtime,
     entryPath: string,
     fs: FS
-  ) => Promise<ResultFS>;
-  headlessUnsafeCommand: (command: string, fs: FS) => Promise<ResultFS>;
+  ) => Promise<CommandResult>;
+  headlessUnsafeCommand: (command: string, fs: FS) => Promise<CommandResult>;
 };

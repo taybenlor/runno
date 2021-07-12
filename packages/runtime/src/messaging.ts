@@ -1,6 +1,8 @@
 import { ChildHandshake, WindowMessenger } from "post-me";
-import { RuntimeMethods, Runtime, ResultFS, FS } from "./types";
+import { RuntimeMethods, Runtime, CommandResult, FS } from "./types";
 import { Terminal } from "./terminal";
+import { WasmFs } from "./wasmfs";
+import { headlessRunCommand } from "./headless";
 
 const messenger = new WindowMessenger({
   localWindow: window,
@@ -29,7 +31,7 @@ class TerminalProvider {
   // Public Interface
   //
 
-  interactiveRunCode(runtime: Runtime, code: string): Promise<ResultFS> {
+  interactiveRunCode(runtime: Runtime, code: string): Promise<CommandResult> {
     return this.interactiveRunFS(runtime, "program", {
       program: { name: "program", content: code },
     });
@@ -39,59 +41,61 @@ class TerminalProvider {
     runtime: Runtime,
     entryPath: string,
     fs: FS
-  ): Promise<ResultFS> {
+  ): Promise<CommandResult> {
     const command = commandForRuntime(runtime, entryPath);
     return this.interactiveUnsafeCommand(command, fs);
   }
 
-  async interactiveUnsafeCommand(command: string, fs: FS): Promise<ResultFS> {
+  interactiveUnsafeCommand(command: string, fs: FS): Promise<CommandResult> {
     for (const key of Object.keys(fs)) {
       this.terminal.writeFile(key, fs[key].content);
     }
 
-    const result = await this.terminal.runCommand(command);
-
-    return {
-      stdout: result.stdout,
-      stdin: result.stdin,
-      stderr: result.stderr,
-      tty: result.tty,
-      fs: result.fs,
-    };
+    return this.terminal.runCommand(command);
   }
 
-  headlessRunCode(runtime: Runtime, code: string): Promise<ResultFS> {
-    return Promise.resolve({
-      stdin: "",
-      stdout: "",
-      stderr: "",
-      tty: "",
-      fs: {},
-    });
+  headlessRunCode(
+    runtime: Runtime,
+    code: string,
+    stdin?: string
+  ): Promise<CommandResult> {
+    return this.headlessRunFS(
+      runtime,
+      "program",
+      {
+        program: { name: "program", content: code },
+      },
+      stdin
+    );
   }
 
   headlessRunFS(
     runtime: Runtime,
     entryPath: string,
-    fs: FS
-  ): Promise<ResultFS> {
-    return Promise.resolve({
-      stdin: "",
-      stdout: "",
-      stderr: "",
-      tty: "",
-      fs: {},
-    });
+    fs: FS,
+    stdin?: string
+  ): Promise<CommandResult> {
+    const command = commandForRuntime(runtime, entryPath);
+    return this.headlessUnsafeCommand(command, fs, stdin);
   }
 
-  headlessUnsafeCommand(command: string, fs: FS): Promise<ResultFS> {
-    return Promise.resolve({
-      stdin: "",
-      stdout: "",
-      stderr: "",
-      tty: "",
-      fs: {},
-    });
+  async headlessUnsafeCommand(
+    command: string,
+    fs: FS,
+    stdin?: string
+  ): Promise<CommandResult> {
+    const wasmfs = new WasmFs();
+    const jsonFs: { [name: string]: string | Uint8Array } = {
+      "/dev/stdin": "",
+      "/dev/stdout": "",
+      "/dev/stderr": "",
+    };
+    for (const key of Object.keys(fs)) {
+      jsonFs[key] = fs[key].content;
+    }
+    wasmfs.fromJSON(jsonFs);
+
+    return await headlessRunCommand(command, wasmfs, stdin);
   }
 
   //

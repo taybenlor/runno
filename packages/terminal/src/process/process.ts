@@ -202,7 +202,6 @@ export default class Process {
     } else {
       this.stdinPrompt = "";
     }
-    console.log("wrote", dataLines);
     return stdoutBuffer.length;
   }
 
@@ -216,7 +215,6 @@ export default class Process {
       this.stderrCallback(stderrBuffer);
     }
     let dataLines = new TextDecoder("utf-8").decode(stderrBuffer).split("\n");
-    console.log("error", dataLines);
     return stderrBuffer.length;
   }
 

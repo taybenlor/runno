@@ -9,19 +9,43 @@
   </head>
   <body class="h-full">
     <main id="app" class="w-full h-full flex flex-col justify-between">
-      <div class="flex-grow flex flex-col justify-between">
-        <div role="menu" class="bg-gray-300">
-          <button id="run" class="bg-blue-700 text-white p-4">Run</button>
-          <label class="ml-4 mr-2">
-            Runtime:
-            <select id="runtime-select">
-              <option value="python" selected default>Python</option>
-              <option value="quickjs">JavaScript (QuickJS)</option>
-            </select>
-          </label>
+      <div class="flex-grow flex flex-row">
+        <div class="flex-grow flex flex-col justify-between">
+          <div role="menu" class="bg-gray-300">
+            <button id="run" class="bg-blue-700 text-white p-4">Run</button>
+            <label class="ml-4 mr-2">
+              Runtime:
+              <select id="runtime-select">
+                <option value="python" selected default>Python</option>
+                <option value="quickjs">JavaScript (QuickJS)</option>
+              </select>
+            </label>
+          </div>
+          <textarea id="code" class="p-2 flex-grow font-mono"></textarea>
         </div>
-        <textarea id="code" class="p-2 flex-grow font-mono"></textarea>
+        <div
+          class="
+            flex-grow flex flex-col
+            justify-between
+            border-l-2 border-gray-300
+          "
+        >
+          <div
+            role="menu"
+            class="bg-gray-300 flex flex-row justify-between items-center"
+          >
+            <h2 class="font-bold text-lg">Stdin</h2>
+            <button id="run-headless" class="bg-blue-700 text-white p-4">
+              Run Headless
+            </button>
+          </div>
+          <textarea
+            id="headless-stdin"
+            class="p-2 flex-grow font-mono"
+          ></textarea>
+        </div>
       </div>
+
       <div class="flex-grow flex flex-row">
         <iframe
           crossorigin

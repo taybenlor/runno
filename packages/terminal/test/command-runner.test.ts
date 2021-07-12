@@ -1,4 +1,4 @@
-import CommandRunner from "../src/command-runner/command-runner";
+import { default as CommandRunner } from "../src/command-runner/command-runner";
 
 // Need to mock process inside command runner.
 jest.mock("../src/process/process", () => {

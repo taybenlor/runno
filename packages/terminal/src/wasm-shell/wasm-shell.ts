@@ -16,7 +16,10 @@ import WasmTerminalConfig from "../wasm-terminal-config";
 
 import WasmTty from "../wasm-tty/wasm-tty";
 
-import CommandRunner, { CommandResult } from "../command-runner/command-runner";
+import {
+  default as CommandRunner,
+  CommandResult,
+} from "../command-runner/command-runner";
 
 /**
  * A shell is the primary interface that is used to start other programs.

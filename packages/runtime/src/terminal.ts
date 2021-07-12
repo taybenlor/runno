@@ -6,20 +6,6 @@ import { WasmFs } from "./wasmfs";
 
 import WAPM from "./wapm/wapm";
 
-type CommandResult = {
-  stdout: string;
-  stdin: string;
-  stderr: string;
-  tty: string;
-  fs: any;
-};
-
-async function waitForTimeout(millis: number): Promise<void> {
-  return new Promise((resolve, reject) => {
-    setTimeout(resolve, millis);
-  });
-}
-
 export class Terminal {
   wasmFs: WasmFs;
   wasmTerminal: WasmTerminal;
@@ -32,7 +18,7 @@ export class Terminal {
       fetchCommand: this.fetchCommand.bind(this),
       wasmFs: this.wasmFs,
     });
-    this.wapm = new WAPM(this.wasmTerminal, this.wasmFs);
+    this.wapm = new WAPM(this.wasmFs, this.wasmTerminal);
 
     this.wasmTerminal.open(terminalEl);
     window.addEventListener("resize", () => {

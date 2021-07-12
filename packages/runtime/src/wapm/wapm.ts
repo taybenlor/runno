@@ -3,31 +3,10 @@ import table from "text-table";
 import { fetchCommandFromWAPM } from "./query";
 import { extractContents } from "../wasmfs/tar";
 import { lowerI64Imports } from "@wasmer/wasm-transformer";
+import WasmTerminal from "@make-run/terminal";
+import { WasmFs } from "../wasmfs";
 
 var COMPILED_MODULES = {};
-// const WAPM_COMMAND_GRAPHQL_QUERY = `query shellGetCommandQuery($command: String!) {
-//   command: getCommand(name: $command) {
-//     packageVersion
-//       package {
-//         displayName
-//       }
-//       modules {
-//         name
-//         publicUrl
-//         abi
-//       }
-//       version
-//       commands {
-//         command
-//         module {
-//           name
-//           publicUrl
-//           abi
-//         }
-//       }
-//     }
-//   }
-// }`;
 
 const WAPM_PACKAGE_QUERY = `query shellGetPackageQuery($name: String!, $version: String) {
   packageVersion: getPackageVersion(name: $name, version: $version) {
@@ -88,17 +67,6 @@ const getBinaryFromUrl = async (url) => {
   return new Uint8Array(buffer);
 };
 
-// const getWAPMPackageFromCommandName = async commandName => {
-//   let data = await execWapmQuery(WAPM_COMMAND_GRAPHQL_QUERY, {
-//     command: commandName,
-//   });
-//   if (data && data.command && data.command.packageVersion) {
-//     return data.command.packageVersion;
-//   } else {
-//     throw new Error(`command not found ${commandName}`);
-//   }
-// };
-
 const getWAPMPackageFromPackageName = async (packageName) => {
   let version;
   if (packageName.indexOf("@") > -1) {
@@ -117,14 +85,24 @@ const getWAPMPackageFromPackageName = async (packageName) => {
   }
 };
 
-const getWasmBinaryFromUrl = async (url) => {
+const getWasmBinaryFromUrl = async (url: string) => {
   const fetched = await fetch(url);
   const buffer = await fetched.arrayBuffer();
   return new Uint8Array(buffer);
 };
 
 export default class WAPM {
-  constructor(wasmTerminal, wasmFs) {
+  wasmTerminal: WasmTerminal | undefined;
+  wapmInstalledPackages: any[];
+  wapmCommands: { [name: string]: Uint8Array };
+  uploadedCommands: {};
+  cachedModules: { [name: string]: Uint8Array };
+  wasmFs: WasmFs;
+  callbackCommands: { [name: string]: Function };
+  _hiddenInput: HTMLInputElement;
+  currentInstallResolver: Function | undefined;
+
+  constructor(wasmFs: WasmFs, wasmTerminal?: WasmTerminal) {
     // Clear the cache. Can be very big.
     this.wasmTerminal = wasmTerminal;
 
@@ -145,7 +123,7 @@ export default class WAPM {
     hiddenInput.classList.add("hidden-file-input");
     hiddenInput.setAttribute("type", "file");
     hiddenInput.setAttribute("accept", ".wasm");
-    hiddenInput.setAttribute("hidden", true);
+    hiddenInput.setAttribute("hidden", "true");
     hiddenInput.addEventListener(
       "change",
       this._onHiddenInputChange.bind(this)
@@ -170,7 +148,7 @@ export default class WAPM {
       }
     }
   }
-  async fetchBinary(binaryUrl) {
+  async fetchBinary(binaryUrl: string) {
     if (!(binaryUrl in this.cachedModules)) {
       this.cachedModules[binaryUrl] = await getWasmBinaryFromUrl(binaryUrl);
     }
@@ -178,13 +156,16 @@ export default class WAPM {
   }
 
   // Check if a command is cached
-  isCommandCached(commandName) {
+  isCommandCached(commandName: string) {
     const cachedCommand = this._getCachedCommand(commandName);
     return cachedCommand !== undefined;
   }
 
   // Get a command from the wapm manager
-  async runCommand(options) {
+  async runCommand(options: {
+    args: string[];
+    env: { [name: string]: string };
+  }) {
     let commandName = options.args[0];
 
     // We convert the `wasmer run thecommand ...` to `thecommand ...`
@@ -215,7 +196,7 @@ export default class WAPM {
       if (!this.wasmFs.fs.existsSync(modulePath)) {
         throw new Error(`No such file or directory: ${modulePath}`);
       }
-      let wasmBinary = this.wasmFs.fs.readFileSync(modulePath);
+      let wasmBinary = this.wasmFs.fs.readFileSync(modulePath) as Uint8Array;
       let loweredBinary = await lowerI64Imports(wasmBinary);
       COMPILED_MODULES[modulePath] = await WebAssembly.compile(loweredBinary);
       return {
@@ -441,7 +422,7 @@ Additional commands can be installed by:
     }
     return true;
   }
-  async _installFromWapmCommand({ args, env }, wasmFs) {
+  async _installFromWapmCommand({ args, env }, wasmFs: WasmFs) {
     let commandName = args[0];
     // const wasmPackage = await getWAPMPackageFromCommandName(commandName);
     // await this.regenerateWAPMCommands();
@@ -463,16 +444,20 @@ Additional commands can be installed by:
       } catch {
         throw new Error(`The module ${program.modulePath} doesn't exist`);
       }
-      // time2 = performance.now();
-      this.wasmTerminal.wasmTty.clearStatus(true);
-      this.wasmTerminal.wasmTty.printStatus("[INFO] Compiling module", true);
+      if (this.wasmTerminal) {
+        this.wasmTerminal.wasmTty.clearStatus(true);
+        this.wasmTerminal.wasmTty.printStatus("[INFO] Compiling module", true);
+      }
 
       let loweredBinary = await lowerI64Imports(wasmBinary);
 
       COMPILED_MODULES[program.modulePath] = await WebAssembly.compile(
         loweredBinary
       );
-      this.wasmTerminal.wasmTty.clearStatus(true);
+
+      if (this.wasmTerminal) {
+        this.wasmTerminal.wasmTty.clearStatus(true);
+      }
     }
     program.module = COMPILED_MODULES[program.modulePath];
     // let time3 = performance.now();

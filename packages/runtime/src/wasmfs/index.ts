@@ -23,6 +23,8 @@ export default class WasmFsDefault {
   fs: IFs;
 
   constructor() {
+    // TODO: it's weird that it initializes volume and fs, then recreates them
+    // inside the `fromJSON`
     this.volume = new Volume();
     this.fs = createFsFromVolume(this.volume);
     this.fromJSON({
@@ -109,6 +111,8 @@ export default class WasmFsDefault {
   }
 
   fromJSON(fsJson: any) {
+    // TODO: For some reason this *requires* /dev/stderr etc to be defined
+    // as part of the fsJson
     this.volume = new Volume();
     this.fromJSONFixed(this.volume, fsJson);
     // @ts-ignore
