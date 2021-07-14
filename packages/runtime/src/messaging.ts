@@ -14,14 +14,19 @@ function commandForRuntime(name: string, entryPath: string) {
   if (name === "python") {
     return `python ${entryPath}`;
   }
+
   if (name === "quickjs") {
     return `quickjs --std ${entryPath}`;
+  }
+
+  if (name === "sqlite") {
+    return `cat ${entryPath} | sqlite`;
   }
 
   throw new Error(`Unknown runtime ${name}`);
 }
 
-class TerminalProvider {
+export class TerminalProvider {
   terminal: Terminal;
   constructor(terminal: Terminal) {
     this.terminal = terminal;
