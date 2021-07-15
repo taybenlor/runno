@@ -3,6 +3,7 @@
 import WasmTerminal from "@make-run/terminal";
 import processWorkerURL from "@make-run/terminal/lib/workers/process.worker.js?url";
 import { WasmFs } from "./wasmfs";
+import { CommandResult } from "./types";
 
 import WAPM from "./wapm/wapm";
 

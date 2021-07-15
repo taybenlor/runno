@@ -7,7 +7,7 @@ import { ActiveCharPrompt, ActivePrompt } from "../wasm-shell/shell-utils";
  * It acts an an interface for the shell and terminal to read/write from,
  * and communicate with one another
  */
-type AutoCompleteHandler = (index: number, tokens: string[]) => string[];
+// type AutoCompleteHandler = (index: number, tokens: string[]) => string[];
 
 export default class WasmTTY {
   xterm: Terminal;
@@ -209,7 +209,7 @@ export default class WasmTTY {
 
     // Get the line we are currently in
     const promptCursor = this.applyPromptOffset(this._input, this._cursor);
-    const { col, row } = offsetToColRow(
+    const { row } = offsetToColRow(
       currentPrompt,
       promptCursor,
       this._termSize.cols
@@ -357,7 +357,6 @@ export default class WasmTTY {
   _writeCursorPosition(newCursor: number) {
     // Apply prompt formatting to get the visual status of the display
     const inputWithPrompt = this.applyPrompts(this._input);
-    const inputLines = countLines(inputWithPrompt, this._termSize.cols);
 
     // Estimate previous cursor position
     const prevPromptOffset = this.applyPromptOffset(this._input, this._cursor);

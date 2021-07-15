@@ -12,7 +12,7 @@ export function headlessRunCommand(
   fs?: WasmFs,
   stdin?: string
 ): Promise<CommandResult> {
-  return new Promise<CommandResult>(function (resolve, reject) {
+  return new Promise<CommandResult>(function (resolve) {
     const wasmfs = fs || new WasmFs();
     const wapm = new WAPM(wasmfs);
 
@@ -22,6 +22,10 @@ export function headlessRunCommand(
       new WasmTerminalConfig({
         fetchCommand: wapm.runCommand.bind(wapm),
         processWorkerUrl: processWorkerURL,
+        // This is a conflict between my wasmfs in here vs the terminal
+        // Probably terminal should be moved into runtime as well
+        // There's not really much value in it being a different package
+        // @ts-ignore
         wasmFs: wasmfs,
       }),
       command,

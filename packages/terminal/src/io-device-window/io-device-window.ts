@@ -1,6 +1,6 @@
 // Class for interfacing with IO Devices on the main thread (window access).
 
-import { IoDevices } from "@wasmer/io-devices";
+import { IoDevices } from "../io-devices/io-devices";
 
 export default class IoDeviceWindow {
   ioDevices: IoDevices | undefined;
@@ -257,7 +257,6 @@ export default class IoDeviceWindow {
 
   _eventListenerKeydown(event: KeyboardEvent): void {
     event.preventDefault();
-    const keyCode = event.keyCode;
     if (!this.popupKeyCodes.includes(event.keyCode)) {
       this.popupKeyCodes.push(event.keyCode);
     }
@@ -265,7 +264,6 @@ export default class IoDeviceWindow {
 
   _eventListenerKeyup(event: KeyboardEvent): void {
     event.preventDefault();
-    const keyCode = event.keyCode;
     const keyCodeIndex = this.popupKeyCodes.indexOf(event.keyCode);
     if (keyCodeIndex > -1) {
       this.popupKeyCodes.splice(keyCodeIndex, 1);

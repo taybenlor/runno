@@ -1,4 +1,4 @@
-import { parse, ParseEntry } from "shell-quote";
+import { parse } from "shell-quote";
 
 export interface ActiveCharPrompt {
   promptPrefix: string;

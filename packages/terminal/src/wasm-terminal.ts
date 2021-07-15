@@ -45,8 +45,6 @@ export default class WasmTerminal {
       // Fix for iOS Keyboard Jumping on space
       if (keyEvent.key === " ") {
         keyEvent.domEvent.preventDefault();
-        // keyEvent.domEvent.stopPropagation();
-        return false;
       }
     });
 

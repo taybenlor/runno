@@ -1,7 +1,7 @@
 import { WasmFs } from "@wasmer/wasmfs";
-import { IoDevices } from "@wasmer/io-devices";
 import { WASIExitError } from "@wasmer/wasi";
 
+import { IoDevices } from "../io-devices/io-devices";
 import CommandOptions from "../command/command-options";
 import Command from "../command/command";
 import WASICommand from "../command/wasi-command";
@@ -163,14 +163,13 @@ export default class Process {
       end();
     } catch (e) {
       if (e instanceof WASIExitError) {
-        const exitCode = e.code;
+        // const exitCode = e.code;
         end();
         // Set timeout to allow any lingering data callback to be launched out
         return;
       }
 
       let error = "Unknown Error";
-      let isUserError = e.user !== undefined;
 
       if (e.code !== undefined) {
         error = `exited with code: ${e.code}`;
@@ -188,10 +187,10 @@ export default class Process {
   }
 
   stdoutWrite(
-    stdoutBuffer: Buffer | Uint8Array,
-    offset: number = 0,
-    length: number = stdoutBuffer.byteLength,
-    position?: number
+    stdoutBuffer: Buffer | Uint8Array
+    // offset: number = 0,
+    // length: number = stdoutBuffer.byteLength,
+    // position?: number
   ) {
     if (this.stdoutCallback) {
       this.stdoutCallback(stdoutBuffer);
@@ -206,15 +205,15 @@ export default class Process {
   }
 
   stderrWrite(
-    stderrBuffer: Buffer | Uint8Array,
-    offset: number = 0,
-    length: number = stderrBuffer.byteLength,
-    position?: number
+    stderrBuffer: Buffer | Uint8Array
+    // offset: number = 0,
+    // length: number = stderrBuffer.byteLength,
+    // position?: number
   ) {
     if (this.stderrCallback) {
       this.stderrCallback(stderrBuffer);
     }
-    let dataLines = new TextDecoder("utf-8").decode(stderrBuffer).split("\n");
+    //let dataLines = new TextDecoder("utf-8").decode(stderrBuffer).split("\n");
     return stderrBuffer.length;
   }
 
@@ -224,10 +223,10 @@ export default class Process {
   // This is the the thing that returns -1 because it is the actual file system,
   // but it is up to WASI lib  (wasi.ts) to find out why this error'd
   stdinRead(
-    stdinBuffer: Buffer | Uint8Array,
-    offset: number = 0,
-    length: number = stdinBuffer.byteLength,
-    position?: number
+    stdinBuffer: Buffer | Uint8Array
+    // offset: number = 0,
+    // length: number = stdinBuffer.byteLength,
+    // position?: number
   ) {
     if (this.readStdinCounter % 2 !== 0) {
       this.readStdinCounter++;

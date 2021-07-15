@@ -4,7 +4,6 @@ import {
   Volume,
   filenameToSteps,
   DirectoryJSON,
-  TFilePath,
   pathToFilename,
 } from "memfs/lib/volume";
 import { Link } from "memfs/lib/node";
@@ -65,7 +64,7 @@ export default class WasmFsDefault {
   }
 
   toJSON(
-    paths?: TFilePath | TFilePath[],
+    paths?: string | string[],
     json: any = {},
     isRelative = false
   ): DirectoryJSON {

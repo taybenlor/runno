@@ -68,7 +68,7 @@ export default class WasmShell {
     this.maxAutocompleteEntries = optionValues.maxAutocompleteEntries;
     this.disablePrompt = optionValues.disablePrompt;
     this._autocompleteHandlers = [
-      (index, tokens) => {
+      () => {
         return this.history.entries;
       },
     ];
@@ -116,7 +116,7 @@ export default class WasmShell {
   }
 
   runCommand(line: string): Promise<CommandResult> {
-    return new Promise<CommandResult>((resolve, reject) => {
+    return new Promise<CommandResult>((resolve) => {
       this.commandRunner = new CommandRunner(
         this.wasmTerminalConfig,
         line,
@@ -174,8 +174,6 @@ export default class WasmShell {
    * and then re-displays the prompt.
    */
   printAndRestartPrompt(callback: () => Promise<any> | undefined) {
-    const cursor = this.wasmTty.getCursor();
-
     // Complete input
     this.wasmTty.setCursor(this.wasmTty.getInput().length);
     this.wasmTty.print("\r\n");

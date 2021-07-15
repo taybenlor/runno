@@ -12,7 +12,7 @@ export type CallbackCommand = (
 
 type FetchCommandFunction = (options: {
   args: Array<string>;
-  env?: { [key: string]: string };
+  env: { [key: string]: string };
 }) => Promise<Uint8Array | CallbackCommand | CommandOptions>;
 
 export default class WasmTerminalConfig {
@@ -27,7 +27,7 @@ export default class WasmTerminalConfig {
   }: {
     fetchCommand: FetchCommandFunction;
     processWorkerUrl: string;
-    wasmFs: WasmFs | undefined;
+    wasmFs: WasmFs;
   }) {
     this.fetchCommand = fetchCommand;
     this.processWorkerUrl = processWorkerUrl;

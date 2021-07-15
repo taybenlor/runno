@@ -6,7 +6,7 @@ import { lowerI64Imports } from "@wasmer/wasm-transformer";
 import WasmTerminal from "@make-run/terminal";
 import { WasmFs } from "../wasmfs";
 
-var COMPILED_MODULES = {};
+var COMPILED_MODULES: { [name: string]: WebAssembly.Module } = {};
 
 const WAPM_PACKAGE_QUERY = `query shellGetPackageQuery($name: String!, $version: String) {
   packageVersion: getPackageVersion(name: $name, version: $version) {
@@ -33,15 +33,47 @@ const WAPM_PACKAGE_QUERY = `query shellGetPackageQuery($name: String!, $version:
         name
         abi
         source
+        publicUrl
       }
     }
   }
 }
 `;
 
-const STORAGE_KEY = "WAPM_STORAGE";
+type PackageVersion = {
+  version: string;
+  package: {
+    name: string;
+    displayName: string;
+  };
+  filesystem: Array<{
+    wasm: string;
+    host: string;
+  }>;
+  distribution: {
+    downloadUrl: string;
+  };
+  modules: Array<{
+    name: string;
+    publicUrl: string;
+    abi: string;
+  }>;
+  commands: Array<{
+    command: string;
+    module: {
+      name: string;
+      abi: string;
+      source: string;
+      publicUrl: string;
+    };
+  }>;
+};
 
-const execWapmQuery = async (query: string, variables: any) => {
+type PackageQueryData = {
+  packageVersion: PackageVersion;
+};
+
+async function execWapmQuery(query: string, variables: any) {
   const fetchResponse = await fetch("https://registry.wapm.io/graphql", {
     method: "POST",
     mode: "cors",
@@ -59,25 +91,25 @@ const execWapmQuery = async (query: string, variables: any) => {
   if (response && response.data) {
     return response.data;
   }
-};
+}
 
-const getBinaryFromUrl = async (url) => {
+const getBinaryFromUrl = async (url: string) => {
   const fetched = await fetch(url);
   const buffer = await fetched.arrayBuffer();
   return new Uint8Array(buffer);
 };
 
-const getWAPMPackageFromPackageName = async (packageName) => {
+const getWAPMPackageFromPackageName = async (packageName: string) => {
   let version;
   if (packageName.indexOf("@") > -1) {
     const splitted = packageName.split("@");
     packageName = splitted[0];
     version = splitted[1];
   }
-  let data = await execWapmQuery(WAPM_PACKAGE_QUERY, {
+  let data: PackageQueryData = (await execWapmQuery(WAPM_PACKAGE_QUERY, {
     name: packageName,
     version: version,
-  });
+  })) as PackageQueryData;
   if (data && data.packageVersion) {
     return data.packageVersion;
   } else {
@@ -93,9 +125,9 @@ const getWasmBinaryFromUrl = async (url: string) => {
 
 export default class WAPM {
   wasmTerminal: WasmTerminal | undefined;
-  wapmInstalledPackages: any[];
+  wapmInstalledPackages: PackageVersion[];
   wapmCommands: { [name: string]: Uint8Array };
-  uploadedCommands: {};
+  uploadedCommands: { [name: string]: Uint8Array };
   cachedModules: { [name: string]: Uint8Array };
   wasmFs: WasmFs;
   callbackCommands: { [name: string]: Function };
@@ -215,12 +247,11 @@ export default class WAPM {
     return await this._installFromWapmCommand(options, this.wasmFs);
   }
 
-  async installWasmBinary(commandName, wasmBinary) {
+  async installWasmBinary(commandName: string, wasmBinary: Uint8Array) {
     this.uploadedCommands[commandName] = wasmBinary;
-    await this._syncToStorage();
   }
 
-  _getCachedCommand(commandName) {
+  _getCachedCommand(commandName: string) {
     if (this.callbackCommands[commandName]) {
       return this.callbackCommands[commandName];
     }
@@ -231,7 +262,7 @@ export default class WAPM {
     return undefined;
   }
 
-  async _wapmCallbackCommand(options, wasmFs) {
+  async _wapmCallbackCommand(options: { args: string[] }, wasmFs: WasmFs) {
     const args = options.args;
     if (args.length === 1) {
       return this._help();
@@ -277,18 +308,17 @@ SUBCOMMANDS:
   }
 
   _list() {
-    let packageModules = [];
-    Object.keys(this.wapmInstalledPackages).forEach((key) => {
-      let _package = this.wapmInstalledPackages[key];
-      _package.modules.forEach((mod) => {
+    let packageModules: Array<string[]> = [];
+    for (const _package of this.wapmInstalledPackages) {
+      for (const mod of _package.modules) {
         packageModules.push([
           _package.package.displayName,
           _package.version,
           mod.name,
           mod.abi,
         ]);
-      });
-    });
+      }
+    }
 
     let packages = [["COMMAND", "VERSION", "MODULE", "ABI"]].concat(
       packageModules
@@ -324,7 +354,7 @@ Additional commands can be installed by:
     return message.replace(/\n\n/g, "\n \n");
   }
 
-  async _install(packageName, wasmFs) {
+  async _install(packageName: string, wasmFs: WasmFs) {
     let packageVersion = await getWAPMPackageFromPackageName(packageName);
     if (!packageVersion) {
       throw new Error(`Package not found in the registry: ${packageName}`);
@@ -349,7 +379,7 @@ Additional commands can be installed by:
       .join(", ")}`;
   }
 
-  async _uninstall(packageOrCommandName) {
+  async _uninstall(packageOrCommandName: string) {
     // Uninstalling a callback (should error)
     if (this.callbackCommands[packageOrCommandName]) {
       return `Cannot remove the built-in command: \`${packageOrCommandName}\`.`;
@@ -362,24 +392,24 @@ Additional commands can be installed by:
     }
 
     // Uninstalling a wapm package
-    let wapmInstalledPackage = this.wapmInstalledPackages.filter(
+    const packages = this.wapmInstalledPackages.filter(
       (installedPackage) =>
         installedPackage.package.displayName === packageOrCommandName
     );
-    if (wapmInstalledPackage) {
-      wapmInstalledPackage = wapmInstalledPackage[0];
+    if (packages.length > 0) {
+      const removePackage = packages[0];
       this.wapmInstalledPackages = this.wapmInstalledPackages.filter(
-        (installedPackage) => installedPackage !== wapmInstalledPackage
+        (installedPackage) => installedPackage !== removePackage
       );
       await this.regenerateWAPMCommands();
 
-      return `Package "${wapmInstalledPackage.package.displayName}" uninstalled successfully.`;
+      return `Package "${removePackage.package.displayName}" uninstalled successfully.`;
     }
 
     return `Package "${packageOrCommandName}" is not installed.`;
   }
 
-  async _installWapmPackage(packageVersion, wasmFs) {
+  async _installWapmPackage(packageVersion: PackageVersion, wasmFs: WasmFs) {
     // console.log("Install package", packageVersion)
     const packageUrl = packageVersion.distribution.downloadUrl;
     let binary = await getBinaryFromUrl(packageUrl);
@@ -402,7 +432,7 @@ Additional commands can be installed by:
       const binaryName = `/bin/${command.command}`;
       const wasmFullPath = `${installedPath}/${command.module.source}`;
       const filesystem = packageVersion.filesystem;
-      let preopens = {};
+      let preopens: { [name: string]: string } = {};
       filesystem.forEach(({ wasm, host }) => {
         preopens[wasm] = `${installedPath}/${host}`;
       });
@@ -422,14 +452,17 @@ Additional commands can be installed by:
     }
     return true;
   }
-  async _installFromWapmCommand({ args, env }, wasmFs: WasmFs) {
+  async _installFromWapmCommand(
+    { args, env }: { args: string[]; env: { [name: string]: string } },
+    wasmFs: WasmFs
+  ) {
     let commandName = args[0];
     // const wasmPackage = await getWAPMPackageFromCommandName(commandName);
     // await this.regenerateWAPMCommands();
     // return this.wapmCommands[commandName];
     const binaryName = `/bin/${commandName}`;
     if (!wasmFs.fs.existsSync(binaryName)) {
-      let command = await fetchCommandFromWAPM({ args, env });
+      let command = await fetchCommandFromWAPM({ args });
       await this._installWapmPackage(command.packageVersion, wasmFs);
     }
     // let time1 = performance.now();
@@ -438,7 +471,7 @@ Additional commands can be installed by:
     let program = mainProgram({ args, env });
     // let time2 = performance.now();
     if (!(program.modulePath in COMPILED_MODULES)) {
-      let wasmBinary;
+      let wasmBinary: any; // TODO: Unclear what type this is but it seems to work
       try {
         wasmBinary = wasmFs.fs.readFileSync(program.modulePath);
       } catch {
@@ -466,7 +499,7 @@ Additional commands can be installed by:
   }
 
   async _installFromFile() {
-    const gotInputPromise = new Promise((resolve) => {
+    const gotInputPromise: Promise<File> = new Promise((resolve) => {
       this.currentInstallResolver = resolve;
     });
     this._hiddenInput.click();
@@ -486,9 +519,11 @@ Additional commands can be installed by:
     return commandName;
   }
 
-  _onHiddenInputChange(event) {
+  _onHiddenInputChange(event: Event) {
     if (this.currentInstallResolver) {
-      this.currentInstallResolver(event.target.files[0]);
+      this.currentInstallResolver(
+        (event.target! as HTMLInputElement).files![0]
+      );
     }
   }
 }

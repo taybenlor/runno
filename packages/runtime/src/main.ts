@@ -7,7 +7,7 @@ const terminalEl = document.querySelector<HTMLElement>("#wasm-terminal")!;
 const terminal = new Terminal(terminalEl);
 
 // Set up iframe messaging connections
-createConnection(terminal).then((connection) => {});
+createConnection(terminal).then(() => {});
 
 // Handle params (if there are any)
 handleParams(terminal);

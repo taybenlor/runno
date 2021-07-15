@@ -1,21 +1,18 @@
 {
-  "include": ["**/node_modules/comlink/**/*", "3p-modules.d.ts"],
   "compilerOptions": {
-    "target": "es5",
-    "moduleResolution": "node",
-    "lib": ["esnext", "dom"],
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "moduleResolution": "Node",
     "strict": true,
     "sourceMap": true,
-    "declaration": true,
-    "allowSyntheticDefaultImports": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "downlevelIteration": true,
-    "declarationDir": "lib/types",
-    "outDir": "lib/",
-    "jsx": "react",
-    "jsxFactory": "h",
-    "typeRoots": ["node_modules/@types"],
-    "preserveSymlinks": true
-  }
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true
+  },
+  "include": ["./src"],
+  "exclude": ["node_modules"]
 }

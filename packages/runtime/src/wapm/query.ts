@@ -37,7 +37,7 @@ const WAPM_GRAPHQL_QUERY = `query shellGetCommandQuery($command: String!) {
   }
 }`;
 
-const getCommandFromWAPM = async (commandName) => {
+const getCommandFromWAPM = async (commandName: string) => {
   const fetchResponse = await fetch("https://registry.wapm.io/graphql", {
     method: "POST",
     mode: "cors",
@@ -62,7 +62,7 @@ const getCommandFromWAPM = async (commandName) => {
   }
 };
 
-export const fetchCommandFromWAPM = async ({ args, env }) => {
+export const fetchCommandFromWAPM = async ({ args }: { args: string[] }) => {
   const commandName = args[0];
   const command = await getCommandFromWAPM(commandName);
   if (command.module.abi !== "wasi") {
