@@ -1,0 +1,6 @@
+{
+  "hosting": {
+    "public": "packages/runtime/dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+  }
+}
