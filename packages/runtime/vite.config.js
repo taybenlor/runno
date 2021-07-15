@@ -14,6 +14,7 @@ const crossOriginPolicy = {
 export default {
   define: {
     "process.platform": JSON.stringify(null),
+    "process.env.NODE_DEBUG": JSON.stringify(false),
   },
   server: {
     port: 1234,

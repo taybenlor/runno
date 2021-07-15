@@ -16,6 +16,8 @@ const stderrEl = document.getElementById("stderr") as HTMLPreElement;
 const stdinEl = document.getElementById("stdin") as HTMLPreElement;
 const ttyEl = document.getElementById("tty") as HTMLPreElement;
 const runtimeIframe = document.getElementById("runtime") as HTMLIFrameElement;
+runtimeIframe.src = import.meta.env.VITE_RUNTIME;
+
 const runtimeWindow = runtimeIframe.contentWindow!;
 
 // For safety it is strongly adviced to pass the explicit child origin instead of '*'
