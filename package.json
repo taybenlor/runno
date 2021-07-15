@@ -15,7 +15,7 @@
     "build:runtime": "cd packages/runtime && npm run build",
     "build:website": "cd packages/website && npm run build",
     "build": "npm run build:terminal && npm run build:runtime && npm run build:website",
-    "build:cloudflare": "npm run bootstrap && npx lerna exec npm install && npm run build"
+    "build:deploy": "npm run bootstrap && npx lerna exec npm install && npm run build"
   },
   "eslintConfig": {
     "extends": "preact",
