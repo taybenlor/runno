@@ -35,6 +35,7 @@
     "xterm-addon-webgl": "^0.2.1"
   },
   "devDependencies": {
+    "@types/shell-quote": "^1.7.0",
     "jest": "^27.0.6",
     "rollup": "^2.52.7",
     "rollup-plugin-alias": "^2.2.0",
