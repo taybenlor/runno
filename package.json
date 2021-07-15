@@ -10,7 +10,11 @@
   "scripts": {
     "prepare": "husky install",
     "bootstrap": "lerna bootstrap",
-    "dev": "lerna exec npm run dev"
+    "dev": "lerna exec npm run dev",
+    "build:terminal": "cd packages/terminal && npm run build",
+    "build:runtime": "cd packages/runtime && npm run build",
+    "build:website": "cd packages/website && npm run build",
+    "build": "npm run build:terminal && npm run build:runtime && npm run build:website"
   },
   "eslintConfig": {
     "extends": "preact",
