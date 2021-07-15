@@ -1,5 +1,17 @@
 {
   "projects": {
     "default": "make-run"
+  },
+  "targets": {
+    "make-run": {
+      "hosting": {
+        "runtime": [
+          "make-run"
+        ],
+        "website": [
+          "make-run-website"
+        ]
+      }
+    }
   }
 }
