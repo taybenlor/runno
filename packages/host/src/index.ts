@@ -1,17 +1,80 @@
-import { ParentHandshake, WindowMessenger } from "post-me";
+import { ParentHandshake, RemoteHandle, WindowMessenger } from "post-me";
+import { Runtime, RuntimeMethods, CommandResult, FS } from "./types";
 
-// Create the child window any way you like (iframe here, but could be popup or tab too)
-const childFrame = document.createElement("iframe");
-const childWindow = childFrame.contentWindow!;
+export class RunnoError extends Error {}
 
-// For safety it is strongly adviced to pass the explicit child origin instead of '*'
-const messenger = new WindowMessenger({
-  localWindow: window,
-  remoteWindow: childWindow,
-  remoteOrigin: "*",
-});
+export class RunnoHost {
+  remoteHandle: RemoteHandle<RuntimeMethods>;
+  constructor(remoteHandle: RemoteHandle<RuntimeMethods>) {
+    this.remoteHandle = remoteHandle;
+  }
 
-ParentHandshake(messenger).then((connection) => {
-  console.log("made connection", connection);
-  /* ... */
-});
+  interactiveRunCode(runtime: Runtime, code: string): Promise<CommandResult> {
+    return this.remoteHandle.call("interactiveRunCode", runtime, code);
+  }
+
+  interactiveRunFS(
+    runtime: Runtime,
+    entryPath: string,
+    fs: FS
+  ): Promise<CommandResult> {
+    return this.remoteHandle.call("interactiveRunFS", runtime, entryPath, fs);
+  }
+
+  interactiveUnsafeCommand(command: string, fs: FS): Promise<CommandResult> {
+    return this.remoteHandle.call("interactiveUnsafeCommand", command, fs);
+  }
+
+  headlessRunCode(
+    runtime: Runtime,
+    code: string,
+    stdin?: string
+  ): Promise<CommandResult> {
+    return this.remoteHandle.call("headlessRunCode", runtime, code, stdin);
+  }
+
+  headlessRunFS(
+    runtime: Runtime,
+    entryPath: string,
+    fs: FS,
+    stdin?: string
+  ): Promise<CommandResult> {
+    return this.remoteHandle.call(
+      "headlessRunFS",
+      runtime,
+      entryPath,
+      fs,
+      stdin
+    );
+  }
+
+  headlessUnsafeCommand(
+    command: string,
+    fs: FS,
+    stdin?: string
+  ): Promise<CommandResult> {
+    return this.remoteHandle.call("headlessUnsafeCommand", command, fs, stdin);
+  }
+}
+
+export default async function ConnectRunno(
+  iframe: HTMLIFrameElement
+): Promise<RunnoHost> {
+  const childWindow = iframe.contentWindow;
+
+  if (!childWindow) {
+    throw new Error("ConnectRunno: iframe contentWindow must be defined");
+  }
+
+  const messenger = new WindowMessenger({
+    localWindow: window,
+    remoteWindow: childWindow,
+    remoteOrigin: "*",
+  });
+
+  const connection = await ParentHandshake<RuntimeMethods>(messenger);
+
+  return new RunnoHost(connection.remoteHandle());
+}
+
+export * from "./types";

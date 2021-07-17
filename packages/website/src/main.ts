@@ -1,4 +1,4 @@
-import { ParentHandshake, WindowMessenger } from "post-me";
+import ConnectRunno, { Runtime, RunnoHost } from "@make-run/host";
 
 const runButton = document.getElementById("run") as HTMLButtonElement;
 const headlessButton = document.getElementById(
@@ -18,24 +18,12 @@ const ttyEl = document.getElementById("tty") as HTMLPreElement;
 const runtimeIframe = document.getElementById("runtime") as HTMLIFrameElement;
 runtimeIframe.src = import.meta.env.VITE_RUNTIME;
 
-const runtimeWindow = runtimeIframe.contentWindow!;
-
-// For safety it is strongly adviced to pass the explicit child origin instead of '*'
-const messenger = new WindowMessenger({
-  localWindow: window,
-  remoteWindow: runtimeWindow,
-  remoteOrigin: "*",
-});
-
-ParentHandshake(messenger).then((connection) => {
-  const remoteHandle = connection.remoteHandle();
-
+ConnectRunno(runtimeIframe).then((runno: RunnoHost) => {
   runButton.addEventListener("click", async function () {
     const code = codeEl.value;
 
-    const { stdin, stdout, stderr, tty } = await remoteHandle.call(
-      "interactiveRunCode",
-      runtimeSelect.value,
+    const { stdin, stdout, stderr, tty } = await runno.interactiveRunCode(
+      runtimeSelect.value as Runtime,
       code
     );
 
@@ -43,17 +31,14 @@ ParentHandshake(messenger).then((connection) => {
     stdinEl.textContent = stdin;
     stderrEl.textContent = stderr;
     ttyEl.textContent = tty;
-
-    console.log("Resulting STDOUT", stdout);
   });
 
   headlessButton.addEventListener("click", async function () {
     const code = codeEl.value;
     const codeStdin = headlessStdinEl.value;
 
-    const { stdin, stdout, stderr, tty } = await remoteHandle.call(
-      "headlessRunCode",
-      runtimeSelect.value,
+    const { stdin, stdout, stderr, tty } = await runno.headlessRunCode(
+      runtimeSelect.value as Runtime,
       code,
       codeStdin
     );
