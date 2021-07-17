@@ -2,6 +2,8 @@
 
 A fork of `@wasmer/wasm-terminal` to include features needed for make-run. May in future end up diverging more from the original, since it does not appear to be actively maintained.
 
+It's actually not clear that this needs to be a separate package and should over time be merged directly into the runtime.
+
 # `@wasmer/wasm-terminal`
 
 A terminal-like component for the browser, that fetches and runs Wasm modules in the context of a shell. 🐚
