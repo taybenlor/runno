@@ -11,10 +11,11 @@
     "prepare": "npx husky install",
     "bootstrap": "npx lerna bootstrap",
     "dev": "npx lerna exec npm run dev",
+    "build:host": "cd packages/host && npm run build",
     "build:terminal": "cd packages/terminal && npm run build",
     "build:runtime": "cd packages/runtime && npm run build",
     "build:website": "cd packages/website && npm run build",
-    "build": "npm run build:terminal && npm run build:runtime && npm run build:website",
+    "build": "npm run build:host && npm run build:terminal && npm run build:runtime && npm run build:website",
     "build:deploy": "npm run bootstrap && npx lerna exec npm install && npm run build"
   },
   "eslintConfig": {
