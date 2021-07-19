@@ -1,5 +1,5 @@
 {
-  "name": "@make-run/terminal",
+  "name": "@runno/terminal",
   "version": "0.10.2",
   "description": "A terminal-like component for the browser, that fetches and runs Wasm modules in the context of a shell. 🐚",
   "module": "lib/unoptimized/wasm-terminal.esm.js",

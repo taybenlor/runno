@@ -3,7 +3,7 @@ import table from "text-table";
 import { fetchCommandFromWAPM } from "./query";
 import { extractContents } from "../wasmfs/tar";
 import { lowerI64Imports } from "@wasmer/wasm-transformer";
-import WasmTerminal from "@make-run/terminal";
+import WasmTerminal from "@runno/terminal";
 import { WasmFs } from "../wasmfs";
 
 var COMPILED_MODULES: { [name: string]: WebAssembly.Module } = {};
