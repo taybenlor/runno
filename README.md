@@ -94,6 +94,12 @@ $ npm run build  # make sure the dependent libraries are built
 $ npm run dev
 ```
 
+If things seem to fail you might need to run `npm install` in each of the packages. Try:
+
+```
+npx lerna exec npm install
+```
+
 At that point you should be able to navigate to:
 
 - `localhost:3000` - Website
