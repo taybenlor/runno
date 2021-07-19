@@ -1,8 +1,8 @@
 {
   "private": true,
-  "name": "@make-run/website",
+  "name": "@runno/website",
   "author": "Ben Taylor",
-  "description": "Runtime for @make-run",
+  "description": "Runtime for @runno",
   "version": "0.1.0",
   "license": "MIT",
   "engines": {
@@ -22,6 +22,6 @@
   },
   "dependencies": {
     "post-me": "^0.4.5",
-    "@make-run/host": "../host"
+    "@runno/host": "../host"
   }
 }

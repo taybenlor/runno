@@ -1,7 +1,7 @@
 {
   "private": true,
-  "name": "make-run",
-  "description": "Monorepo for @make-run packages",
+  "name": "runno",
+  "description": "Monorepo for @runno packages",
   "version": "0.1.0",
   "license": "MIT",
   "engines": {

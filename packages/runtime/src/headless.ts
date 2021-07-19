@@ -1,5 +1,5 @@
-import { CommandRunner, WasmTerminalConfig } from "@make-run/terminal";
-import processWorkerURL from "@make-run/terminal/lib/workers/process.worker.js?url";
+import { CommandRunner, WasmTerminalConfig } from "@runno/terminal";
+import processWorkerURL from "@runno/terminal/lib/workers/process.worker.js?url";
 
 import { CommandResult } from "./types";
 import { WasmFs } from "./wasmfs";

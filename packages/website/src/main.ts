@@ -1,4 +1,4 @@
-import ConnectRunno, { Runtime, RunnoHost } from "@make-run/host";
+import ConnectRunno, { Runtime, RunnoHost } from "@runno/host";
 
 const runButton = document.getElementById("run") as HTMLButtonElement;
 const headlessButton = document.getElementById(

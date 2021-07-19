@@ -1,7 +1,7 @@
 // TODO: Use this version when deploying?
 //import WasmTerminal from "@wasmer/wasm-terminal/lib/optimized/wasm-terminal.esm";
-import WasmTerminal from "@make-run/terminal";
-import processWorkerURL from "@make-run/terminal/lib/workers/process.worker.js?url";
+import WasmTerminal from "@runno/terminal";
+import processWorkerURL from "@runno/terminal/lib/workers/process.worker.js?url";
 import { WasmFs } from "./wasmfs";
 import { CommandResult } from "./types";
 

@@ -1,8 +1,8 @@
 {
   "private": true,
-  "name": "@make-run/runtime",
+  "name": "@runno/runtime",
   "author": "Ben Taylor",
-  "description": "Runtime for @make-run",
+  "description": "Runtime for @runno",
   "version": "0.1.0",
   "license": "MIT",
   "engines": {
@@ -26,7 +26,7 @@
     "vite": "^2.3.5"
   },
   "dependencies": {
-    "@make-run/terminal": "../terminal",
+    "@runno/terminal": "../terminal",
     "@wasmer/wasm-transformer": "^0.10.2",
     "buffer": "^5.7.1",
     "events": "^3.3.0",
