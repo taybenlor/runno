@@ -18,34 +18,36 @@ const ttyEl = document.getElementById("tty") as HTMLPreElement;
 const runtimeIframe = document.getElementById("runtime") as HTMLIFrameElement;
 runtimeIframe.src = import.meta.env.VITE_RUNTIME;
 
-ConnectRunno(runtimeIframe).then((runno: RunnoHost) => {
-  runButton.addEventListener("click", async function () {
-    const code = codeEl.value;
+runtimeIframe.addEventListener("load", () => {
+  ConnectRunno(runtimeIframe).then((runno: RunnoHost) => {
+    runButton.addEventListener("click", async function () {
+      const code = codeEl.value;
 
-    const { stdin, stdout, stderr, tty } = await runno.interactiveRunCode(
-      runtimeSelect.value as Runtime,
-      code
-    );
+      const { stdin, stdout, stderr, tty } = await runno.interactiveRunCode(
+        runtimeSelect.value as Runtime,
+        code
+      );
 
-    stdoutEl.textContent = stdout;
-    stdinEl.textContent = stdin;
-    stderrEl.textContent = stderr;
-    ttyEl.textContent = tty;
-  });
+      stdoutEl.textContent = stdout;
+      stdinEl.textContent = stdin;
+      stderrEl.textContent = stderr;
+      ttyEl.textContent = tty;
+    });
 
-  headlessButton.addEventListener("click", async function () {
-    const code = codeEl.value;
-    const codeStdin = headlessStdinEl.value;
+    headlessButton.addEventListener("click", async function () {
+      const code = codeEl.value;
+      const codeStdin = headlessStdinEl.value;
 
-    const { stdin, stdout, stderr, tty } = await runno.headlessRunCode(
-      runtimeSelect.value as Runtime,
-      code,
-      codeStdin
-    );
+      const { stdin, stdout, stderr, tty } = await runno.headlessRunCode(
+        runtimeSelect.value as Runtime,
+        code,
+        codeStdin
+      );
 
-    stdoutEl.textContent = stdout;
-    stdinEl.textContent = stdin;
-    stderrEl.textContent = stderr;
-    ttyEl.textContent = tty;
+      stdoutEl.textContent = stdout;
+      stdinEl.textContent = stdin;
+      stderrEl.textContent = stderr;
+      ttyEl.textContent = tty;
+    });
   });
 });
