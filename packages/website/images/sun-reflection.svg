@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="301px" height="79px" viewBox="0 0 301 79" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Reflection</title>
+    <g id="Reflection" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <line x1="0" y1="18.5" x2="640" y2="18.5" id="Path-14" stroke="#FFE234" stroke-width="2"></line>
+        <line x1="16" y1="28.6089232" x2="575.999957" y2="28.39" id="Path-14" stroke="#FFE234" stroke-width="2"></line>
+        <line x1="50" y1="38.4989232" x2="510" y2="38.4989232" id="Path-14" stroke="#FFE234" stroke-width="2"></line>
+        <line x1="102.1875" y1="48.3889232" x2="402.1875" y2="48.3889232" id="Path-14" stroke="#FFE234" stroke-width="2"></line>
+        <line x1="182.1875" y1="58.2789232" x2="482.1875" y2="58.2789232" id="Path-14" stroke="#FFE234" stroke-width="2"></line>
+        <line x1="264.1875" y1="68.1689232" x2="564.1875" y2="68.1689232" id="Path-14" stroke="#FFE234" stroke-width="2"></line>
+    </g>
+</svg>

@@ -11,11 +11,11 @@
     <main id="app" class="w-full h-full flex flex-col justify-between">
       <div class="flex-grow flex flex-row">
         <div class="flex-grow flex flex-col justify-between">
-          <div role="menu" class="bg-gray-300">
-            <button id="run" class="bg-blue-700 text-white p-4">Run</button>
+          <div role="menu" class="bg-navy text-white">
+            <button id="run" class="bg-yellow text-black p-4">Run</button>
             <label class="ml-4 mr-2">
               Runtime:
-              <select id="runtime-select">
+              <select id="runtime-select" class="text-black">
                 <option value="python" selected default>Python</option>
                 <option value="quickjs">JavaScript (QuickJS)</option>
                 <option value="sqlite">SQLite</option>
@@ -33,10 +33,16 @@
         >
           <div
             role="menu"
-            class="bg-gray-300 flex flex-row justify-between items-center"
+            class="
+              bg-navy
+              text-white
+              flex flex-row
+              justify-between
+              items-center
+            "
           >
             <h2 class="font-bold text-lg">Stdin</h2>
-            <button id="run-headless" class="bg-blue-700 text-white p-4">
+            <button id="run-headless" class="bg-yellow text-black p-4">
               Run Headless
             </button>
           </div>

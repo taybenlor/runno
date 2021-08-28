@@ -7,13 +7,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Runno</title>
   </head>
-  <body class="font-tobias text-white">
-    <header class="bg-navy">
-      <h1 class="text-lg">Runno</h1>
-    </header>
+  <body class="font-tobias text-white bg-black">
     <main class="bg-black">
-      <div class="bg-navy py-8">
-        <div class="container mx-auto">
+      <div class="bg-sunset pb-8 relative">
+        <header class="py-4">
+          <h1 class="text-lg">
+            <img src="images/logo.svg" alt="Runno" />
+          </h1>
+        </header>
+        <runno-starfield>
+          <img src="images/star.svg" />
+        </runno-starfield>
+        <img class="absolute bottom-0 right-0" src="images/sun.svg" />
+        <div class="container mx-auto relative">
           <h1 class="text-4xl font-bold text-center my-8">
             Make your code samples Runno.
           </h1>
@@ -105,7 +111,11 @@
         </div>
       </div>
 
-      <div class="flex container mx-auto my-16">
+      <div class="relative">
+        <img class="absolute top-0 right-0" src="images/sun-reflection.svg" />
+      </div>
+
+      <div class="flex container mx-auto my-16 relative">
         <div class="">
           <nav class="border border-yellow mr-8 p-2 list-none">
             <li>

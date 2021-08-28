@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="9px" height="14px" viewBox="0 0 9 14" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Star</title>
+    <g id="Star" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group-15" stroke="#A09ED9">
+            <line x1="4.42382812" y1="0" x2="4.42382812" y2="13.5195312" id="Path-19"></line>
+            <line x1="0" y1="6.75976562" x2="9.14453125" y2="6.75976562" id="Path-20"></line>
+        </g>
+    </g>
+</svg>

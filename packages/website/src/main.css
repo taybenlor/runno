@@ -41,3 +41,7 @@
 .h-48 {
   height: 12rem;
 }
+
+.bg-sunset {
+  background: linear-gradient(-3deg, #030052, #06004f 70%, #330b24);
+}

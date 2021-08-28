@@ -1,4 +1,8 @@
 import ConnectRunno, { Runtime, RunnoHost } from "@runno/host";
+import { StarfieldElement } from "./starfield";
+
+// Define this custom element
+customElements.define("runno-starfield", StarfieldElement);
 
 const runButton = document.getElementById("run") as HTMLButtonElement;
 const headlessButton = document.getElementById(
