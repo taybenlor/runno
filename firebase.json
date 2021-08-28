@@ -6,7 +6,7 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "headers": [
         {
-          "source": "index.html",
+          "source": "*",
           "headers": [
             {
               "key": "Cross-Origin-Opener-Policy",
@@ -19,6 +19,10 @@
             {
               "key": "Cross-Origin-Resource-Policy",
               "value": "cross-origin"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
             }
           ]
         }
@@ -30,7 +34,7 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "headers": [
         {
-          "source": "index.html",
+          "source": "*",
           "headers": [
             {
               "key": "Cross-Origin-Opener-Policy",

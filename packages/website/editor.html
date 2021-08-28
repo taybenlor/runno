@@ -54,7 +54,12 @@
       </div>
 
       <div class="flex-grow flex flex-row">
-        <iframe crossorigin id="runtime" class="flex-grow"></iframe>
+        <iframe
+          crossorigin
+          allow="cross-origin-isolated"
+          id="runtime"
+          class="flex-grow"
+        ></iframe>
         <div class="w-1/3 flex flex-col">
           <h2>stdin:</h2>
           <pre id="stdin" class="block"></pre>
