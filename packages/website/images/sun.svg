@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="327px" height="402px" viewBox="0 0 327 402" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Sun</title>
+    <defs>
+        <linearGradient x1="50%" y1="28.0074949%" x2="50%" y2="80.1940422%" id="linearGradient-1">
+            <stop stop-color="#FFF364" offset="0%"></stop>
+            <stop stop-color="#FF34B1" offset="100%"></stop>
+        </linearGradient>
+        <path d="M538.034531,371.003388 C536.276417,376.420877 534.335426,381.755959 532.218843,387.001349 L75.7811566,387.001349 C73.6645738,381.755959 71.7235834,376.420877 69.9654689,371.003388 Z M546.076065,339.000877 C545.10148,344.398094 543.950826,349.734081 542.630263,355.002677 L65.3697369,355.002677 C64.0491741,349.734081 62.8985195,344.398094 61.923935,339.000877 Z M549.487949,311.000938 C549.142393,316.383212 548.623748,321.718381 547.937523,327.000938 L60.0624774,327.000938 C59.3762516,321.718381 58.857607,316.383212 58.5120511,311.000938 Z M549.800388,284.998432 C549.933041,288.315805 550,291.650083 550,295 C550,297.006413 549.97598,299.007215 549.928211,301.002136 L58.0717895,301.002136 C58.0240205,299.007215 58,297.006413 58,295 C58,291.650083 58.066959,288.315805 58.1996115,284.998432 Z M547.669234,260.998083 C548.399468,266.279716 548.962026,271.61491 549.351362,276.998119 L58.6486382,276.998119 C59.0379741,271.61491 59.6005324,266.279716 60.3307661,260.998083 Z M543.122751,236.997924 C544.55365,242.918026 545.770417,248.921695 546.764393,255.000274 L61.2356068,255.000274 C62.2295834,248.921695 63.4463502,242.918026 64.877249,236.997924 Z M304,49 C418.445426,49 514.637581,127.151543 542.120261,232.998425 L65.8797394,232.998425 C93.3624193,127.151543 189.554574,49 304,49 Z" id="path-2"></path>
+        <filter x="-25.0%" y="-36.4%" width="150.0%" height="172.8%" filterUnits="objectBoundingBox" id="filter-3">
+            <feMorphology radius="1" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="0" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="40" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 1   0 0 0 0 0.203921569   0 0 0 0 0.694117647  0 0 0 1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="Sun" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Combined-Shape">
+            <use fill="black" fill-opacity="1" filter="url(#filter-3)" xlink:href="#path-2"></use>
+            <use fill="url(#linearGradient-1)" fill-rule="evenodd" xlink:href="#path-2"></use>
+        </g>
+    </g>
+</svg>

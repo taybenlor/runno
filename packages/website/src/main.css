@@ -1,0 +1,47 @@
+@font-face {
+  font-family: "MD IO";
+  src: url("../fonts/md-io/md-io-regular.woff2") format("woff2"),
+    url("../fonts/md-io/md-io-regular.woff") format("woff");
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "MD IO";
+  src: url("../fonts/md-io/md-io-bold.woff2") format("woff2"),
+    url("../fonts/md-io/md-io-bold.woff") format("woff");
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: "Tobias";
+  src: url("../fonts/tobias/tobias-regular.woff2") format("woff2"),
+    url("../fonts/tobias/tobias-regular.woff") format("woff");
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "Tobias";
+  src: url("../fonts/tobias/tobias-regular-italic.woff2") format("woff2"),
+    url("../fonts/tobias/tobias-regular-italic.woff") format("woff");
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Tobias";
+  src: url("../fonts/tobias/tobias-bold.woff2") format("woff2"),
+    url("../fonts/tobias/tobias-bold.woff") format("woff");
+  font-weight: 700;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.h-48 {
+  height: 12rem;
+}
+
+.bg-sunset {
+  background: linear-gradient(0deg, #030052, #06004f 70%, #330b24);
+}
