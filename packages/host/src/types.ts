@@ -1,4 +1,5 @@
 export type Runtime = "python" | "quickjs" | "sqlite";
+export type Syntax = "python" | "js" | "sql" | undefined;
 
 export type CommandResult = {
   stdin: string;
@@ -18,6 +19,12 @@ export type File = {
 };
 
 export type RuntimeMethods = {
+  showEditor: () => void;
+
+  hideEditor: () => void;
+
+  setEditorProgram: (syntax: Syntax, runtime: Runtime, code: string) => void;
+
   interactiveRunCode: (
     runtime: Runtime,
     code: string
