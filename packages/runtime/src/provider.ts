@@ -68,7 +68,7 @@ export class RunnoProvider {
     for (const key of Object.keys(fs)) {
       this.terminal.writeFile(key, fs[key].content);
     }
-
+    this.terminal.focus();
     return this.terminal.runCommand(command);
   }
 

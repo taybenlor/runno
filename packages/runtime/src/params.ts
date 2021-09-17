@@ -63,6 +63,4 @@ export function handleParams(provider: RunnoProvider) {
     // No command was specified
     return;
   }
-
-  terminal.focus();
 }
