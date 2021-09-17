@@ -1,5 +1,5 @@
 import { ParentHandshake, RemoteHandle, WindowMessenger } from "post-me";
-import { Runtime, RuntimeMethods, CommandResult, FS } from "./types";
+import { Runtime, RuntimeMethods, CommandResult, FS, Syntax } from "./types";
 
 export class RunnoError extends Error {}
 
@@ -7,6 +7,22 @@ export class RunnoHost {
   remoteHandle: RemoteHandle<RuntimeMethods>;
   constructor(remoteHandle: RemoteHandle<RuntimeMethods>) {
     this.remoteHandle = remoteHandle;
+  }
+
+  showEditor(): Promise<void> {
+    return this.remoteHandle.call("showEditor");
+  }
+
+  hideEditor(): Promise<void> {
+    return this.remoteHandle.call("hideEditor");
+  }
+
+  setEditorProgram(
+    syntax: Syntax,
+    runtime: Runtime,
+    code: string
+  ): Promise<void> {
+    return this.remoteHandle.call("setEditorProgram", syntax, runtime, code);
   }
 
   interactiveRunCode(runtime: Runtime, code: string): Promise<CommandResult> {
