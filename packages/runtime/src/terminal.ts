@@ -48,7 +48,6 @@ export class Terminal {
    */
   runCommand(command: string): Promise<CommandResult> {
     const promise = this.wasmTerminal.runCommandDirect(command);
-    this.focus();
     return promise;
   }
 
