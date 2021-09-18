@@ -1,4 +1,3 @@
-import ConnectRunno, { Runtime, RunnoHost } from "@runno/host";
 import { StarfieldElement } from "./starfield";
 
 function generateEmbedURL(code: string, runtime: string, showEditor: boolean) {

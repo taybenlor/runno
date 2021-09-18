@@ -30,6 +30,7 @@ runs code. You can pass query params to it:
 
 - `code` - Some code to run
 - `runtime` - The runtime to use
+- `editor` - Whether to show an editor (default false)
 - `command` - The raw command to execute, text passed as `code` will be available in the file `code` e.g. `cat code`
 
 e.g.
