@@ -56,16 +56,10 @@ module.exports = {
             h1: {
               color: "#FFE234",
             },
-            h2: {
+            "h2, h3, h4": {
               color: "#FFFFFF",
             },
-            h3: {
-              color: "#FFFFFF",
-            },
-            h4: {
-              color: "#FFFFFF",
-            },
-            p: {
+            "p, li": {
               fontFamily:
                 '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"',
             },

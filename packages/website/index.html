@@ -127,26 +127,32 @@ print(f"G'day {name}, hope you enjoy Runno.")</textarea
 
       <div class="flex container mx-auto my-16 relative">
         <div class="">
-          <nav class="border border-yellow mr-8 p-2 list-none">
-            <li>
-              <a href="#">Getting to know Runno</a>
+          <nav class="border border-lightBlue mr-8 p-2 list-none">
+            <li class="text-yellow">
+              <a href="#using-runno">Getting to know Runno</a>
             </li>
-            <li>
-              <a href="#">Using Runno</a>
+            <li class="pl-4">
+              <a href="#using-runno">Using Runno</a>
             </li>
-            <li>
-              <a href="#">How it works</a>
+            <li class="pl-4">
+              <a href="#how-it-works">How it works</a>
             </li>
-            <li>
-              <a href="#">Why run in the browser?</a>
+            <li class="pl-4">
+              <a href="#why-browser">Why the browser?</a>
             </li>
-            <li>
-              <a href="#">Host API</a>
+            <li class="pl-4">
+              <a href="#limitations">Limitations</a>
             </li>
-            <li>
+            <li class="pl-4">
+              <a href="#security">Security</a>
+            </li>
+            <li class="text-yellow">
+              <a href="#host-api">Host API</a>
+            </li>
+            <li class="pl-4">
               <a href="#">Quickstart</a>
             </li>
-            <li>
+            <li class="pl-4">
               <a href="#">Methods</a>
             </li>
           </nav>
@@ -154,7 +160,7 @@ print(f"G'day {name}, hope you enjoy Runno.")</textarea
 
         <div class="prose">
           <h1>Getting to know Runno</h1>
-          <h2>Using Runno</h2>
+          <h2 id="using-runno">Using Runno</h2>
           <p>
             Choose a language from one of the available runtimes, then type in
             some code. HTML will be generated that can be embedded on your
@@ -162,13 +168,14 @@ print(f"G'day {name}, hope you enjoy Runno.")</textarea
             and an editor.
           </p>
           <p>
-            You can also control the iframe using the [host API]. This can be
-            used to pass in a virtual file system, and then collect STDIN,
-            STDOUT and STDERR from the program. It can also be used to automate
-            the running of code in both interactive and headless modes.
+            You can also control the iframe using the
+            <a href="#host-api">host API</a>. This can be used to pass in a
+            virtual file system, and then collect STDIN, STDOUT and STDERR from
+            the program. It can also be used to automate the running of code in
+            both interactive and headless modes.
           </p>
 
-          <h2>How it works</h2>
+          <h2 id="how-it-works">How it works</h2>
           <p>
             Runno uses Web Assembly to run code in the browser. Code runs in a
             unix-like sandbox that connects to a web-based terminal emulator.
@@ -178,13 +185,14 @@ print(f"G'day {name}, hope you enjoy Runno.")</textarea
           </p>
           <p>
             When you click run on a Runno example the web assembly binary for
-            that programming language is collected from [WAPM](wapm.io) (the Web
-            Assembly Package Manager). It's then run in a Web Worker, inside a
-            sandbox with an in-memory file system. It's connected up to a
-            terminal emulator and simple IO is routed back and forth.
+            that programming language is collected from
+            <a href="https://wapm.io">WAPM</a> (the Web Assembly Package
+            Manager). It's then run in a Web Worker, inside a sandbox with an
+            in-memory file system. It's connected up to a terminal emulator and
+            simple IO is routed back and forth.
           </p>
 
-          <h2>Why run in the browser?</h2>
+          <h2 id="why-browser">Why run in the browser?</h2>
           <p>
             The way Runno is built shifts the work of running code examples from
             the server to the client. Running code examples on your server is
@@ -204,7 +212,7 @@ print(f"G'day {name}, hope you enjoy Runno.")</textarea
             Plus it's pretty cool that you can just run code in your browser!
           </p>
 
-          <h2>Limitations</h2>
+          <h2 id="limitations">Limitations</h2>
           <p>
             The programming languages available are limited by what has already
             been compiled to Web Assembly using WASI and uploaded to WAPM. A
@@ -226,7 +234,7 @@ print(f"G'day {name}, hope you enjoy Runno.")</textarea
             depends on, more will become available.
           </p>
 
-          <h2>Security</h2>
+          <h2 id="security">Security</h2>
           <p>
             Running arbitrary code is always going to have some security risks,
             even if you're running it on the client. The goal of the Runno
@@ -269,7 +277,10 @@ print(f"G'day {name}, hope you enjoy Runno.")</textarea
           <p>
             The intention is for Runno to either fix security issues, or to
             disclose the risks upfront. So if you find a security issue with the
-            way Runno works, please [contact me](security@make.expert)!
+            way Runno works, please
+            <a href="mailto:security@taybenlor.com"
+              >contact me (security@taybenlor.com)</a
+            >!
           </p>
 
           <h2>Big thanks to</h2>
@@ -305,7 +316,7 @@ print(f"G'day {name}, hope you enjoy Runno.")</textarea
             we can run on it!
           </p>
 
-          <h1>Host API</h1>
+          <h1 id="host-api">Host API</h1>
 
           <h2>Quickstart</h2>
           <p></p>
