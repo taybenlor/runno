@@ -12,6 +12,18 @@ module.exports = {
       darkPink: "#330B24",
     },
     fontFamily: {
+      sans: [
+        "-apple-system",
+        "BlinkMacSystemFont",
+        "Segoe UI",
+        "Roboto",
+        "Helvetica",
+        "Arial",
+        "sans-serif",
+        "Apple Color Emoji",
+        "Segoe UI Emoji",
+        "Segoe UI Symbol",
+      ],
       tobias: [
         "Tobias",
         "ui-serif",
@@ -44,14 +56,12 @@ module.exports = {
             h1: {
               color: "#FFE234",
             },
-            h2: {
+            "h2, h3, h4": {
               color: "#FFFFFF",
             },
-            h3: {
-              color: "#FFFFFF",
-            },
-            h4: {
-              color: "#FFFFFF",
+            "p, li": {
+              fontFamily:
+                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"',
             },
           },
         },
