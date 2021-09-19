@@ -34,7 +34,7 @@
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "headers": [
         {
-          "source": "*",
+          "source": "**",
           "headers": [
             {
               "key": "Cross-Origin-Opener-Policy",
