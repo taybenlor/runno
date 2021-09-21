@@ -13,6 +13,7 @@ const crossOriginPolicy = {
 
 export default {
   define: {
+    "process.browser": JSON.stringify(true),
     "process.platform": JSON.stringify(null),
     "process.env.NODE_DEBUG": JSON.stringify(false),
   },

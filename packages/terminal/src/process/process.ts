@@ -1,5 +1,5 @@
 import { WasmFs } from "@wasmer/wasmfs";
-import { WASIExitError } from "@wasmer/wasi";
+import { WASIExitError } from "@runno/wasi";
 
 import { IoDevices } from "../io-devices/io-devices";
 import CommandOptions from "../command/command-options";
@@ -181,7 +181,7 @@ export default class Process {
         return;
       }
 
-      console.error(e);
+      console.error("Failed Running:", e);
       this.errorCallback(error, this.wasmFs.toJSON(), e.user !== undefined);
     }
   }

@@ -1,8 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "lib": ["ESNext", "DOM"],
+    "declaration": true,
+    "importHelpers": true,
+    "target": "ES6",
+    "module": "ES6",
+    "lib": ["ESNext", "WebWorker"],
+    "outDir": "lib",
+    "rootDir": "src",
     "moduleResolution": "Node",
     "strict": true,
     "sourceMap": true,

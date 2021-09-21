@@ -1,7 +1,7 @@
 // TODO: Import these from the Host
 
-export type Runtime = "python" | "quickjs" | "sqlite";
-export type Syntax = "python" | "js" | "sql" | undefined;
+export type Runtime = "python" | "quickjs" | "sqlite" | "clang";
+export type Syntax = "python" | "js" | "sql" | "cpp" | undefined;
 export type CommandResult = {
   stdin: string;
   stdout: string;

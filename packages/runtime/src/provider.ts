@@ -17,6 +17,14 @@ function commandForRuntime(name: string, entryPath: string) {
     return `cat ${entryPath} | sqlite`;
   }
 
+  if (name === "clang") {
+    return [
+      `clang -cc1 -triple wasm32-unkown-wasi -isysroot /sys -internal-isystem /sys/include -emit-obj -o ./program.o ${entryPath}`,
+      `wasm-ld -L/sys/lib/wasm32-wasi /sys/lib/wasm32-wasi/crt1.o ./program.o -lc -o ./program.wasm`,
+      `./program.wasm`,
+    ].join(" && ");
+  }
+
   throw new Error(`Unknown runtime ${name}`);
 }
 

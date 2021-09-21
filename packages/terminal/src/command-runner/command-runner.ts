@@ -13,11 +13,6 @@ import WasmTty from "../wasm-tty/wasm-tty";
 
 import IoDeviceWindow from "../io-device-window/io-device-window";
 
-/*ROLLUP_REPLACE_INLINE
-// @ts-ignore
-import processWorkerInlinedUrl from "../../lib/workers/process.worker.js";
-ROLLUP_REPLACE_INLINE*/
-
 export type CommandResult = {
   stdout: string;
   stdin: string;
@@ -271,9 +266,6 @@ export default class CommandRunner {
     }
 
     let processWorkerUrl = this.wasmTerminalConfig.processWorkerUrl;
-    /*ROLLUP_REPLACE_INLINE
-    processWorkerUrl = processWorkerInlinedUrl;
-    ROLLUP_REPLACE_INLINE*/
 
     // Generate our process
     const workerBlobUrl = await this._getBlobUrlForProcessWorker(
