@@ -5,9 +5,11 @@ import { WasmFs } from "./wasmfs";
 import { headlessRunCommand } from "./headless";
 
 type RuntimeCommands = {
+  entryPath?: string; // Use if specific path MUST be the entry path
   prepare?: Array<string>;
   run: string;
 };
+
 function commandsForRuntime(name: string, entryPath: string): RuntimeCommands {
   if (name === "python") {
     return { run: `python ${entryPath}` };
@@ -25,6 +27,18 @@ function commandsForRuntime(name: string, entryPath: string): RuntimeCommands {
     return {
       prepare: [
         `clang -cc1 -triple wasm32-unkown-wasi -isysroot /sys -internal-isystem /sys/include -emit-obj -o ./program.o ${entryPath}`,
+        `wasm-ld -L/sys/lib/wasm32-wasi /sys/lib/wasm32-wasi/crt1.o ./program.o -lc -o ./program.wasm`,
+      ],
+      run: `wasmer run ./program.wasm`,
+    };
+  }
+
+  if (name === "f2c") {
+    return {
+      entryPath: "program.f",
+      prepare: [
+        `f2c program.f`,
+        `clang -cc1 -triple wasm32-unkown-wasi -isysroot /sys -internal-isystem /sys/include -emit-obj -o ./program.o program.c`,
         `wasm-ld -L/sys/lib/wasm32-wasi /sys/lib/wasm32-wasi/crt1.o ./program.o -lc -o ./program.wasm`,
       ],
       run: `wasmer run ./program.wasm`,
@@ -76,23 +90,33 @@ export class RunnoProvider {
   ): Promise<CommandResult> {
     const commands = commandsForRuntime(runtime, entryPath);
     this.writeFS(fs);
-    let stdin = "";
-    let stdout = "";
-    let stderr = "";
-    let tty = "";
+
+    if (commands.entryPath) {
+      const extraFs: FS = {};
+      extraFs[commands.entryPath] = fs[entryPath];
+      this.writeFS(extraFs);
+    }
+
+    const output = {
+      stdin: "",
+      stdout: "",
+      stderr: "",
+      tty: "",
+    };
+
     for (const command of commands.prepare || []) {
       const result = await this.interactiveUnsafeCommand(command, {});
-      stdin += result.stdin;
-      stdout += result.stdout;
-      stderr += result.stderr;
-      tty += result.tty;
+      output.stdin += result.stdin;
+      output.stdout += result.stdout;
+      output.stderr += result.stderr;
+      output.tty += result.tty;
     }
     const result = await this.interactiveUnsafeCommand(commands.run, {});
     return {
-      stdin: stdin + result.stdin,
-      stdout: stdout + result.stdout,
-      stderr: stderr + result.stderr,
-      tty: tty + result.tty,
+      stdin: output.stdin + result.stdin,
+      stdout: output.stdout + result.stdout,
+      stderr: output.stderr + result.stderr,
+      tty: output.tty + result.tty,
       fs: result.fs,
     };
   }
@@ -107,6 +131,10 @@ export class RunnoProvider {
       this.terminal.writeFile(name, file.content);
     }
   }
+
+  //
+  // TODO: Headless system probably can't run C
+  //
 
   headlessRunCode(
     runtime: Runtime,
