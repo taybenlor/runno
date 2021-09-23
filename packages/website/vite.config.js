@@ -11,5 +11,8 @@ const crossOriginPolicy = {
 };
 
 export default {
+  server: {
+    port: 4321,
+  },
   plugins: [crossOriginPolicy],
 };

@@ -3,7 +3,7 @@
 import WasmTerminal from "@runno/terminal";
 import processWorkerURL from "@runno/terminal/lib/workers/process.worker.js?url";
 import { WasmFs } from "./wasmfs";
-import { CommandResult } from "./types";
+import { CommandResult, FS } from "./types";
 
 import WAPM from "./wapm/wapm";
 
@@ -46,9 +46,29 @@ export class Terminal {
    *
    * @param command the raw terminal command to run
    */
-  runCommand(command: string): Promise<CommandResult> {
-    const promise = this.wasmTerminal.runCommandDirect(command);
-    return promise;
+  async runCommand(command: string): Promise<CommandResult> {
+    const result = await this.wasmTerminal.runCommandDirect(command);
+    // TODO: Internally the Wasmer stuff uses their JSON FS format which can't
+    //       hold metadata. It looks like:
+    //       {
+    //         "somefilename": UInt8Array
+    //       }
+    //       Here we change it over to:
+    //       {
+    //         "somefilename": {
+    //           name: 'somefilename',
+    //           content: UInt8Array
+    //         }
+    //       }
+    //       The idea is that in future we could add metadata to the file struct
+    const newfs: FS = {};
+    for (const [filename, content] of Object.entries(result.fs)) {
+      newfs[filename] = {
+        name: filename,
+        content: content as Uint8Array,
+      };
+    }
+    return result;
   }
 
   isReadyForCommand(): boolean {

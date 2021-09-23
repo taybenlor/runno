@@ -1,5 +1,5 @@
 // The class for WASI Commands
-import { WASI } from "@wasmer/wasi";
+import { WASI } from "@runno/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
 
 import Command from "./command";

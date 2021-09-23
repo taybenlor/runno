@@ -27,6 +27,9 @@ function runtimeToSyntax(runtime: string | undefined | null): Syntax {
   if (runtime == "sqlite") {
     return "sql";
   }
+  if (runtime == "clang") {
+    return "cpp";
+  }
   return undefined;
 }
 

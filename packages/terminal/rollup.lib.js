@@ -11,41 +11,31 @@ import copy from "rollup-plugin-copy";
 import url from "rollup-plugin-url";
 import bundleSize from "rollup-plugin-bundle-size";
 import alias from "rollup-plugin-alias";
-import pkg from "./package.json";
+//import pkg from "./package.json";
 
 const sourcemapOption = process.env.PROD ? undefined : "inline";
 
 let typescriptPluginOptions = {
   tsconfig: "./tsconfig.json",
   exclude: ["./test/**/*"],
-  clean: process.env.PROD ? true : false,
-  objectHashIgnoreUnknownHack: false,
 };
 
 // Need to replace this line for commonjs, as the import.meta object doesn't exist in node
-const replaceWASIJsTransformerOptions = {
-  delimiters: ["", ""],
-  values: {
-    "module = import.meta.url.replace": "// Replace by rollup",
-  },
-};
+// const replaceWASIJsTransformerOptions = {
+//   delimiters: ["", ""],
+//   values: {
+//     "module = import.meta.url.replace": "// Replace by rollup",
+//   },
+// };
 
-const replaceInlineOptions = {
-  delimiters: ["", ""],
-  values: {
-    "/*ROLLUP_REPLACE_INLINE": "",
-    "ROLLUP_REPLACE_INLINE*/": "",
-  },
-};
-
-const inlineUrlPlugin = url({
-  limit: 1000000000000 * 1024, // Always inline
-  include: ["**/*.worker.js"],
-  emitFiles: true,
-});
+// const inlineUrlPlugin = url({
+//   limit: 1000000000000 * 1024, // Always inline
+//   include: ["**/*.worker.js"],
+//   emitFiles: true,
+// });
 
 let plugins = [
-  replace(replaceWASIJsTransformerOptions),
+  // replace(replaceWASIJsTransformerOptions),
   // Including comlink from source:
   // https://github.com/GoogleChromeLabs/comlink/issues/366
   alias({
@@ -59,15 +49,15 @@ let plugins = [
   }),
   typescript(typescriptPluginOptions),
   resolve({
-    preferBuiltins: true,
+    preferBuiltins: false,
   }),
   commonjs({
     namedExports: {
       xterm: ["Terminal"],
     },
   }),
-  globals(),
-  builtins(),
+  // globals(),
+  // builtins(),
   json(),
   // Copy over some assets for running the wasm terminal
   copy({
@@ -78,11 +68,11 @@ let plugins = [
   process.env.PROD ? bundleSize() : undefined,
 ];
 
-const unoptimizedPlugins = [
-  replace(replaceInlineOptions),
-  inlineUrlPlugin,
-  ...plugins,
-];
+// const unoptimizedPlugins = [
+//   replace(replaceInlineOptions),
+//   inlineUrlPlugin,
+//   ...plugins,
+// ];
 
 const unoptimizedBundles = [
   {
@@ -95,7 +85,7 @@ const unoptimizedBundles = [
     watch: {
       clearScreen: false,
     },
-    plugins: unoptimizedPlugins,
+    plugins: plugins,
   },
   {
     input: "./src/index.ts",
@@ -109,39 +99,39 @@ const unoptimizedBundles = [
     watch: {
       clearScreen: false,
     },
-    plugins: unoptimizedPlugins,
-  },
-];
-
-const optimizedBundles = [
-  {
-    input: "./src/index.ts",
-    output: {
-      file: "lib/optimized/wasm-terminal.esm.js",
-      format: "esm",
-      sourcemap: sourcemapOption,
-    },
-    watch: {
-      clearScreen: false,
-    },
-    plugins: plugins,
-  },
-  {
-    input: "./src/index.ts",
-    output: {
-      file: "lib/optimized/wasm-terminal.iife.js",
-      format: "iife",
-      sourcemap: sourcemapOption,
-      name: "WasmTerminal",
-      exports: "named",
-    },
-    watch: {
-      clearScreen: false,
-    },
     plugins: plugins,
   },
 ];
 
-const libBundles = [...unoptimizedBundles, ...optimizedBundles];
+// const optimizedBundles = [
+//   {
+//     input: "./src/index.ts",
+//     output: {
+//       file: "lib/optimized/wasm-terminal.esm.js",
+//       format: "esm",
+//       sourcemap: sourcemapOption,
+//     },
+//     watch: {
+//       clearScreen: false,
+//     },
+//     plugins: plugins,
+//   },
+//   {
+//     input: "./src/index.ts",
+//     output: {
+//       file: "lib/optimized/wasm-terminal.iife.js",
+//       format: "iife",
+//       sourcemap: sourcemapOption,
+//       name: "WasmTerminal",
+//       exports: "named",
+//     },
+//     watch: {
+//       clearScreen: false,
+//     },
+//     plugins: plugins,
+//   },
+// ];
 
-export default libBundles;
+//const libBundles = [...unoptimizedBundles, ...optimizedBundles];
+
+export default unoptimizedBundles;

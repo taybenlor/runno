@@ -2,6 +2,7 @@ import { EditorState, EditorView, basicSetup } from "@codemirror/basic-setup";
 import { javascript } from "@codemirror/lang-javascript";
 import { python } from "@codemirror/lang-python";
 import { sql } from "@codemirror/lang-sql";
+import { cpp } from "@codemirror/lang-cpp";
 import { HighlightStyle, tags as t } from "@codemirror/highlight";
 import { Runtime, Syntax } from "./types";
 
@@ -84,6 +85,9 @@ function syntaxToExtensions(syntax: Syntax) {
   }
   if (syntax == "sql") {
     return [basicSetup, theme, highlightStyle, sql()];
+  }
+  if (syntax == "cpp") {
+    return [basicSetup, theme, highlightStyle, cpp()];
   }
   return [basicSetup, theme, highlightStyle];
 }

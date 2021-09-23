@@ -24,7 +24,7 @@
   "license": "MIT",
   "dependencies": {
     "@wasmer/io-devices": "^0.10.2",
-    "@wasmer/wasi": "^0.10.2",
+    "@runno/wasi": "../wasi",
     "@wasmer/wasmfs": "^0.10.2",
     "comlink": "^4.0.5",
     "shell-parse": "0.0.2",
@@ -37,7 +37,7 @@
   "devDependencies": {
     "@types/shell-quote": "^1.7.0",
     "jest": "^27.0.6",
-    "rollup": "^2.52.7",
+    "rollup": "^2.56.3",
     "rollup-plugin-alias": "^2.2.0",
     "rollup-plugin-bundle-size": "^1.0.3",
     "rollup-plugin-commonjs": "^10.1.0",
