@@ -1,4 +1,5 @@
 import { StarfieldElement } from "./starfield";
+import { encode } from "url-safe-base64";
 
 function generateEmbedURL(code: string, runtime: string, showEditor: boolean) {
   const url = new URL(import.meta.env.VITE_RUNTIME);
@@ -6,7 +7,7 @@ function generateEmbedURL(code: string, runtime: string, showEditor: boolean) {
     url.searchParams.append("editor", showEditor ? "1" : "0");
   }
   url.searchParams.append("runtime", runtime);
-  url.searchParams.append("code", code);
+  url.searchParams.append("code", encode(btoa(code)));
   return url;
 }
 

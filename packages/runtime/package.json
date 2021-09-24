@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "@types/text-table": "^0.2.1",
+    "@types/url-safe-base64": "^1.1.0",
     "copyfiles": "^2.1.1",
     "cpy-cli": "^2.0.0",
     "eslint": "^7.28.0",
@@ -48,6 +49,7 @@
     "save-file": "^2.3.1",
     "tar-stream": "^2.1.0",
     "text-table": "^0.2.0",
+    "url-safe-base64": "^1.1.1",
     "util": "^0.12.4",
     "xterm": "^4.12.0"
   }

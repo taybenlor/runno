@@ -1,3 +1,5 @@
+import { decode } from "url-safe-base64";
+
 import { RunnoProvider } from "./provider";
 import { Runtime, Syntax } from "./types";
 
@@ -30,6 +32,9 @@ function runtimeToSyntax(runtime: string | undefined | null): Syntax {
   if (runtime == "clang") {
     return "cpp";
   }
+  if (runtime == "clangpp") {
+    return "cpp";
+  }
   return undefined;
 }
 
@@ -39,7 +44,7 @@ export function handleParams(provider: RunnoProvider) {
   const urlParams = `${hash}&${search}`;
   const params = new URLSearchParams(urlParams);
 
-  const code = params.get("code") || "";
+  const code = params.get("code") ? atob(decode(params.get("code")!)) : "";
   const command = params.get("command");
   const runtimeName = params.get("runtime");
   const showEditor = isTruthy(params.get("editor"));

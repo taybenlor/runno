@@ -1,4 +1,5 @@
 module.exports = {
+  mode: "jit",
   purge: ["./index.html"],
   darkMode: false, // or 'media' or 'class'
   theme: {
@@ -62,6 +63,15 @@ module.exports = {
             "p, li": {
               fontFamily:
                 '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"',
+            },
+            code: {
+              color: "#ff2ea8",
+            },
+            "code::before": {
+              content: "",
+            },
+            "code::after": {
+              content: "",
             },
           },
         },

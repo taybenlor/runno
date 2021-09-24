@@ -46,10 +46,11 @@
                 >
                   Your code
                 </label>
-                <textarea class="w-full h-56 p-2 bg-navy" id="code">
+                <textarea class="w-full h-[35vh] p-2 bg-navy" id="code">
 print("Hello, World!")
-name = input("Whats your name? ")
-print(f"G'day {name}, hope you enjoy Runno.")</textarea
+name = input("What's your name? ")
+print(f"G'day {name}, welcome to Runno.");
+</textarea
                 >
               </div>
               <div
@@ -69,7 +70,8 @@ print(f"G'day {name}, hope you enjoy Runno.")</textarea
                     </option>
                     <option value="quickjs">JavaScript (QuickJS)</option>
                     <option value="sqlite">SQL (SQLite)</option>
-                    <option value="clang">C/C++ (clang)</option>
+                    <option value="clang">C (clang)</option>
+                    <option value="clangpp">C++ (clang)</option>
                   </select>
                 </label>
 
@@ -92,7 +94,7 @@ print(f"G'day {name}, hope you enjoy Runno.")</textarea
                 >
                   Embed this
                 </label>
-                <textarea class="w-full h-28 p-2 bg-navy" id="embed"></textarea>
+                <textarea class="w-full h-32 p-2 bg-navy" id="embed"></textarea>
               </div>
             </form>
 
@@ -173,9 +175,10 @@ print(f"G'day {name}, hope you enjoy Runno.")</textarea
           <p>
             You can also control the iframe using the
             <a href="#host-api">host API</a>. This can be used to pass in a
-            virtual file system, and then collect STDIN, STDOUT and STDERR from
-            the program. It can also be used to automate the running of code in
-            both interactive and headless modes.
+            virtual file system, and then collect <code>STDIN</code>,
+            <code>STDOUT</code> and <code>STDERR</code> from the program. It can
+            also be used to automate the running of code in both interactive and
+            headless modes.
           </p>
 
           <h2 id="how-it-works">How it works</h2>
@@ -230,11 +233,12 @@ print(f"G'day {name}, hope you enjoy Runno.")</textarea
             you'll need to provide that code alongside your example.
           </p>
           <p>
-            Runno is best for small code examples that use STDIN and STDOUT.
-            That is typically the sort of thing that is taught in a CS1 course
-            at university. This isn't an inherent limitation of the system
-            though! As more work is put into Runno and the ecosystem of tools it
-            depends on, more will become available.
+            Runno is best for small code examples that use
+            <code>STDIN</code> and <code>STDOUT</code>. That is typically the
+            sort of thing that is taught in a CS1 course at university. This
+            isn't an inherent limitation of the system though! As more work is
+            put into Runno and the ecosystem of tools it depends on, more will
+            become available.
           </p>
 
           <h2 id="security">Security</h2>
