@@ -24,8 +24,18 @@ function commandsForRuntime(name: string, entryPath: string): RuntimeCommands {
   if (name === "clang") {
     return {
       prepare: [
-        `clang -cc1 -triple wasm32-unkown-wasi -isysroot /sys -internal-isystem /sys/include -emit-obj -o ./program.o ${entryPath}`,
+        `clang -cc1 -triple wasm32-unkown-wasi -isysroot /sys -internal-isystem /sys/include -ferror-limit 4 -fmessage-length 80 -fcolor-diagnostics -O2 -emit-obj -o ./program.o ${entryPath}`,
         `wasm-ld -L/sys/lib/wasm32-wasi /sys/lib/wasm32-wasi/crt1.o ./program.o -lc -o ./program.wasm`,
+      ],
+      run: `wasmer run ./program.wasm`,
+    };
+  }
+
+  if (name === "clangpp") {
+    return {
+      prepare: [
+        `runno-clang -cc1 -emit-obj -disable-free -isysroot /sys -internal-isystem /sys/include/c++/v1 -internal-isystem /sys/include -internal-isystem /sys/lib/clang/8.0.1/include -ferror-limit 4 -fmessage-length 80 -fcolor-diagnostics -O2 -o program.o -x c++  ${entryPath}`,
+        `runno-wasm-ld --no-threads --export-dynamic -z stack-size=1048576 -L/sys/lib/wasm32-wasi /sys/lib/wasm32-wasi/crt1.o program.o -lc -lc++ -lc++abi -o ./program.wasm`,
       ],
       run: `wasmer run ./program.wasm`,
     };
@@ -88,6 +98,7 @@ export class RunnoProvider {
       tty += result.tty;
     }
     const result = await this.interactiveUnsafeCommand(commands.run, {});
+
     return {
       stdin: stdin + result.stdin,
       stdout: stdout + result.stdout,
