@@ -1,13 +1,13 @@
 import { Runtime } from "@runno/host";
 
-const fortran77 = `
-    PROGRAM HELLO
-*   The PRINT statement is like WRITE,
-*   but prints to the standard output unit
-        PRINT '(A)', 'Hello, world'
-        STOP
-    END
-`;
+// const fortran77 = `
+//     PROGRAM HELLO
+// *   The PRINT statement is like WRITE,
+// *   but prints to the standard output unit
+//         PRINT '(A)', 'Hello, world'
+//         STOP
+//     END
+// `;
 
 const c = `
 #include <stdio.h>
