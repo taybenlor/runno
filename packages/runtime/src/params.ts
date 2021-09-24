@@ -44,7 +44,7 @@ export function handleParams(provider: RunnoProvider) {
   const urlParams = `${hash}&${search}`;
   const params = new URLSearchParams(urlParams);
 
-  const code = params.get("code") ? atob(decode(params.get("code"))) : "";
+  const code = params.get("code") ? atob(decode(params.get("code")!)) : "";
   const command = params.get("command");
   const runtimeName = params.get("runtime");
   const showEditor = isTruthy(params.get("editor"));
