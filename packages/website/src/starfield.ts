@@ -33,6 +33,7 @@ export class StarfieldElement extends HTMLElement {
             right: 0px;
             height: 30%;
             z-index: 0;
+            overflow: hidden;
         }
         </style>
     `;
