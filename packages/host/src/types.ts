@@ -7,6 +7,13 @@ export type CommandResult = {
   stderr: string;
   tty: string;
   fs: FS;
+  prepareResult?: {
+    stdin: string;
+    stdout: string;
+    stderr: string;
+    tty: string;
+    fs: FS;
+  };
 };
 
 export type FS = {

@@ -3,7 +3,7 @@ import { Runtime, RuntimeMethods, CommandResult, FS, Syntax } from "./types";
 
 export class RunnoError extends Error {}
 
-export class RunnoHost {
+export class RunnoHost implements RuntimeMethods {
   remoteHandle: RemoteHandle<RuntimeMethods>;
   constructor(remoteHandle: RemoteHandle<RuntimeMethods>) {
     this.remoteHandle = remoteHandle;

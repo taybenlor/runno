@@ -1,6 +1,12 @@
 import { Editor } from "./editor";
 import { Terminal } from "./terminal";
-import { CommandResult, FS, Runtime, Syntax } from "./types";
+import {
+  CommandResult,
+  FS,
+  Runtime,
+  Syntax,
+  RuntimeMethods,
+} from "@runno/host";
 import { WasmFs } from "./wasmfs";
 import { headlessRunCommand } from "./headless";
 
@@ -8,6 +14,7 @@ type RuntimeCommands = {
   prepare?: Array<string>;
   run: string;
 };
+
 function commandsForRuntime(name: string, entryPath: string): RuntimeCommands {
   if (name === "python") {
     return { run: `python ${entryPath}` };
@@ -44,7 +51,7 @@ function commandsForRuntime(name: string, entryPath: string): RuntimeCommands {
   throw new Error(`Unknown runtime ${name}`);
 }
 
-export class RunnoProvider {
+export class RunnoProvider implements RuntimeMethods {
   terminal: Terminal;
   editor: Editor;
 
@@ -85,26 +92,43 @@ export class RunnoProvider {
     fs: FS
   ): Promise<CommandResult> {
     const commands = commandsForRuntime(runtime, entryPath);
-    this.writeFS(fs);
-    let stdin = "";
-    let stdout = "";
-    let stderr = "";
-    let tty = "";
-    for (const command of commands.prepare || []) {
-      const result = await this.interactiveUnsafeCommand(command, {});
-      stdin += result.stdin;
-      stdout += result.stdout;
-      stderr += result.stderr;
-      tty += result.tty;
-    }
-    const result = await this.interactiveUnsafeCommand(commands.run, {});
 
+    this.writeFS(fs);
+
+    const prepared: {
+      prepareResult?: {
+        stdin: string;
+        stdout: string;
+        stderr: string;
+        tty: string;
+        fs: FS;
+      };
+    } = {};
+    if (commands.prepare) {
+      prepared.prepareResult = {
+        stdin: "",
+        stdout: "",
+        stderr: "",
+        tty: "",
+        fs: {},
+      };
+      for (const command of commands.prepare || []) {
+        const result = await this.interactiveUnsafeCommand(command, {});
+        prepared.prepareResult.stdin += result.stdin;
+        prepared.prepareResult.stdout += result.stdout;
+        prepared.prepareResult.stderr += result.stderr;
+        prepared.prepareResult.tty += result.tty;
+
+        // It's okay not to merge here since the FS is cumulative
+        // over each run.
+        prepared.prepareResult.fs = result.fs;
+      }
+    }
+
+    const result = await this.interactiveUnsafeCommand(commands.run, {});
     return {
-      stdin: stdin + result.stdin,
-      stdout: stdout + result.stdout,
-      stderr: stderr + result.stderr,
-      tty: tty + result.tty,
-      fs: result.fs,
+      ...result,
+      ...prepared,
     };
   }
 
@@ -141,12 +165,44 @@ export class RunnoProvider {
     stdin?: string
   ): Promise<CommandResult> {
     const commands = commandsForRuntime(runtime, entryPath);
-    for (const command of commands.prepare || []) {
-      // TODO: Do a better job of dealing with intermediate state
-      const result = await this.headlessUnsafeCommand(command, fs, stdin);
-      fs = result.fs;
+
+    const prepared: {
+      prepareResult?: {
+        stdin: string;
+        stdout: string;
+        stderr: string;
+        tty: string;
+        fs: FS;
+      };
+    } = {};
+
+    if (commands.prepare) {
+      prepared.prepareResult = {
+        stdin: "",
+        stdout: "",
+        stderr: "",
+        tty: "",
+        fs: {},
+      };
+      for (const command of commands.prepare || []) {
+        const result = await this.headlessUnsafeCommand(command, fs, stdin);
+        prepared.prepareResult.stdin += result.stdin;
+        prepared.prepareResult.stdout += result.stdout;
+        prepared.prepareResult.stderr += result.stderr;
+        prepared.prepareResult.tty += result.tty;
+
+        // It's okay not to merge here since the FS will be cumulative
+        // over each run.
+        prepared.prepareResult.fs = result.fs;
+        fs = result.fs;
+      }
     }
-    return this.headlessUnsafeCommand(commands.run, fs, stdin);
+
+    const result = await this.headlessUnsafeCommand(commands.run, fs, stdin);
+    return {
+      ...result,
+      ...prepared,
+    };
   }
 
   async headlessUnsafeCommand(
@@ -167,8 +223,4 @@ export class RunnoProvider {
 
     return await headlessRunCommand(command, wasmfs, stdin);
   }
-
-  //
-  // Private Helpers
-  //
 }
