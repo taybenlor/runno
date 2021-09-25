@@ -4,7 +4,7 @@ import { python } from "@codemirror/lang-python";
 import { sql } from "@codemirror/lang-sql";
 import { cpp } from "@codemirror/lang-cpp";
 import { HighlightStyle, tags as t } from "@codemirror/highlight";
-import { Runtime, Syntax } from "./types";
+import { Runtime, Syntax } from "@runno/host";
 
 type RunCallback = (runtime: Runtime, code: string) => void;
 

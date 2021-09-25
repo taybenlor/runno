@@ -3,7 +3,7 @@
 import WasmTerminal from "@runno/terminal";
 import processWorkerURL from "@runno/terminal/lib/workers/process.worker.js?url";
 import { WasmFs } from "./wasmfs";
-import { CommandResult, FS } from "./types";
+import { CommandResult, FS } from "@runno/host";
 
 import WAPM from "./wapm/wapm";
 
