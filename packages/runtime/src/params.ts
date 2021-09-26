@@ -1,7 +1,7 @@
 import { decode } from "url-safe-base64";
 
 import { RunnoProvider } from "./provider";
-import { Runtime, Syntax } from "./types";
+import { Runtime, Syntax } from "@runno/host";
 
 function isTruthy(param: string | null | undefined) {
   if (param === null || param === undefined) {

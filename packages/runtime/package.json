@@ -34,6 +34,7 @@
     "@codemirror/lang-python": "^0.19.2",
     "@codemirror/lang-sql": "^0.19.3",
     "@runno/terminal": "../terminal",
+    "@runno/host": "../host",
     "@wasmer/wasm-transformer": "^0.10.2",
     "buffer": "^5.7.1",
     "events": "^3.3.0",

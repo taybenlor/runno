@@ -1,7 +1,7 @@
 import { CommandRunner, WasmTerminalConfig } from "@runno/terminal";
 import processWorkerURL from "@runno/terminal/lib/workers/process.worker.js?url";
 
-import { CommandResult } from "./types";
+import { CommandResult } from "@runno/host";
 import { WasmFs } from "./wasmfs";
 import WAPM from "./wapm/wapm";
 
