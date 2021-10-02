@@ -11,7 +11,8 @@
     "noEmit": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noImplicitReturns": true
+    "noImplicitReturns": true,
+    "experimentalDecorators": true
   },
   "include": ["./src"],
   "exclude": ["node_modules"]

@@ -92,45 +92,22 @@ function syntaxToExtensions(syntax: Syntax) {
   return [basicSetup, theme, highlightStyle];
 }
 
-export class Editor {
-  container: HTMLElement;
-  editor: HTMLElement;
-  runButton: HTMLButtonElement;
+export class EditorElement extends HTMLElement {
   view: EditorView;
   runtime: Runtime | undefined;
   runCallbacks: RunCallback[] = [];
 
-  set hidden(hidden: boolean) {
-    this.container.hidden = hidden;
+  get program(): string {
+    return this.view.state.doc.toString();
   }
 
-  get hidden() {
-    return this.container.hidden;
-  }
-
-  constructor(container: HTMLElement) {
-    this.container = container;
-    this.editor = container.querySelector("#code-editor")!;
-    this.runButton = container.querySelector("#run")!;
+  constructor() {
+    super();
 
     this.view = new EditorView({
       state: EditorState.create({ extensions: syntaxToExtensions(undefined) }),
-      parent: this.editor,
+      parent: this,
     });
-
-    this.runButton.addEventListener("click", () => {
-      if (this.runtime == undefined) {
-        return;
-      }
-
-      for (const callback of this.runCallbacks) {
-        callback(this.runtime, this.view.state.doc.toString());
-      }
-    });
-  }
-
-  addRunCallback(callback: RunCallback) {
-    this.runCallbacks.push(callback);
   }
 
   setProgram(syntax: Syntax, runtime: Runtime, code: string) {
@@ -144,10 +121,10 @@ export class Editor {
   }
 
   show() {
-    this.container.hidden = false;
+    this.hidden = false;
   }
 
   hide() {
-    this.container.hidden = true;
+    this.hidden = true;
   }
 }

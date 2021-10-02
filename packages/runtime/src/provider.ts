@@ -1,5 +1,5 @@
-import { Editor } from "./editor";
-import { Terminal } from "./terminal";
+import { EditorElement } from "./editor";
+import { TerminalElement } from "./terminal";
 import {
   CommandResult,
   FS,
@@ -52,16 +52,12 @@ function commandsForRuntime(name: string, entryPath: string): RuntimeCommands {
 }
 
 export class RunnoProvider implements RuntimeMethods {
-  terminal: Terminal;
-  editor: Editor;
+  terminal: TerminalElement;
+  editor: EditorElement;
 
-  constructor(terminal: Terminal, editor: Editor) {
+  constructor(terminal: TerminalElement, editor: EditorElement) {
     this.terminal = terminal;
     this.editor = editor;
-
-    editor.addRunCallback((runtime, code) => {
-      this.interactiveRunCode(runtime, code);
-    });
   }
 
   //

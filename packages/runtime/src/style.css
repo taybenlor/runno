@@ -35,29 +35,13 @@ body {
   width: 100%;
 }
 
-#editor-container {
+runno-editor {
   background: white;
 }
 
-#run {
-  font-size: 16px;
-  font-family: monospace;
-  background: #ffe234;
-  border: none;
-  color: black;
-  padding: 8px;
-  margin: 8px;
-  display: inline-flex;
-  align-items: center;
-}
-
-#run svg {
-  margin-left: 8px;
-}
-
-#wasm-terminal > .xterm,
-#wasm-terminal > .xterm-viewport,
-#wasm-terminal > .xterm-screen {
+runno-terminal > .xterm,
+runno-terminal > .xterm-viewport,
+runno-terminal > .xterm-screen {
   width: 100%;
   height: 100%;
   padding: 0.5em;

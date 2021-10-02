@@ -7,12 +7,14 @@ import { CommandResult, FS } from "@runno/host";
 
 import WAPM from "./wapm/wapm";
 
-export class Terminal {
+export class TerminalElement extends HTMLElement {
   wasmFs: WasmFs;
   wasmTerminal: WasmTerminal;
   wapm: WAPM;
 
-  constructor(terminalEl: HTMLElement) {
+  constructor() {
+    super();
+
     this.wasmFs = new WasmFs();
     this.wasmTerminal = new WasmTerminal({
       processWorkerUrl: processWorkerURL,
@@ -21,7 +23,7 @@ export class Terminal {
     });
     this.wapm = new WAPM(this.wasmFs, this.wasmTerminal);
 
-    this.wasmTerminal.open(terminalEl);
+    this.wasmTerminal.open(this);
     window.addEventListener("resize", () => {
       this.wasmTerminal.fit();
     });
