@@ -1,5 +1,5 @@
 import { html, css, LitElement } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { property } from "lit/decorators.js";
 
 export class ControlsElement extends LitElement {
   static styles = css`
