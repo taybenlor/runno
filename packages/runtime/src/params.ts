@@ -48,9 +48,10 @@ export function handleParams(provider: RunnoProvider) {
   const command = params.get("command");
   const runtimeName = params.get("runtime");
   const showEditor = isTruthy(params.get("editor"));
+  const autorun = isTruthy(params.get("autorun"));
 
-  if (showEditor) {
-    provider.showEditor();
+  if (runtimeName && code) {
+    // TODO: Handle invalid runtimeName
     provider.setEditorProgram(
       runtimeToSyntax(runtimeName),
       runtimeName as Runtime,
@@ -58,17 +59,20 @@ export function handleParams(provider: RunnoProvider) {
     );
   }
 
-  if (runtimeName) {
+  if (showEditor) {
+    provider.showEditor();
+  }
+
+  if (autorun && runtimeName) {
     provider.interactiveRunCode(runtimeName as Runtime, code);
-  } else if (command) {
+  }
+
+  if (command) {
     provider.interactiveUnsafeCommand(command, {
       code: {
         name: "code",
         content: code,
       },
     });
-  } else {
-    // No command was specified
-    return;
   }
 }

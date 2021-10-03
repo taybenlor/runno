@@ -3,10 +3,18 @@ import { encode } from "url-safe-base64";
 import { exampleForRuntime } from "./examples";
 import { Runtime } from "@runno/host";
 
-function generateEmbedURL(code: string, runtime: string, showEditor: boolean) {
+function generateEmbedURL(
+  code: string,
+  runtime: string,
+  showEditor: boolean,
+  autoRun: boolean
+) {
   const url = new URL(import.meta.env.VITE_RUNTIME);
   if (showEditor) {
-    url.searchParams.append("editor", showEditor ? "1" : "0");
+    url.searchParams.append("editor", "1");
+  }
+  if (autoRun) {
+    url.searchParams.append("autorun", "1");
   }
   url.searchParams.append("runtime", runtime);
   url.searchParams.append("code", encode(btoa(code)));
@@ -27,6 +35,9 @@ const runtimeSelect = document.getElementById(
 const editorCheckbox = document.getElementById(
   "editor-checkbox"
 ) as HTMLInputElement;
+const autorunCheckbox = document.getElementById(
+  "autorun-checkbox"
+) as HTMLInputElement;
 const embedText = document.getElementById("embed") as HTMLTextAreaElement;
 const runtimeIframe = document.getElementById("runtime") as HTMLIFrameElement;
 
@@ -41,7 +52,8 @@ function updateState() {
   const embedURL = generateEmbedURL(
     codeText.value,
     runtimeSelect.value,
-    editorCheckbox.checked
+    editorCheckbox.checked,
+    autorunCheckbox.checked
   );
   embedText.value = generateEmbedHTML(embedURL);
   runtimeIframe.src = embedURL.toString();
@@ -51,5 +63,6 @@ function updateState() {
 codeText.addEventListener("input", updateState);
 runtimeSelect.addEventListener("input", updateState);
 editorCheckbox.addEventListener("input", updateState);
+autorunCheckbox.addEventListener("input", updateState);
 
 updateState();
