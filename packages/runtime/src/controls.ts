@@ -8,24 +8,44 @@ export class ControlsElement extends LitElement {
       background: white;
     }
 
-    button {
+    #run {
       font-size: 16px;
       font-family: monospace;
       background: #ffe234;
       border: none;
       color: black;
       padding: 8px;
-      margin: 8px 8px 8px 0px;
+      margin: 8px;
       display: inline-flex;
       align-items: center;
+      height: 36px;
     }
 
-    button:first-child {
+    #run svg {
       margin-left: 8px;
     }
 
-    button svg {
-      margin-left: 8px;
+    #stop {
+      font-size: 16px;
+      font-family: monospace;
+      border: none;
+      background: #d0d0d0;
+      color: black;
+      padding: 0px;
+      margin: 8px;
+      display: inline-flex;
+      align-items: center;
+      height: 36px;
+    }
+
+    #stop span {
+      padding: 0 8px;
+    }
+
+    #stop svg {
+      padding: 0 8px;
+      background: #ff3449;
+      height: 36px;
     }
   `;
 
