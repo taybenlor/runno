@@ -1,5 +1,4 @@
 import { ChildHandshake, WindowMessenger } from "post-me";
-import { RunnoProvider } from "./provider";
 import { RuntimeMethods } from "@runno/host";
 
 const messenger = new WindowMessenger({
@@ -8,6 +7,6 @@ const messenger = new WindowMessenger({
   remoteOrigin: "*",
 });
 
-export function createConnection(provider: RunnoProvider) {
+export function createConnection(provider: RuntimeMethods) {
   return ChildHandshake<RuntimeMethods>(messenger, provider);
 }

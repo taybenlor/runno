@@ -45,6 +45,8 @@ export type RuntimeMethods = {
 
   interactiveUnsafeCommand: (command: string, fs: FS) => Promise<CommandResult>;
 
+  interactiveStop: () => void;
+
   headlessRunCode: (
     runtime: Runtime,
     code: string,

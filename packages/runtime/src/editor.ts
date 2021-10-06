@@ -6,8 +6,6 @@ import { cpp } from "@codemirror/lang-cpp";
 import { HighlightStyle, tags as t } from "@codemirror/highlight";
 import { Runtime, Syntax } from "@runno/host";
 
-type RunCallback = (runtime: Runtime, code: string) => void;
-
 // TODO: This is just the one-dark theme colors on a light background
 // Need to find some new colours, or pick some of my own
 // https://github.com/dempfi/ayu
@@ -93,9 +91,9 @@ function syntaxToExtensions(syntax: Syntax) {
 }
 
 export class EditorElement extends HTMLElement {
-  view: EditorView;
   runtime: Runtime | undefined;
-  runCallbacks: RunCallback[] = [];
+
+  private view: EditorView;
 
   get program(): string {
     return this.view.state.doc.toString();
@@ -106,8 +104,10 @@ export class EditorElement extends HTMLElement {
 
     this.view = new EditorView({
       state: EditorState.create({ extensions: syntaxToExtensions(undefined) }),
-      parent: this,
     });
+
+    this.attachShadow({ mode: "open" });
+    this.shadowRoot!.appendChild(this.view.dom);
   }
 
   setProgram(syntax: Syntax, runtime: Runtime, code: string) {

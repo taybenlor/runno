@@ -4,6 +4,7 @@ import WasmTerminal from "@runno/terminal";
 import processWorkerURL from "@runno/terminal/lib/workers/process.worker.js?url";
 import { WasmFs } from "./wasmfs";
 import { CommandResult, FS } from "@runno/host";
+import xtermcss from "xterm/css/xterm.css";
 
 import WAPM from "./wapm/wapm";
 
@@ -23,11 +24,43 @@ export class TerminalElement extends HTMLElement {
     });
     this.wapm = new WAPM(this.wasmFs, this.wasmTerminal);
 
-    this.wasmTerminal.open(this);
-    window.addEventListener("resize", () => {
-      this.wasmTerminal.fit();
-    });
+    this.attachShadow({ mode: "open" });
+    this.shadowRoot!.innerHTML = `
+    <style>
+      ${xtermcss}
+      
+      .xterm,
+      .xterm-viewport,
+      .xterm-screen {
+        width: 100%;
+        height: 100%;
+        padding: 0.5em;
+      }
+    </style>`;
   }
+
+  //
+  // Lifecycle Methods
+  //
+
+  connectedCallback() {
+    this.wasmTerminal.open(this.shadowRoot as any);
+    window.addEventListener("resize", this.onResize);
+  }
+
+  disconnectedCallback() {
+    window.removeEventListener("resize", this.onResize);
+  }
+
+  //
+  // Helpers
+  //
+
+  onResize = () => {
+    if (this.wasmTerminal.isOpen) {
+      this.wasmTerminal.fit();
+    }
+  };
 
   async fetchCommand(options: any) {
     return await this.wapm.runCommand(options);
@@ -71,6 +104,10 @@ export class TerminalElement extends HTMLElement {
       };
     }
     return result;
+  }
+
+  stop() {
+    return this.wasmTerminal.kill();
   }
 
   isReadyForCommand(): boolean {

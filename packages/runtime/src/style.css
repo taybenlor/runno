@@ -1,5 +1,4 @@
 @import url("normalize.css");
-@import url("xterm/css/xterm.css");
 
 *,
 *::before,
@@ -33,16 +32,4 @@ body {
 
 .vertical-split > * {
   width: 100%;
-}
-
-runno-editor {
-  background: white;
-}
-
-runno-terminal > .xterm,
-runno-terminal > .xterm-viewport,
-runno-terminal > .xterm-screen {
-  width: 100%;
-  height: 100%;
-  padding: 0.5em;
 }
