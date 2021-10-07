@@ -11,13 +11,14 @@ import { Runtime } from "@runno/host";
 
 const c = `
 #include <stdio.h>
+#include <string.h>
 int main() {
   printf("Hello, World!\\nWhat's your name? ");
   fflush(stdout);
   char *name;
   size_t length = 32;
   getline(&name, &length, stdin);
-  name[strlen(name)-1] = '\0';
+  name[strlen(name)-1] = '\\0';
   printf("G'day %s, welcome to Runno.", name);
 }
 `.trimLeft();
