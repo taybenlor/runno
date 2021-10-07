@@ -14,7 +14,7 @@ import { ControlsElement } from "./controls";
 import { TerminalElement } from "./terminal";
 import { RunnoProvider } from "./provider";
 
-export class RuntimeElement extends LitElement implements RuntimeMethods {
+export class RunElement extends LitElement implements RuntimeMethods {
   static styles = css`
     runno-editor {
       background: white;

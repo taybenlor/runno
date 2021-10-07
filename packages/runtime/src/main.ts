@@ -3,15 +3,15 @@ import { TerminalElement } from "./terminal";
 import { handleParams } from "./params";
 import { EditorElement } from "./editor";
 import { ControlsElement } from "./controls";
-import { RuntimeElement } from "./runtime";
+import { RunElement } from "./run";
 
 customElements.define("runno-terminal", TerminalElement);
 customElements.define("runno-editor", EditorElement);
 customElements.define("runno-controls", ControlsElement);
-customElements.define("runno-runtime", RuntimeElement);
+customElements.define("runno-run", RunElement);
 
 // Show terminal in DOM
-const runtime = document.querySelector<RuntimeElement>("runno-runtime")!;
+const runtime = document.querySelector<RunElement>("runno-runtime")!;
 
 runtime.addEventListener("runno-ready", () => {
   // Set up iframe messaging connections
