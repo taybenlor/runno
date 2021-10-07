@@ -11,7 +11,7 @@ customElements.define("runno-controls", ControlsElement);
 customElements.define("runno-run", RunElement);
 
 // Show terminal in DOM
-const runtime = document.querySelector<RunElement>("runno-runtime")!;
+const runtime = document.querySelector<RunElement>("runno-run")!;
 
 runtime.addEventListener("runno-ready", () => {
   // Set up iframe messaging connections
