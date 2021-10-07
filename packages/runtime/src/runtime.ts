@@ -2,13 +2,19 @@ import { html, css, LitElement } from "lit";
 import { property, state } from "lit/decorators.js";
 import { createRef, Ref, ref } from "lit/directives/ref.js";
 
-import { Runtime, RuntimeMethods, Syntax, CommandResult } from "@runno/host";
+import {
+  Runtime,
+  RuntimeMethods,
+  Syntax,
+  CommandResult,
+  FS,
+} from "@runno/host";
 import { EditorElement } from "./editor";
 import { ControlsElement } from "./controls";
 import { TerminalElement } from "./terminal";
 import { RunnoProvider } from "./provider";
 
-export class RuntimeElement extends LitElement {
+export class RuntimeElement extends LitElement implements RuntimeMethods {
   static styles = css`
     runno-editor {
       background: white;
@@ -18,13 +24,13 @@ export class RuntimeElement extends LitElement {
   @property({ type: Boolean }) editor: boolean = false;
   @property({ type: Boolean }) controls: boolean = false;
 
-  public provider!: RuntimeMethods;
-
   editorRef: Ref<EditorElement> = createRef();
   controlsRef: Ref<ControlsElement> = createRef();
   terminalRef: Ref<TerminalElement> = createRef();
 
   @state() private _running: Boolean = false;
+
+  private _provider!: RuntimeMethods;
 
   public get running() {
     return this._running;
@@ -35,17 +41,12 @@ export class RuntimeElement extends LitElement {
     if (!editor.runtime) {
       throw new Error("The editor has no runtime");
     }
-    this._running = true;
-    const result = await this.provider.interactiveRunCode(
-      editor.runtime,
-      editor.program
-    );
-    this._running = false;
-    return result;
+
+    return this.interactiveRunCode(editor.runtime, editor.program);
   }
 
   public stop() {
-    return this.provider.interactiveStop();
+    return this.interactiveStop();
   }
 
   public setProgram(syntax: Syntax, runtime: Runtime, code: string) {
@@ -53,11 +54,91 @@ export class RuntimeElement extends LitElement {
   }
 
   //
+  // Runtime Methods
+  //
+
+  showEditor() {
+    return this._provider.showEditor();
+  }
+
+  hideEditor() {
+    return this._provider.hideEditor();
+  }
+
+  setEditorProgram(syntax: Syntax, runtime: Runtime, code: string) {
+    return this._provider.setEditorProgram(syntax, runtime, code);
+  }
+
+  async interactiveRunCode(
+    runtime: Runtime,
+    code: string
+  ): Promise<CommandResult> {
+    this._running = true;
+    const result = await this._provider.interactiveRunCode(runtime, code);
+    this._running = false;
+    return result;
+  }
+
+  async interactiveRunFS(
+    runtime: Runtime,
+    entryPath: string,
+    fs: FS
+  ): Promise<CommandResult> {
+    this._running = true;
+    const result = await this._provider.interactiveRunFS(
+      runtime,
+      entryPath,
+      fs
+    );
+    this._running = false;
+    return result;
+  }
+
+  async interactiveUnsafeCommand(
+    command: string,
+    fs: FS
+  ): Promise<CommandResult> {
+    this._running = true;
+    const result = await this._provider.interactiveUnsafeCommand(command, fs);
+    this._running = false;
+    return result;
+  }
+
+  interactiveStop() {
+    return this._provider.interactiveStop();
+  }
+
+  headlessRunCode(
+    runtime: Runtime,
+    code: string,
+    stdin?: string
+  ): Promise<CommandResult> {
+    return this._provider.headlessRunCode(runtime, code, stdin);
+  }
+
+  headlessRunFS(
+    runtime: Runtime,
+    entryPath: string,
+    fs: FS,
+    stdin?: string
+  ): Promise<CommandResult> {
+    return this._provider.headlessRunFS(runtime, entryPath, fs, stdin);
+  }
+
+  headlessUnsafeCommand(
+    command: string,
+    fs: FS,
+    stdin?: string
+  ): Promise<CommandResult> {
+    return this._provider.headlessUnsafeCommand(command, fs, stdin);
+  }
+
+  //
   // Lifecycle
   //
 
   firstUpdated() {
-    this.provider = new RunnoProvider(
+    this._provider = new RunnoProvider(
       this.terminalRef.value!,
       this.editorRef.value!
     );

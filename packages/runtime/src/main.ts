@@ -15,8 +15,8 @@ const runtime = document.querySelector<RuntimeElement>("runno-runtime")!;
 
 runtime.addEventListener("runno-ready", () => {
   // Set up iframe messaging connections
-  createConnection(runtime.provider).then(() => {});
+  createConnection(runtime).then(() => {});
 
   // Handle params (if there are any)
-  handleParams(runtime.provider);
+  handleParams(runtime);
 });
