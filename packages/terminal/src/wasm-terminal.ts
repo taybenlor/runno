@@ -182,6 +182,10 @@ export default class WasmTerminal {
     return this.wasmShell.runCommand(line);
   }
 
+  kill() {
+    return this.wasmShell.commandRunner?.kill();
+  }
+
   destroy() {
     this.xterm.dispose();
     delete this.xterm;

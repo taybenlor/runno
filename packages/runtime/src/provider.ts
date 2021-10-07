@@ -61,6 +61,16 @@ export class RunnoProvider implements RuntimeMethods {
   }
 
   //
+  // Private Helpers
+  //
+
+  writeFS(fs: FS) {
+    for (const [name, file] of Object.entries(fs)) {
+      this.terminal.writeFile(name, file.content);
+    }
+  }
+
+  //
   // Public Interface
   //
 
@@ -133,10 +143,8 @@ export class RunnoProvider implements RuntimeMethods {
     return this.terminal.runCommand(command);
   }
 
-  writeFS(fs: FS) {
-    for (const [name, file] of Object.entries(fs)) {
-      this.terminal.writeFile(name, file.content);
-    }
+  interactiveStop(): void {
+    return this.terminal.stop();
   }
 
   headlessRunCode(

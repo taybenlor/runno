@@ -1,7 +1,6 @@
 import { decode } from "url-safe-base64";
 
-import { RunnoProvider } from "./provider";
-import { Runtime, Syntax } from "@runno/host";
+import { Runtime, RuntimeMethods, Syntax } from "@runno/host";
 
 function isTruthy(param: string | null | undefined) {
   if (param === null || param === undefined) {
@@ -38,7 +37,7 @@ function runtimeToSyntax(runtime: string | undefined | null): Syntax {
   return undefined;
 }
 
-export function handleParams(provider: RunnoProvider) {
+export function handleParams(provider: RuntimeMethods) {
   const hash = window.location.hash.slice(1);
   const search = window.location.search.slice(1);
   const urlParams = `${hash}&${search}`;

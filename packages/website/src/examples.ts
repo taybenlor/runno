@@ -12,7 +12,7 @@ import { Runtime } from "@runno/host";
 const c = `
 #include <stdio.h>
 int main() {
-  printf("Hello, World!\nWhat's your name? ");
+  printf("Hello, World!\\nWhat's your name? ");
   fflush(stdout);
   char *name;
   size_t length = 32;
