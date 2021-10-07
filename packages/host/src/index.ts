@@ -41,6 +41,10 @@ export class RunnoHost implements RuntimeMethods {
     return this.remoteHandle.call("interactiveUnsafeCommand", command, fs);
   }
 
+  interactiveStop() {
+    return this.remoteHandle.call("interactiveStop");
+  }
+
   headlessRunCode(
     runtime: Runtime,
     code: string,
