@@ -102,12 +102,21 @@ export class EditorElement extends HTMLElement {
   constructor() {
     super();
 
+    this.attachShadow({ mode: "open" });
+
+    this.shadowRoot!.innerHTML = `
+    <style>
+      .cm-editor {
+        background: white;
+      }
+    </style>
+    `;
+
     this.view = new EditorView({
       state: EditorState.create({ extensions: syntaxToExtensions(undefined) }),
+      root: this.shadowRoot!,
+      parent: this.shadowRoot!,
     });
-
-    this.attachShadow({ mode: "open" });
-    this.shadowRoot!.appendChild(this.view.dom);
   }
 
   setProgram(syntax: Syntax, runtime: Runtime, code: string) {
