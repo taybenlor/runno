@@ -1,29 +1,6 @@
 import { StarfieldElement } from "./starfield";
-import { encode } from "url-safe-base64";
 import { exampleForRuntime } from "./examples";
-import { Runtime } from "@runno/host";
-
-function generateEmbedURL(
-  code: string,
-  runtime: string,
-  showEditor: boolean,
-  autoRun: boolean
-) {
-  const url = new URL(import.meta.env.VITE_RUNTIME);
-  if (showEditor) {
-    url.searchParams.append("editor", "1");
-  }
-  if (autoRun) {
-    url.searchParams.append("autorun", "1");
-  }
-  url.searchParams.append("runtime", runtime);
-  url.searchParams.append("code", encode(btoa(code)));
-  return url;
-}
-
-function generateEmbedHTML(url: URL) {
-  return `<iframe src="${url}" crossorigin allow="cross-origin-isolated"></iframe>`;
-}
+import { Runtime, generateEmbedURL, generateEmbedHTML } from "@runno/host";
 
 // Define this custom element
 customElements.define("runno-starfield", StarfieldElement);
@@ -49,12 +26,11 @@ function updateState() {
     codeText.value = exampleForRuntime(runtimeSelect.value as Runtime);
   }
 
-  const embedURL = generateEmbedURL(
-    codeText.value,
-    runtimeSelect.value,
-    editorCheckbox.checked,
-    autorunCheckbox.checked
-  );
+  const embedURL = generateEmbedURL(codeText.value, runtimeSelect.value, {
+    showEditor: editorCheckbox.checked,
+    autorun: autorunCheckbox.checked,
+    baseUrl: import.meta.env.VITE_RUNTIME,
+  });
   embedText.value = generateEmbedHTML(embedURL);
   runtimeIframe.src = embedURL.toString();
   lastRuntime = runtimeSelect.value;

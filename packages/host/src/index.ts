@@ -1,7 +1,34 @@
 import { ParentHandshake, RemoteHandle, WindowMessenger } from "post-me";
 import { Runtime, RuntimeMethods, CommandResult, FS, Syntax } from "./types";
+import { encode } from "url-safe-base64";
 
-export class RunnoError extends Error {}
+export function generateEmbedURL(
+  code: string,
+  runtime: string,
+  options?: {
+    showEditor?: boolean;
+    autorun?: boolean;
+    baseUrl?: string;
+  }
+) {
+  const showEditor = options?.showEditor || true;
+  const autorun = options?.autorun || false;
+  const baseUrl = options?.baseUrl || "https://runno.run/";
+  const url = new URL(baseUrl);
+  if (showEditor) {
+    url.searchParams.append("editor", "1");
+  }
+  if (autorun) {
+    url.searchParams.append("autorun", "1");
+  }
+  url.searchParams.append("runtime", runtime);
+  url.searchParams.append("code", encode(btoa(code)));
+  return url;
+}
+
+export function generateEmbedHTML(url: URL) {
+  return `<iframe src="${url}" crossorigin allow="cross-origin-isolated"></iframe>`;
+}
 
 export class RunnoHost implements RuntimeMethods {
   remoteHandle: RemoteHandle<RuntimeMethods>;

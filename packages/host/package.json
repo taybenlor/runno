@@ -23,6 +23,7 @@
   "devDependencies": {
     "@types/jest": "^25.2.3",
     "@types/node": "^15.12.1",
+    "@types/url-safe-base64": "^1.1.0",
     "fs-extra": "^9.1.0",
     "husky": "^6.0.0",
     "jest": "^25.5.4",
@@ -31,6 +32,7 @@
     "typescript": "^3.9.9"
   },
   "dependencies": {
-    "post-me": "^0.4.5"
+    "post-me": "^0.4.5",
+    "url-safe-base64": "^1.1.1"
   }
 }

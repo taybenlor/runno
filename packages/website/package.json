@@ -15,7 +15,6 @@
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.4.1",
-    "@types/url-safe-base64": "^1.1.0",
     "autoprefixer": "^10.2.6",
     "postcss": "^8.3.0",
     "tailwindcss": "^2.1.4",
@@ -23,8 +22,6 @@
     "vite": "^2.3.5"
   },
   "dependencies": {
-    "@runno/host": "../host",
-    "post-me": "^0.4.5",
-    "url-safe-base64": "^1.1.1"
+    "@runno/host": "../host"
   }
 }
