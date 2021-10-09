@@ -21,8 +21,8 @@ export class RunElement extends LitElement implements RuntimeMethods {
     }
   `;
 
-  @property({ type: Boolean }) editor: boolean = false;
-  @property({ type: Boolean }) controls: boolean = false;
+  @property({ type: Boolean, reflect: true }) editor: boolean = false;
+  @property({ type: Boolean, reflect: true }) controls: boolean = false;
 
   editorRef: Ref<EditorElement> = createRef();
   controlsRef: Ref<ControlsElement> = createRef();
@@ -58,11 +58,11 @@ export class RunElement extends LitElement implements RuntimeMethods {
   //
 
   showEditor() {
-    return this._provider.showEditor();
+    this.editor = true;
   }
 
   hideEditor() {
-    return this._provider.hideEditor();
+    this.editor = false;
   }
 
   setEditorProgram(syntax: Syntax, runtime: Runtime, code: string) {
@@ -152,7 +152,10 @@ export class RunElement extends LitElement implements RuntimeMethods {
 
   render() {
     return html`
-      <runno-editor ${ref(this.editorRef)}></runno-editor>
+      <runno-editor
+        ${ref(this.editorRef)}
+        ?hidden=${!this.editor}
+      ></runno-editor>
       <runno-controls
         ${ref(this.controlsRef)}
         ?hidden=${!this.controls}
