@@ -6,12 +6,13 @@ export function generateEmbedURL(
   code: string,
   runtime: string,
   options?: {
-    showEditor?: boolean;
-    autorun?: boolean;
-    baseUrl?: string;
+    showEditor?: boolean; // Default: true
+    autorun?: boolean; // Default: false
+    baseUrl?: string; // Default: "https://runno.run/"
   }
 ) {
-  const showEditor = options?.showEditor || true;
+  const showEditor =
+    options?.showEditor === undefined ? true : options?.showEditor;
   const autorun = options?.autorun || false;
   const baseUrl = options?.baseUrl || "https://runno.run/";
   const url = new URL(baseUrl);
