@@ -35,7 +35,9 @@ export class TerminalElement extends HTMLElement {
         height: 100%;
         padding: 0.5em;
       }
-    </style>`;
+    </style>
+    <div id="container"></div>
+    `;
 
     this.boundOnResize = this.onResize.bind(this);
   }
@@ -45,7 +47,7 @@ export class TerminalElement extends HTMLElement {
   //
 
   connectedCallback() {
-    this.wasmTerminal.open(this.shadowRoot as any);
+    this.wasmTerminal.open(this.shadowRoot?.getElementById("container")!);
     window.addEventListener("resize", this.boundOnResize);
   }
 
