@@ -1,8 +1,8 @@
 {
   "hosting": [
     {
-      "target": "runtime",
-      "public": "packages/runtime/dist",
+      "target": "client",
+      "public": "packages/client/dist",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
       "headers": [
         {

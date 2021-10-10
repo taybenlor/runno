@@ -2,6 +2,7 @@
   "private": true,
   "name": "@runno/host",
   "version": "0.1.0",
+  "description": "iframe host for @runno",
   "license": "MIT",
   "main": "dist/index.js",
   "module": "dist/host.esm.js",
