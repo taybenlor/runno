@@ -15,6 +15,7 @@ export default {
   define: {
     "process.platform": JSON.stringify(null),
     "process.env.NODE_DEBUG": JSON.stringify(false),
+    "process.browser": JSON.stringify(true),
   },
   server: {
     port: 1234,
