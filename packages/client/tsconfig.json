@@ -12,8 +12,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "experimentalDecorators": true,
-    "declaration": true
+    "experimentalDecorators": true
   },
   "include": ["./src"],
   "exclude": ["node_modules"]

@@ -1,5 +1,3 @@
-// TODO: Use this version when deploying?
-//import WasmTerminal from "@wasmer/wasm-terminal/lib/optimized/wasm-terminal.esm";
 import WasmTerminal from "@runno/terminal";
 import processWorkerURL from "@runno/terminal/lib/workers/process.worker.js?url";
 import { WasmFs } from "./wasmfs";
@@ -12,6 +10,7 @@ export class TerminalElement extends HTMLElement {
   wasmFs: WasmFs;
   wasmTerminal: WasmTerminal;
   wapm: WAPM;
+  boundOnResize: (this: Window, ev: UIEvent) => any;
 
   constructor() {
     super();
@@ -37,6 +36,8 @@ export class TerminalElement extends HTMLElement {
         padding: 0.5em;
       }
     </style>`;
+
+    this.boundOnResize = this.onResize.bind(this);
   }
 
   //
@@ -45,22 +46,22 @@ export class TerminalElement extends HTMLElement {
 
   connectedCallback() {
     this.wasmTerminal.open(this.shadowRoot as any);
-    window.addEventListener("resize", this.onResize);
+    window.addEventListener("resize", this.boundOnResize);
   }
 
   disconnectedCallback() {
-    window.removeEventListener("resize", this.onResize);
+    window.removeEventListener("resize", this.boundOnResize);
   }
 
   //
   // Helpers
   //
 
-  onResize = () => {
+  onResize() {
     if (this.wasmTerminal.isOpen) {
       this.wasmTerminal.fit();
     }
-  };
+  }
 
   async fetchCommand(options: any) {
     return await this.wapm.runCommand(options);
