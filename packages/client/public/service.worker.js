@@ -22,7 +22,7 @@
  * certain contexts and can't be guaranteed.
  */
 
-let lastStdin = null;
+let messageStore = new Map();
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -34,14 +34,19 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", async (event) => {
   const request = event.request;
-  if (request.url.includes("runnoSTDIN")) {
+  if (request.url.includes("runno-message")) {
+    const url = new URL(request.url);
+    const id = url.searchParams.get("id");
+
     if (request.method === "POST") {
+      const message = await request.json();
+      messageStore.set(id, message);
       event.respondWith(new Response());
-      lastStdin = await request.text();
     } else if (request.method === "GET") {
-      let code = `self.runnoSTDIN = null;`;
-      if (lastStdin !== null) {
-        code = `self.runnoSTDIN = ${JSON.stringify(lastStdin)};`;
+      const message = messageStore.get(id);
+      let code = `self['${id}'] = null;`;
+      if (message) {
+        code = `self['${id}'] = ${JSON.stringify(message)};`;
       }
       const response = new Response(new Blob([code]), {
         headers: {
@@ -49,7 +54,7 @@ self.addEventListener("fetch", async (event) => {
         },
       });
       event.respondWith(response);
-      lastStdin = null;
+      messageStore.delete(id);
     }
   }
 });

@@ -34,6 +34,41 @@ const cleanStdout = (stdout: string) => {
   return stdout.replace(regexPattern, "");
 };
 
+/**
+ * This is a super wild way of getting messages synchronously from outstide the
+ * worker. Because the WASI functions are expected to block we need to retrieve
+ * data synchronously.
+ *
+ * We do this by prompting the server that we need data (e.g. by postMessage)
+ * then we wait and use `importScripts` to synchronously load the data. On the
+ * host/main thread side there is a service worker that intercepts the calls to
+ * importScripts.
+ *
+ * @param id
+ * @returns any
+ */
+function waitForMessage(id: string): any {
+  let startedWaiting = performance.now();
+  while (true) {
+    const startTime = performance.now();
+    let currentTime = performance.now();
+    while (currentTime - startTime < 250) {
+      currentTime = performance.now();
+    }
+    (self as any).importScripts(`http://localhost:8000/runno-message?id=${id}`);
+    if ((self as any)[id] !== null) {
+      const ret = (self as any)[id];
+      delete (self as any)[id];
+      return ret;
+    }
+
+    // waited for 5 minutes
+    if (currentTime - startedWaiting > 5 * 60 * 1000) {
+      throw new Error("Timeout waiting");
+    }
+  }
+}
+
 export default class Process {
   commandOptions: CommandOptions;
   wasmFs: WasmFs;
@@ -254,40 +289,8 @@ export default class Process {
       }
       responseStdin = new TextDecoder("utf-8").decode(newStdinData);
     } else if (this.startStdinServiceCallback) {
-      //
-      // This is a super wild way of getting stdin from outside the worker
-      // the main thread sends the STDIN to a service worker
-      // then we request it from the service worker using self.importScripts
-      // this just happens to all be synchronous.
-      //
-      // If we tried to do it using normal message passing we couldn't block
-      // the execution of the WASM.
-      //
-
-      // TODO: This should pass an ID so we only collect the message that
-      //       we asked for (makes it compatible across tabs and async)
       this.startStdinServiceCallback();
-      let startedCollectingSTDIN = performance.now();
-      while (true) {
-        const startTime = performance.now();
-        let currentTime = performance.now();
-        while (currentTime - startTime < 250) {
-          currentTime = performance.now();
-        }
-        // This is a Worker thing
-        // TODO: Need to pass this URL during construction
-        //       Also need a unique ID
-        (self as any).importScripts("http://localhost:8000/runnoSTDIN.js");
-        if ((self as any)["runnoSTDIN"] !== null) {
-          responseStdin = (self as any)["runnoSTDIN"];
-          break;
-        }
-
-        // waited for 5 minutes
-        if (currentTime - startedCollectingSTDIN > 5 * 60 * 1000) {
-          throw new Error("Timeout waiting for STDIN");
-        }
-      }
+      responseStdin = waitForMessage("stdin");
     } else {
       responseStdin = prompt(this.stdinPrompt);
       if (responseStdin === null) {

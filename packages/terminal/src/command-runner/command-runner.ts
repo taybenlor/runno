@@ -215,9 +215,9 @@ export default class CommandRunner {
 
   _addStdinToServiceWorkerStdin(stdin: string) {
     if (stdin) {
-      fetch("/runnoSTDIN", {
+      fetch("/runno-message?id=stdin", {
         method: "POST",
-        body: stdin,
+        body: JSON.stringify(stdin),
       });
     }
   }
