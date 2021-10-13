@@ -29,13 +29,23 @@ type WorkerProcessData = {
   sharedStdin: Int32Array;
 };
 
+type HackyWorkerProcessData = {
+  process: Comlink.Remote<Process>;
+  commandOptionIndex: number;
+  ioDeviceWindow: IoDeviceWindow;
+  worker: Worker;
+};
+
 type ServiceProcessData = {
   process: Process;
   commandOptionIndex: number;
   ioDeviceWindow: IoDeviceWindow;
 };
 
-type ProcessData = WorkerProcessData | ServiceProcessData;
+type ProcessData =
+  | WorkerProcessData
+  | ServiceProcessData
+  | HackyWorkerProcessData;
 
 function isWorkerProcess(process: ProcessData): process is WorkerProcessData {
   return "worker" in process;
@@ -94,7 +104,9 @@ export default class CommandRunner {
     this.spawnedProcesses = 0;
     this.pipedStdinDataForNextProcess = new Uint8Array();
     this.isRunning = false;
+    // TODO: Remove this
     this.supportsSharedArrayBuffer =
+      false &&
       this.wasmTerminalConfig.processWorkerUrl &&
       (window as any).SharedArrayBuffer &&
       (window as any).Atomics;
@@ -201,6 +213,15 @@ export default class CommandRunner {
     this.tty += text;
   }
 
+  _addStdinToServiceWorkerStdin(stdin: string) {
+    if (stdin) {
+      fetch("/runnoSTDIN", {
+        method: "POST",
+        body: stdin,
+      });
+    }
+  }
+
   async _tryToSpawnProcess(commandOptionIndex: number) {
     if (
       commandOptionIndex + 1 > this.spawnedProcesses &&
@@ -224,7 +245,7 @@ export default class CommandRunner {
         commandOptionIndex
       );
     } else {
-      spawnedProcessObject = await this._spawnProcessAsService(
+      spawnedProcessObject = await this._spawnProcessAsHackyWorker(
         commandOptionIndex
       );
     }
@@ -337,6 +358,81 @@ export default class CommandRunner {
       ioDeviceWindow,
       worker: processWorker,
       sharedStdin: sharedStdin,
+    };
+  }
+
+  async _spawnProcessAsHackyWorker(
+    commandOptionIndex: number
+  ): Promise<HackyWorkerProcessData> {
+    if (!this.wasmTerminalConfig.processWorkerUrl) {
+      throw new Error("Terminal Config missing the Process Worker URL");
+    }
+
+    let processWorkerUrl = this.wasmTerminalConfig.processWorkerUrl;
+
+    // Generate our process
+    const workerBlobUrl = await this._getBlobUrlForProcessWorker(
+      processWorkerUrl,
+      this.wasmTty
+    );
+    const processWorker = new Worker(workerBlobUrl);
+    const ProcessComlink = Comlink.wrap<Process>(processWorker);
+
+    // Get our filesystem state
+    const wasmFsJson = this.wasmTerminalConfig.wasmFs.toJSON();
+
+    // TODO: Figure out a way to share this
+    // Create our Io Device Window
+    const ioDeviceWindow = new IoDeviceWindow();
+
+    // @ts-ignore
+    const process: any = await new ProcessComlink(
+      // Command Options
+      this.commandOptionsForProcessesToRun[commandOptionIndex],
+      // WasmFs File System JSON
+      wasmFsJson,
+      // Stdout Callback
+      Comlink.proxy(
+        this._processStdoutCallback.bind(this, {
+          commandOptionIndex,
+          sync: false,
+        })
+      ),
+      // Stderr Callback
+      Comlink.proxy(
+        this._processStderrCallback.bind(this, {
+          commandOptionIndex,
+          sync: false,
+        })
+      ),
+      // End Callback
+      Comlink.proxy(
+        this._processEndCallback.bind(this, {
+          commandOptionIndex,
+          processWorker,
+        })
+      ),
+      // Error Callback
+      Comlink.proxy(
+        this._processErrorCallback.bind(this, { commandOptionIndex })
+      ),
+      // Io Device Window
+      undefined,
+      // Shared Array Buffer for IoDevice Input
+      undefined,
+      // Shared Array Bufer for Stdin
+      undefined,
+      // Stdin read callback
+      undefined,
+      // Stdin hacky service worker
+      Comlink.proxy(this._processStartStdinReadCallback.bind(this))
+    );
+
+    return {
+      process,
+      commandOptionIndex,
+      worker: processWorker,
+      ioDeviceWindow,
     };
   }
 
@@ -530,8 +626,12 @@ export default class CommandRunner {
 
   _processStartStdinReadCallback() {
     this.commandStartReadCallback().then((stdin: string) => {
-      const data = new TextEncoder().encode(stdin + "\n");
-      this._addStdinToSharedStdin(data, 0);
+      if (this.supportsSharedArrayBuffer) {
+        const data = new TextEncoder().encode(stdin + "\n");
+        this._addStdinToSharedStdin(data, 0);
+      } else {
+        this._addStdinToServiceWorkerStdin(stdin + "\n");
+      }
     });
   }
 

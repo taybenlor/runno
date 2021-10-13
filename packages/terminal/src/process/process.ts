@@ -47,6 +47,7 @@ export default class Process {
   sharedIoDeviceInput?: Int32Array;
   sharedStdin?: Int32Array;
   startStdinReadCallback?: Function;
+  startStdinServiceCallback?: Function;
 
   pipedStdin: string;
   stdinPrompt: string = "";
@@ -65,7 +66,8 @@ export default class Process {
     ioDeviceWindow: IoDeviceWindow,
     sharedIoDeviceInputBuffer?: SharedArrayBuffer,
     sharedStdinBuffer?: SharedArrayBuffer,
-    startStdinReadCallback?: Function
+    startStdinReadCallback?: Function,
+    startStdinServiceCallback?: Function
   ) {
     this.commandOptions = commandOptions;
 
@@ -142,6 +144,7 @@ export default class Process {
 
     this.sharedStdin = sharedStdin;
     this.startStdinReadCallback = startStdinReadCallback;
+    this.startStdinServiceCallback = startStdinServiceCallback;
     this.readStdinCounter = 0;
     this.pipedStdin = "";
   }
@@ -250,6 +253,41 @@ export default class Process {
         newStdinData[i] = this.sharedStdin[1 + i];
       }
       responseStdin = new TextDecoder("utf-8").decode(newStdinData);
+    } else if (this.startStdinServiceCallback) {
+      //
+      // This is a super wild way of getting stdin from outside the worker
+      // the main thread sends the STDIN to a service worker
+      // then we request it from the service worker using self.importScripts
+      // this just happens to all be synchronous.
+      //
+      // If we tried to do it using normal message passing we couldn't block
+      // the execution of the WASM.
+      //
+
+      // TODO: This should pass an ID so we only collect the message that
+      //       we asked for (makes it compatible across tabs and async)
+      this.startStdinServiceCallback();
+      let startedCollectingSTDIN = performance.now();
+      while (true) {
+        const startTime = performance.now();
+        let currentTime = performance.now();
+        while (currentTime - startTime < 250) {
+          currentTime = performance.now();
+        }
+        // This is a Worker thing
+        // TODO: Need to pass this URL during construction
+        //       Also need a unique ID
+        (self as any).importScripts("http://localhost:8000/runnoSTDIN.js");
+        if ((self as any)["runnoSTDIN"] !== null) {
+          responseStdin = (self as any)["runnoSTDIN"];
+          break;
+        }
+
+        // waited for 5 minutes
+        if (currentTime - startedCollectingSTDIN > 5 * 60 * 1000) {
+          throw new Error("Timeout waiting for STDIN");
+        }
+      }
     } else {
       responseStdin = prompt(this.stdinPrompt);
       if (responseStdin === null) {
