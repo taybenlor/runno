@@ -28,7 +28,7 @@ export function generateEmbedURL(
 }
 
 export function generateEmbedHTML(url: URL) {
-  return `<iframe src="${url}" crossorigin allow="cross-origin-isolated"></iframe>`;
+  return `<iframe src="${url}" crossorigin allow="cross-origin-isolated" width="640" height="320"></iframe>`;
 }
 
 export class RunnoHost implements RuntimeMethods {
