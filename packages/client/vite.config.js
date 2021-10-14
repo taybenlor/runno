@@ -12,6 +12,7 @@ const crossOriginPolicy = {
 };
 
 export default {
+  publicDir: "public",
   define: {
     "process.platform": JSON.stringify(null),
     "process.env.NODE_DEBUG": JSON.stringify(false),
