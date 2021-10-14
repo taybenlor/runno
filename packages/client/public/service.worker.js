@@ -39,9 +39,9 @@ self.addEventListener("fetch", async (event) => {
     const id = url.searchParams.get("id");
 
     if (request.method === "POST") {
+      event.respondWith(new Response());
       const message = await request.json();
       messageStore.set(id, message);
-      event.respondWith(new Response());
     } else if (request.method === "GET") {
       const message = messageStore.get(id);
       let code = `self['${id}'] = null;`;

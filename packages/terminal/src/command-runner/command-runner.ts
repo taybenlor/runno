@@ -11,8 +11,6 @@ import WasmTerminalConfig from "../wasm-terminal-config";
 
 import WasmTty from "../wasm-tty/wasm-tty";
 
-import IoDeviceWindow from "../io-device-window/io-device-window";
-
 export type CommandResult = {
   stdout: string;
   stdin: string;
@@ -24,28 +22,16 @@ export type CommandResult = {
 type WorkerProcessData = {
   process: Comlink.Remote<Process>;
   commandOptionIndex: number;
-  ioDeviceWindow: IoDeviceWindow;
   worker: Worker;
-  sharedStdin: Int32Array;
-};
-
-type HackyWorkerProcessData = {
-  process: Comlink.Remote<Process>;
-  commandOptionIndex: number;
-  ioDeviceWindow: IoDeviceWindow;
-  worker: Worker;
+  sharedStdin?: Int32Array;
 };
 
 type ServiceProcessData = {
   process: Process;
   commandOptionIndex: number;
-  ioDeviceWindow: IoDeviceWindow;
 };
 
-type ProcessData =
-  | WorkerProcessData
-  | ServiceProcessData
-  | HackyWorkerProcessData;
+type ProcessData = WorkerProcessData | ServiceProcessData;
 
 function isWorkerProcess(process: ProcessData): process is WorkerProcessData {
   return "worker" in process;
@@ -162,10 +148,6 @@ export default class CommandRunner {
       if (isWorkerProcess(processObject)) {
         processObject.worker.terminate();
       }
-
-      if (processObject.ioDeviceWindow) {
-        processObject.ioDeviceWindow.close();
-      }
     });
 
     this.commandOptionsForProcessesToRun = [];
@@ -190,7 +172,7 @@ export default class CommandRunner {
       return;
     }
 
-    if (!isWorkerProcess(processData)) {
+    if (!isWorkerProcess(processData) || !processData.sharedStdin) {
       return;
     }
 
@@ -237,15 +219,12 @@ export default class CommandRunner {
     let spawnedProcessObject: ProcessData;
 
     // Check if it is a Wasm command, that can be placed into a worker.
-    if (
-      this.commandOptionsForProcessesToRun[commandOptionIndex].module &&
-      this.supportsSharedArrayBuffer
-    ) {
+    if (this.commandOptionsForProcessesToRun[commandOptionIndex].module) {
       spawnedProcessObject = await this._spawnProcessAsWorker(
         commandOptionIndex
       );
     } else {
-      spawnedProcessObject = await this._spawnProcessAsHackyWorker(
+      spawnedProcessObject = await this._spawnProcessAsService(
         commandOptionIndex
       );
     }
@@ -274,7 +253,7 @@ export default class CommandRunner {
         this.commandOptionsForProcessesToRun[commandOptionIndex + 1]
           .callback !== undefined;
     }
-    if (this.supportsSharedArrayBuffer && !isNextCallbackCommand) {
+    if (!isNextCallbackCommand) {
       this._tryToSpawnProcess(commandOptionIndex + 1);
     }
   }
@@ -297,134 +276,43 @@ export default class CommandRunner {
     const ProcessComlink = Comlink.wrap<Process>(processWorker);
 
     // Generate our shared buffer
-    const sharedStdinBuffer = new SharedArrayBuffer(8192);
-
-    // Get our filesystem state
-    const wasmFsJson = this.wasmTerminalConfig.wasmFs.toJSON();
-
-    // Create our Io Device Window
-    const sharedIoDeviceInputBuffer = new SharedArrayBuffer(8192);
-    const ioDeviceWindow = new IoDeviceWindow(sharedIoDeviceInputBuffer);
-
-    // @ts-ignore
-    const process: any = await new ProcessComlink(
-      // Command Options
-      this.commandOptionsForProcessesToRun[commandOptionIndex],
-      // WasmFs File System JSON
-      wasmFsJson,
-      // Stdout Callback
-      Comlink.proxy(
-        this._processStdoutCallback.bind(this, {
-          commandOptionIndex,
-          sync: false,
-        })
-      ),
-      // Stderr Callback
-      Comlink.proxy(
-        this._processStderrCallback.bind(this, {
-          commandOptionIndex,
-          sync: false,
-        })
-      ),
-      // End Callback
-      Comlink.proxy(
-        this._processEndCallback.bind(this, {
-          commandOptionIndex,
-          processWorker,
-        })
-      ),
-      // Error Callback
-      Comlink.proxy(
-        this._processErrorCallback.bind(this, { commandOptionIndex })
-      ),
-      // Io Device Window
-      Comlink.proxy(ioDeviceWindow),
-      // Shared Array Buffer for IoDevice Input
-      sharedIoDeviceInputBuffer,
-      // Shared Array Bufer for Stdin
-      sharedStdinBuffer,
-      // Stdin read callback
-      Comlink.proxy(this._processStartStdinReadCallback.bind(this))
-    );
-
-    // Initialize the shared Stdin.
-    // Index 0 will be number of elements in buffer
-    const sharedStdin = new Int32Array(sharedStdinBuffer);
-    sharedStdin[0] = -1;
-
-    return {
-      process,
-      commandOptionIndex,
-      ioDeviceWindow,
-      worker: processWorker,
-      sharedStdin: sharedStdin,
-    };
-  }
-
-  async _spawnProcessAsHackyWorker(
-    commandOptionIndex: number
-  ): Promise<HackyWorkerProcessData> {
-    if (!this.wasmTerminalConfig.processWorkerUrl) {
-      throw new Error("Terminal Config missing the Process Worker URL");
+    let sharedStdinBuffer = undefined;
+    let sharedStdin = undefined;
+    if (this.supportsSharedArrayBuffer) {
+      sharedStdinBuffer = new SharedArrayBuffer(8192);
+      sharedStdin = new Int32Array(sharedStdinBuffer);
+      sharedStdin[0] = -1;
     }
 
-    let processWorkerUrl = this.wasmTerminalConfig.processWorkerUrl;
-
-    // Generate our process
-    const workerBlobUrl = await this._getBlobUrlForProcessWorker(
-      processWorkerUrl,
-      this.wasmTty
-    );
-    const processWorker = new Worker(workerBlobUrl);
-    const ProcessComlink = Comlink.wrap<Process>(processWorker);
-
     // Get our filesystem state
     const wasmFsJson = this.wasmTerminalConfig.wasmFs.toJSON();
 
-    // TODO: Figure out a way to share this
-    // Create our Io Device Window
-    const ioDeviceWindow = new IoDeviceWindow();
-
     // @ts-ignore
     const process: any = await new ProcessComlink(
-      // Command Options
       this.commandOptionsForProcessesToRun[commandOptionIndex],
-      // WasmFs File System JSON
       wasmFsJson,
-      // Stdout Callback
       Comlink.proxy(
         this._processStdoutCallback.bind(this, {
           commandOptionIndex,
           sync: false,
         })
       ),
-      // Stderr Callback
       Comlink.proxy(
         this._processStderrCallback.bind(this, {
           commandOptionIndex,
           sync: false,
         })
       ),
-      // End Callback
       Comlink.proxy(
         this._processEndCallback.bind(this, {
           commandOptionIndex,
           processWorker,
         })
       ),
-      // Error Callback
       Comlink.proxy(
         this._processErrorCallback.bind(this, { commandOptionIndex })
       ),
-      // Io Device Window
-      undefined,
-      // Shared Array Buffer for IoDevice Input
-      undefined,
-      // Shared Array Bufer for Stdin
-      undefined,
-      // Stdin read callback
-      undefined,
-      // Stdin hacky service worker
+      sharedStdinBuffer,
       Comlink.proxy(this._processStartStdinReadCallback.bind(this))
     );
 
@@ -432,7 +320,7 @@ export default class CommandRunner {
       process,
       commandOptionIndex,
       worker: processWorker,
-      ioDeviceWindow,
+      sharedStdin,
     };
   }
 
@@ -441,37 +329,26 @@ export default class CommandRunner {
   ): Promise<ServiceProcessData> {
     // Get our filesystem state
     const wasmFsJson = this.wasmTerminalConfig.wasmFs.toJSON();
-
-    // Create our Io Device Window
-    const ioDeviceWindow = new IoDeviceWindow();
-
     const process = new Process(
-      // Command Options
       this.commandOptionsForProcessesToRun[commandOptionIndex],
-      // WasmFs File System JSON
       wasmFsJson,
-      // Stdout Callback
       this._processStdoutCallback.bind(this, {
         commandOptionIndex,
         sync: true,
       }),
-      // Stderr Callback
       this._processStderrCallback.bind(this, {
         commandOptionIndex,
         sync: true,
       }),
-      // End Callback
       this._processEndCallback.bind(this, { commandOptionIndex }),
-      // Error Callback
-      this._processErrorCallback.bind(this, { commandOptionIndex }),
-      // Io Device Window
-      ioDeviceWindow
+      this._processErrorCallback.bind(this, {
+        commandOptionIndex,
+      })
     );
 
     return {
       process,
       commandOptionIndex,
-      ioDeviceWindow,
     };
   }
 
