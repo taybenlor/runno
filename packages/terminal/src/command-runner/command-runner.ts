@@ -52,6 +52,7 @@ export default class CommandRunner {
   pipedStdinDataForNextProcess: Uint8Array;
   isRunning: boolean;
   supportsSharedArrayBuffer: boolean;
+  supportsServiceWorker: boolean;
 
   wasmTerminalConfig: WasmTerminalConfig;
   commandString: string;
@@ -90,12 +91,14 @@ export default class CommandRunner {
     this.spawnedProcesses = 0;
     this.pipedStdinDataForNextProcess = new Uint8Array();
     this.isRunning = false;
-    // TODO: Remove this
+
     this.supportsSharedArrayBuffer =
-      false &&
       this.wasmTerminalConfig.processWorkerUrl &&
       (window as any).SharedArrayBuffer &&
       (window as any).Atomics;
+
+    this.supportsServiceWorker =
+      navigator.serviceWorker?.controller?.state === "activated";
   }
 
   async runCommand() {
@@ -219,7 +222,10 @@ export default class CommandRunner {
     let spawnedProcessObject: ProcessData;
 
     // Check if it is a Wasm command, that can be placed into a worker.
-    if (this.commandOptionsForProcessesToRun[commandOptionIndex].module) {
+    if (
+      this.commandOptionsForProcessesToRun[commandOptionIndex].module &&
+      (this.supportsSharedArrayBuffer || this.supportsServiceWorker)
+    ) {
       spawnedProcessObject = await this._spawnProcessAsWorker(
         commandOptionIndex
       );
@@ -284,6 +290,12 @@ export default class CommandRunner {
       sharedStdin[0] = -1;
     }
 
+    // Get service worker details
+    let serviceWorkerBaseURL = undefined;
+    if (this.supportsServiceWorker) {
+      serviceWorkerBaseURL = window.location.origin;
+    }
+
     // Get our filesystem state
     const wasmFsJson = this.wasmTerminalConfig.wasmFs.toJSON();
 
@@ -312,8 +324,9 @@ export default class CommandRunner {
       Comlink.proxy(
         this._processErrorCallback.bind(this, { commandOptionIndex })
       ),
+      Comlink.proxy(this._processStartStdinReadCallback.bind(this)),
       sharedStdinBuffer,
-      Comlink.proxy(this._processStartStdinReadCallback.bind(this))
+      serviceWorkerBaseURL
     );
 
     return {

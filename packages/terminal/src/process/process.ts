@@ -45,7 +45,7 @@ const cleanStdout = (stdout: string) => {
  * @param id
  * @returns any
  */
-function waitForMessage(id: string): any {
+function waitForMessage(baseURL: string, id: string): any {
   let startedWaiting = performance.now();
   while (true) {
     const startTime = performance.now();
@@ -53,7 +53,7 @@ function waitForMessage(id: string): any {
     while (currentTime - startTime < 250) {
       currentTime = performance.now();
     }
-    (self as any).importScripts(`http://localhost:8000/runno-message?id=${id}`);
+    (self as any).importScripts(`${baseURL}/runno-message?id=${id}`);
     if ((self as any)[id] !== null) {
       const ret = (self as any)[id];
       delete (self as any)[id];
@@ -88,6 +88,7 @@ export default class Process {
   errorCallback: Function;
   sharedStdin?: Int32Array;
   startStdinReadCallback?: Function;
+  serviceWorkerBaseURL?: string;
 
   pipedStdin: string;
   stdinPrompt: string = "";
@@ -103,8 +104,9 @@ export default class Process {
     stderrCallback: Function,
     endCallback: Function,
     errorCallback: Function,
+    startStdinReadCallback?: Function,
     sharedStdinBuffer?: SharedArrayBuffer,
-    startStdinReadCallback?: Function
+    serviceWorkerBaseURL?: string
   ) {
     this.commandOptions = commandOptions;
 
@@ -137,6 +139,7 @@ export default class Process {
 
     this.sharedStdin = sharedStdin;
     this.startStdinReadCallback = startStdinReadCallback;
+    this.serviceWorkerBaseURL = serviceWorkerBaseURL;
     this.readStdinCounter = 0;
     this.pipedStdin = "";
   }
@@ -243,9 +246,9 @@ export default class Process {
         newStdinData[i] = this.sharedStdin[1 + i];
       }
       responseStdin = new TextDecoder("utf-8").decode(newStdinData);
-    } else if (this.startStdinReadCallback) {
+    } else if (this.serviceWorkerBaseURL && this.startStdinReadCallback) {
       this.startStdinReadCallback();
-      responseStdin = waitForMessage("stdin");
+      responseStdin = waitForMessage(this.serviceWorkerBaseURL, "stdin");
     } else {
       responseStdin = prompt(this.stdinPrompt);
       if (responseStdin === null) {
