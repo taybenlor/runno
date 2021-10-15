@@ -108,6 +108,7 @@ export class EditorElement extends HTMLElement {
     <style>
       .cm-editor {
         background: white;
+        height: 100%;
       }
     </style>
     `;
