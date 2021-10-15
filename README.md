@@ -16,35 +16,37 @@ This is very handy for programming education it means:
 
 # Using Runno
 
-While in development Runno is hosted publicly at:
+Runno is hosted publicly at:
 
-- [https://make-run-website.web.app](https://make-run-website.web.app) - Website
-- [https://make-run.web.app](https://make-run.web.app) - Runtime
+- [https://runno.dev](https://runno.dev) - Website / Host
+- [https://runno.run](https://runno.run) - Client
 
 It's not ready to be public yet so please don't share. Thanks!
 
-## Runtime
+## Client
 
-The runtime is the virtual terminal application which pulls down packages and
+The client is the virtual terminal application which pulls down packages and
 runs code. You can pass query params to it:
 
-- `code` - Some code to run
-- `runtime` - The runtime to use
+- `code` - Some code to run (encoded as [url safe base64](https://www.npmjs.com/package/url-safe-base64))
+- `runtime` - The runtime to use (e.g. python)
 - `editor` - Whether to show an editor (default false)
-- `command` - The raw command to execute, text passed as `code` will be available in the file `code` e.g. `cat code`
+- `command` - A raw command to execute. Text passed as `code` will be available in the file `code` e.g. `cat code`
 
 e.g.
 
 ```
-https://make-run.web.app/?runtime=python&code=print("hello world")
+https://runno.run/?runtime=python&code=<base64>print("hello world")
 ```
 
-The runtime also supports being embedded as an iframe, however the host must use the following headers:
+The runtime also supports being embedded as an iframe. For best results the host should use the following headers:
 
 ```HTTP
 Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
 ```
+
+These create a [cross-origin isolated context](https://web.dev/cross-origin-isolation-guide/) which allows the use of `SharedArrayBuffer` used to implement STDIN. Without this Runno will still work using a fallback hack that isn't guaranteed to work into the future.
 
 To control the runtime when it is embedded as an iframe you can use the `@runno/host` package. A simple example would be:
 
@@ -59,7 +61,7 @@ You can see the full API available by looking at `@runno/host`. You can see more
 
 ## Website
 
-The website is a work in progress but currently hosts an editor that can be used to test features of Runno.
+The website helps users make use of Runno. It provides a helper for generating embeds, along with documentation.
 
 ## Supported Runtimes
 
@@ -67,7 +69,9 @@ The system supports a number of runtimes based on existing packages published to
 
 - `python` - Runs python3 code, not pinned to a particular version but is at least `3.6`
 - `quickjs` - Runs JavaScript code using the [QuickJS](https://bellard.org/quickjs/) engine
-- `sqlite` - Runs SQLite commands (WIP)
+- `sqlite` - Runs SQLite commands
+- `clang` - Compiles and runs C code
+- `clangpp` - Compiles and runs C++ code
 
 ## Raw Commands
 
@@ -79,10 +83,12 @@ Raw commands can be run on the shell to be executed without using the existing r
 
 This repo is broken down into a few packages using [lerna](https://lerna.js.org/):
 
-- `runtime` - a static website that implements a terminal, and interfaces for running things on it
-- `host` - helpers for running code on the runtime when embedded in another website
 - `website` - the runno website that includes instructions and examples
+- `client` - a static website that exposes the runno runtime to be embedded as an iframe
+- `host` - helpers for running code on the client from another website
+- `runtime` - a library that provides web components and helpers that can be bundled into your own project for using runno without an iframe
 - `terminal` - an internal package forked from `@wasmer/wasm-terminal` used to construct parts of the runtime - in the future this will be rolled into `runtime`
+- `wasi` - an internal package forked from `@wasmer/wasm-wasi` fixes some bugs - in the future this will be rolled into `runtime`
 
 ## Running locally
 
@@ -103,13 +109,13 @@ npx lerna exec npm install
 
 At that point you should be able to navigate to:
 
-- `localhost:3000` - Website
-- `localhost:1234` - Runno
+- `localhost:4321` - Website
+- `localhost:1234` - Client
 
 If you're unlucky then you might have to run the two independently. In two different terminal sessions do:
 
 ```
-$ cd packages/runtime
+$ cd packages/client
 $ npm run dev
 ```
 
@@ -120,7 +126,7 @@ $ cd packages/website
 $ npm run dev
 ```
 
-If you edit either `host` or `terminal` you will need to re-build them with `npm run build`.
+If you edit `host`, `terminal`, `wasi` or `runtime` you will need to re-build them with `npm run build`.
 
 ## Testing
 
@@ -128,7 +134,7 @@ Coming soon!
 
 ## Runtime / Host binding
 
-The runtime exposes methods to the host using [`post-me`](https://github.com/alesgenova/post-me). These are then connected at the other end. You can find the two ends of these connections in `runtime/src/messaging.ts` and `host/src/index.ts`.
+The runtime exposes methods to the host using [`post-me`](https://github.com/alesgenova/post-me). These are then connected at the other end. You can find the two ends of these connections in `client/src/messaging.ts` and `host/src/index.ts`.
 
 # About Runno
 
