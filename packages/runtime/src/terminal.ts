@@ -122,4 +122,8 @@ export class TerminalElement extends HTMLElement {
   focus() {
     this.wasmTerminal.focus();
   }
+
+  clear() {
+    this.wasmTerminal.clear();
+  }
 }

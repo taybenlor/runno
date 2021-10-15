@@ -140,6 +140,7 @@ export class RunnoProvider implements RuntimeMethods {
 
   interactiveUnsafeCommand(command: string, fs: FS): Promise<CommandResult> {
     this.writeFS(fs);
+    this.terminal.clear();
     return this.terminal.runCommand(command);
   }
 
