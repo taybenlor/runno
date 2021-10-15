@@ -10,7 +10,6 @@ export class TerminalElement extends HTMLElement {
   wasmFs: WasmFs;
   wasmTerminal: WasmTerminal;
   wapm: WAPM;
-  boundOnResize: (this: Window, ev: UIEvent) => any;
 
   constructor() {
     super();
@@ -26,6 +25,10 @@ export class TerminalElement extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this.shadowRoot!.innerHTML = `
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
       ${xtermcss}
       
       .xterm,
@@ -38,8 +41,6 @@ export class TerminalElement extends HTMLElement {
     </style>
     <div id="container"></div>
     `;
-
-    this.boundOnResize = this.onResize.bind(this);
   }
 
   //
@@ -48,22 +49,23 @@ export class TerminalElement extends HTMLElement {
 
   connectedCallback() {
     this.wasmTerminal.open(this.shadowRoot?.getElementById("container")!);
-    window.addEventListener("resize", this.boundOnResize);
+    window.addEventListener("resize", this.onResize);
+    this.wasmTerminal.fit();
   }
 
   disconnectedCallback() {
-    window.removeEventListener("resize", this.boundOnResize);
+    window.removeEventListener("resize", this.onResize);
   }
 
   //
   // Helpers
   //
 
-  onResize() {
+  onResize = () => {
     if (this.wasmTerminal.isOpen) {
       this.wasmTerminal.fit();
     }
-  }
+  };
 
   async fetchCommand(options: any) {
     return await this.wapm.runCommand(options);
