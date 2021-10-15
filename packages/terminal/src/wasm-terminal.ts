@@ -109,6 +109,10 @@ export default class WasmTerminal {
     this.fitAddon.fit();
   }
 
+  clear() {
+    this.xterm.clear();
+  }
+
   focus() {
     // this.xterm.blur();
     this.xterm.focus();
