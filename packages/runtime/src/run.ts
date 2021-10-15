@@ -16,8 +16,22 @@ import { RunnoProvider } from "./provider";
 
 export class RunElement extends LitElement implements RuntimeMethods {
   static styles = css`
+    :host {
+      display: flex;
+      flex-direction: column;
+    }
+
     runno-editor {
       background: white;
+      max-height: 70vh;
+    }
+
+    runno-controls {
+      flex-shrink: 0;
+    }
+
+    runno-terminal {
+      flex-grow: 1;
     }
   `;
 

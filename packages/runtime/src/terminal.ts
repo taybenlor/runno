@@ -10,6 +10,7 @@ export class TerminalElement extends HTMLElement {
   wasmFs: WasmFs;
   wasmTerminal: WasmTerminal;
   wapm: WAPM;
+  resizeObserver: ResizeObserver;
 
   constructor() {
     super();
@@ -21,10 +22,15 @@ export class TerminalElement extends HTMLElement {
       wasmFs: this.wasmFs,
     });
     this.wapm = new WAPM(this.wasmFs, this.wasmTerminal);
+    this.resizeObserver = new ResizeObserver(this.onResize);
 
     this.attachShadow({ mode: "open" });
     this.shadowRoot!.innerHTML = `
     <style>
+      :host {
+        position: relative;
+      }
+
       * {
         box-sizing: border-box;
       }
@@ -36,6 +42,14 @@ export class TerminalElement extends HTMLElement {
       .xterm-screen {
         width: 100%;
         height: 100%;
+      }
+
+      #container {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
         padding: 0.5em;
       }
     </style>
@@ -51,10 +65,12 @@ export class TerminalElement extends HTMLElement {
     this.wasmTerminal.open(this.shadowRoot?.getElementById("container")!);
     window.addEventListener("resize", this.onResize);
     this.wasmTerminal.fit();
+    this.resizeObserver.observe(this);
   }
 
   disconnectedCallback() {
     window.removeEventListener("resize", this.onResize);
+    this.resizeObserver.unobserve(this);
   }
 
   //
