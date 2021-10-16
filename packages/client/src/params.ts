@@ -48,6 +48,10 @@ export function handleParams(provider: RuntimeMethods) {
   const runtimeName = params.get("runtime");
   const showEditor = isTruthy(params.get("editor"));
   const autorun = isTruthy(params.get("autorun"));
+  let showControls = true;
+  if (params.has("controls")) {
+    showControls = isTruthy(params.get("controls"));
+  }
 
   if (runtimeName && code) {
     // TODO: Handle invalid runtimeName
@@ -60,6 +64,10 @@ export function handleParams(provider: RuntimeMethods) {
 
   if (showEditor) {
     provider.showEditor();
+  }
+
+  if (showControls) {
+    provider.showControls();
   }
 
   if (autorun && runtimeName) {

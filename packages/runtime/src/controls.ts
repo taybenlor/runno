@@ -4,7 +4,6 @@ import { property } from "lit/decorators.js";
 export class ControlsElement extends LitElement {
   static styles = css`
     :host {
-      display: block;
       background: white;
     }
 
@@ -65,6 +64,14 @@ export class ControlsElement extends LitElement {
       composed: true,
     });
     this.dispatchEvent(event);
+  }
+
+  show() {
+    this.hidden = false;
+  }
+
+  hide() {
+    this.hidden = true;
   }
 
   render() {

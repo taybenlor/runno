@@ -71,6 +71,14 @@ export class RunElement extends LitElement implements RuntimeMethods {
   // Runtime Methods
   //
 
+  showControls() {
+    this.controls = true;
+  }
+
+  hideControls() {
+    this.controls = false;
+  }
+
   showEditor() {
     this.editor = true;
   }
@@ -81,6 +89,10 @@ export class RunElement extends LitElement implements RuntimeMethods {
 
   setEditorProgram(syntax: Syntax, runtime: Runtime, code: string) {
     return this._provider.setEditorProgram(syntax, runtime, code);
+  }
+
+  getEditorProgram() {
+    return this._provider.getEditorProgram();
   }
 
   async interactiveRunCode(

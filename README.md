@@ -51,7 +51,7 @@ These create a [cross-origin isolated context](https://web.dev/cross-origin-isol
 To control the runtime when it is embedded as an iframe you can use the `@runno/host` package. A simple example would be:
 
 ```js
-import ConnectRunno from "@runno/host";
+import { ConnectRunno } from "@runno/host";
 
 const runno = await ConnectRunno(runtimeIframe);
 const { tty } = await runno.interactiveRunCode("python", code);
