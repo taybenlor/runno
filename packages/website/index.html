@@ -128,7 +128,8 @@ print(f"G'day {name}, welcome to Runno.")
                 >
                   Embed this
                 </label>
-                <textarea class="w-full h-32 p-2 bg-navy" id="embed"></textarea>
+                <textarea class="w-full h-32 p-2 bg-navy" id="embed">
+                </textarea>
               </div>
             </form>
 
@@ -166,9 +167,9 @@ print(f"G'day {name}, welcome to Runno.")
 
       <div class="flex container mx-auto my-16 relative">
         <div class="">
-          <nav class="border border-lightBlue mr-8 p-2 list-none">
+          <nav class="border border-lightBlue mr-8 p-2 list-none sticky top-4">
             <li class="text-yellow">
-              <a href="#using-runno">Getting to know Runno</a>
+              <a href="#know-runno">Getting to know Runno</a>
             </li>
             <li class="pl-4">
               <a href="#using-runno">Using Runno</a>
@@ -185,189 +186,622 @@ print(f"G'day {name}, welcome to Runno.")
             <li class="pl-4">
               <a href="#security">Security</a>
             </li>
-            <li class="text-yellow">
+            <li class="pl-4">
+              <a href="#thanks">Thanks to</a>
+            </li>
+            <li class="text-yellow mt-2">
               <a href="#host-api">Host API</a>
             </li>
             <li class="pl-4">
-              <a href="#">Quickstart</a>
+              <a href="#host-quickstart">Quickstart</a>
             </li>
             <li class="pl-4">
-              <a href="#">Methods</a>
+              <a href="#host-how">How it works</a>
+            </li>
+            <li class="pl-4">
+              <a href="#host-headers">Headers</a>
+            </li>
+            <li class="pl-4">
+              <a href="#host-runtimes">Runtimes</a>
+            </li>
+            <li class="pl-4">
+              <a href="#host-params">Params</a>
+            </li>
+            <li class="pl-4">
+              <a href="#host-methods">Methods</a>
+            </li>
+            <li class="text-yellow mt-2">
+              <a href="#web-components">Web Components</a>
+            </li>
+            <li class="pl-4">
+              <a href="#component-quickstart">Quickstart</a>
+            </li>
+            <li class="pl-4">
+              <a href="#component-how">How it works</a>
+            </li>
+            <li class="pl-4">
+              <a href="#component-methods">Methods</a>
             </li>
           </nav>
         </div>
 
-        <div class="prose">
-          <h1>Getting to know Runno</h1>
-          <h2 id="using-runno">Using Runno</h2>
-          <p>
-            Choose a language from one of the available runtimes, then type in
-            some code. HTML will be generated that can be embedded on your
-            website to make the code run. You can choose to include controls,
-            and an editor.
-          </p>
-          <p>
-            You can also control the iframe using the
-            <a href="#host-api">host API</a>. This can be used to pass in a
-            virtual file system, and then collect <code>STDIN</code>,
-            <code>STDOUT</code> and <code>STDERR</code> from the program. It can
-            also be used to automate the running of code in both interactive and
-            headless modes.
-          </p>
+        <article class="prose">
+          <section>
+            <h1 id="know-runno">Getting to know Runno</h1>
+            <h2 id="using-runno">Using Runno</h2>
+            <p>
+              Paste some code into the textbox, set your runtime and then copy
+              the iframe into your website. Now you've got a snippet of code
+              that someone can run and edit!
+            </p>
+            <p>
+              For advanced uses, the iframe can be controlled with the
+              <a href="#host-api">host API</a>. With the host API you can pass
+              files, collect <code>STDOUT</code> and automate running in both
+              interactive and headless modes. Or bake Runno into your app with
+              the <a href="#web-components">runtime web components</a>.
+            </p>
 
-          <h2 id="how-it-works">How it works</h2>
-          <p>
-            Runno uses Web Assembly to run code in the browser. Code runs in a
-            unix-like sandbox that connects to a web-based terminal emulator.
-            This means it behaves a lot like running code natively on a linux
-            terminal. It's not perfect, but it's handy for making code examples
-            run.
-          </p>
-          <p>
-            When you click run on a Runno example the web assembly binary for
-            that programming language is collected from
-            <a href="https://wapm.io">WAPM</a> (the Web Assembly Package
-            Manager). It's then run in a Web Worker, inside a sandbox with an
-            in-memory file system. It's connected up to a terminal emulator and
-            simple IO is routed back and forth.
-          </p>
+            <h2 id="how-it-works">How it works</h2>
+            <p>
+              Runno uses Web Assembly to run code in the browser. Code runs in a
+              unix-like sandbox that connects to a web-based terminal emulator.
+              This means it behaves a lot like running code natively on a linux
+              terminal. It's not perfect, but it's handy for making simple code
+              examples run.
+            </p>
+            <p>
+              When you click run on a Runno example the web assembly binary for
+              that programming language is collected from
+              <a href="https://wapm.io">WAPM</a> (the Web Assembly Package
+              Manager). It's then run in a Web Worker, inside a sandbox with an
+              in-memory file system. It's connected up to a terminal emulator
+              and simple IO is routed back and forth.
+            </p>
 
-          <h2 id="why-browser">Why run in the browser?</h2>
-          <p>
-            The way Runno is built shifts the work of running code examples from
-            the server to the client. Running code examples on your server is
-            risky, it means having to implement protections from potentially
-            hostile clients and limiting resources. This means that it's
-            difficult to build a system that is open for anyone to use.
-          </p>
-          <p>
-            If you're just writing a blog post, your own course, or writing
-            documentation it's going to be difficult to implement this. You
-            really want to use something that someone else has built. But that
-            would mean running on their servers, which is going to cost you
-            money! By running on the client you eliminate needing any third
-            party involvement.
-          </p>
-          <p>
-            Plus it's pretty cool that you can just run code in your browser!
-          </p>
+            <h2 id="why-browser">Why run in the browser?</h2>
+            <p>
+              The way Runno is built shifts the work of running code examples
+              from the server to the client. Running code examples on your
+              server is risky, it means having to implement protections from
+              potentially hostile clients and limiting resources. This means
+              that it's difficult to build a system that is open for anyone to
+              use.
+            </p>
+            <p>
+              If you're writing a blog post, your own course, or writing
+              documentation it's difficult to implement your own sandbox. You
+              really want to use something that someone else has built. But that
+              means running on their servers, which is going to cost you money!
+              By running on the client you eliminate needing any third party
+              involvement.
+            </p>
+            <p>
+              Plus it's pretty cool that you can just run code in your browser!
+            </p>
 
-          <h2 id="limitations">Limitations</h2>
-          <p>
-            The programming languages available are limited by what has already
-            been compiled to Web Assembly using WASI and uploaded to WAPM. A
-            great way to help more languages become available would be to
-            compile your favourite programming language tools to Web Assembly
-            and upload them to WAPM.
-          </p>
-          <p>
-            WASI doesn't provide a full linux environment, so most system based
-            interfaces won't work. Packages and modules are also difficult to
-            install inside the Runno environment. If you want to import code,
-            you'll need to provide that code alongside your example.
-          </p>
-          <p>
-            Runno is best for small code examples that use
-            <code>STDIN</code> and <code>STDOUT</code>. That is typically the
-            sort of thing that is taught in a CS1 course at university. This
-            isn't an inherent limitation of the system though! As more work is
-            put into Runno and the ecosystem of tools it depends on, more will
-            become available.
-          </p>
+            <h2 id="limitations">Limitations</h2>
+            <p>
+              The programming languages available are limited by what has
+              already been compiled to Web Assembly using WASI and uploaded to
+              WAPM. A great way to help more languages become available would be
+              to compile your favourite programming language tools to Web
+              Assembly and upload them to WAPM.
+            </p>
+            <p>
+              WASI doesn't provide a full linux environment, so most system
+              based interfaces won't work. Packages and modules are also
+              difficult to install inside the Runno environment. If you want to
+              import code, you'll need to provide that code alongside your
+              example.
+            </p>
+            <p>
+              Runno is best for small code examples that use
+              <code>STDIN</code> and <code>STDOUT</code>. That is typically the
+              sort of thing that is taught in a CS1 course at university. This
+              isn't an inherent limitation of the system though! As more work is
+              put into Runno and the ecosystem of tools it depends on, more will
+              become available.
+            </p>
 
-          <h2 id="security">Security</h2>
-          <p>
-            Running arbitrary code is always going to have some security risks,
-            even if you're running it on the client. The goal of the Runno
-            sandbox is to make it as safe as possible for a client to press run.
-            They should be able to trust that their browser won't do anything
-            they don't expect it to do.
-          </p>
-          <p>
-            Because Runno runs within the browser on the client, you don't have
-            to worry about it damaging your servers. But we also need to make
-            sure Runno won't damage your clients.
-          </p>
-          <p>
-            There are two main layers of sandboxing that help make Runno secure:
-          </p>
-          <ol>
-            <li>
-              By running as WebAssembly we create a layer of sandboxing, any
-              system resources that the binary wants have to be passed through a
-              layer of JavaScript that Runno controls.
-            </li>
-            <li>
-              By embedding Runno inside an iframe from another domain we sandbox
-              it from any secrets inside your webpage. This prevents Runno from
-              having access to cookies or from making API calls as a user.
-            </li>
-          </ol>
-          <p>
-            With these two layers combined it's difficult for a user to hurt
-            themselves, for you to hurt a user, or for users to hurt each other.
-            But that doesn't mean Runno is 100% safe.
-          </p>
-          <p>
-            Runno can quite easily be used to hog resources on a client. An
-            infinite loop can lock up a tab. Large binaries can potentially be
-            dynamically loaded from WAPM, using surprising amounts of bandwidth.
-            While not ideal, these are typical risks a user has in navigating to
-            any website.
-          </p>
-          <p>
-            The intention is for Runno to either fix security issues, or to
-            disclose the risks upfront. So if you find a security issue with the
-            way Runno works, please
-            <a href="mailto:security@taybenlor.com"
-              >contact me (security@taybenlor.com)</a
-            >!
-          </p>
+            <h2 id="security">Security</h2>
+            <p>
+              Running arbitrary code is always going to have some security
+              risks, even if you're running it on the client. The goal of the
+              Runno sandbox is to make it as safe as possible for a client to
+              press run. They should be able to trust that their browser won't
+              do anything they don't expect it to do.
+            </p>
+            <p>
+              Because Runno runs within the browser on the client, you don't
+              have to worry about it damaging your servers. But we also need to
+              make sure Runno won't damage your clients.
+            </p>
+            <p>
+              There are two main layers of sandboxing that help make Runno
+              secure:
+            </p>
+            <ol>
+              <li>
+                By running as WebAssembly we create a layer of sandboxing, any
+                system resources that the binary wants have to be passed through
+                a layer of JavaScript that Runno controls.
+              </li>
+              <li>
+                By embedding Runno inside an iframe from another domain we
+                sandbox it from any secrets inside your webpage. This prevents
+                Runno from having access to cookies or from making API calls as
+                a user.
+              </li>
+            </ol>
+            <p>
+              With these two layers combined it's difficult for a user to hurt
+              themselves, for you to hurt a user, or for users to hurt each
+              other. But that doesn't mean Runno is 100% safe.
+            </p>
+            <p>
+              Runno can quite easily be used to hog resources on a client. An
+              infinite loop can lock up a tab. Large binaries can potentially be
+              dynamically loaded from WAPM, using surprising amounts of
+              bandwidth. While not ideal, these are typical risks a user has in
+              navigating to any website.
+            </p>
+            <p>
+              The intention is for Runno to either fix security issues, or to
+              disclose the risks upfront. So if you find a security issue with
+              the way Runno works, please
+              <a href="mailto:security@taybenlor.com"
+                >contact me (security@taybenlor.com)</a
+              >!
+            </p>
 
-          <h2>Big thanks to</h2>
+            <h2 id="thanks">Big thanks to</h2>
 
-          <p>
-            A number of open-source projects and standards have been used to
-            make Runno possible. These include:
-          </p>
-          <ul>
-            <li>
-              Wasmer, WAPM, and WebAssembly.sh - the Wasmer team have built a
-              lot of great tools for running Web Assembly. WAPM, the Web
-              Assembly Package Manager is key to how Runno works. WebAssembly.sh
-              was a great inspiration and starting point.
-            </li>
-            <li>
-              WASI - the Web Assembly System Interface is a standard for
-              interacting with code compiled for web assembly that makes it both
-              secure and portable
-            </li>
-            <li>
-              XTerm.js - a fully featured terminal that can be run in the
-              browser
-            </li>
-            <li>
-              The extensive work by many in the web development community on
-              making native code and APIs run successfully inside the browser.
-            </li>
-          </ul>
-          <p>
-            Thanks to everyone who has built compatibility layers for the web.
-            The web becomes a better platform with every new piece of software
-            we can run on it!
-          </p>
+            <p>
+              A number of open-source projects and standards have been used to
+              make Runno possible. These include:
+            </p>
+            <ul>
+              <li>
+                Wasmer, WAPM, and WebAssembly.sh - the Wasmer team have built a
+                lot of great tools for running Web Assembly. WAPM, the Web
+                Assembly Package Manager is key to how Runno works.
+                WebAssembly.sh was a great inspiration and starting point.
+              </li>
+              <li>
+                WASI and Web Assembly - a bunch of people from various working
+                groups and especially the Bytecode Alliance have been involved
+                in making WASM and WASI what it is today.
+              </li>
+              <li>
+                XTerm.js - a fully featured terminal that can be run in the
+                browser
+              </li>
+              <li>
+                The extensive work by many in the web development community on
+                making native code and APIs run successfully inside the browser.
+              </li>
+            </ul>
+            <p>
+              Thanks to everyone who has built compatibility layers for the web.
+              The web becomes a better platform with every new piece of software
+              we can run on it!
+            </p>
+            <p>
+              Also big thanks to my friends who tolerate me constantly talking
+              about WASM. Thanks especially to Shelley, Katie, Jesse, Jim, Odin,
+              Hailey, Sam and other Sam.
+            </p>
+          </section>
 
-          <h1 id="host-api">Host API</h1>
+          <section class="flow-root mt-16">
+            <h1 id="host-api">Host API</h1>
+            <p>
+              The Host API lets you control a Runno iframe and receive the
+              resulting IO and filesystem. Runno exposes methods for setting the
+              editor, adding files, and running code in interactive or headless
+              modes. There's also a bunch of helpers.
+            </p>
+            <p>
+              You'll need to be using a modern web stack that includes a bundler
+              of some sort to use the Host API. If you get stuck,
+              <a
+                href="https://github.com/taybenlor/runno/blob/main/packages/host/src/index.ts"
+              >
+                the source is relatively easy to understand
+              </a>
+              .
+            </p>
 
-          <h2>Quickstart</h2>
-          <p></p>
+            <h2 id="host-quickstart">Quickstart</h2>
 
-          <h2>How it works</h2>
-          <p></p>
+            <p>Start by adding <code>@runno/host</code> to your package:</p>
 
-          <h2>Methods</h2>
-          <p></p>
-        </div>
+            <pre><code>$ npm install @runno/host</code></pre>
+
+            <p>Then you'll be able to import <code>ConnectRunno</code>.</p>
+
+            <pre><code>import { ConnectRunno } from '@runno/host'</code></pre>
+
+            <p>And use it with an existing Runno iframe.</p>
+
+            <pre><code>const runno = await ConnectRunno(iframe);</code></pre>
+
+            <p>
+              To run a code sample interactively use
+              <code>interactiveRunCode</code>.
+            </p>
+
+            <pre><code>const result = await runno.interactiveRunCode("python", codeSample);</code></pre>
+
+            <p>
+              The result has properties for <code>stdin</code>,
+              <code>stdout</code>, <code>stderr</code>, <code>tty</code>, and
+              <code>fs</code> (the file system). This represents the input that
+              the user has typed, the output they received, any errors displayed
+              and the full terminal text (input, output and errors).
+            </p>
+
+            <p>
+              If you want to run code without user input or output, you can use
+              <code>headlessRunCode</code>.
+            </p>
+
+            <pre><code>const result = await runno.headlessRunCode("python", codeSample, stdin);</code></pre>
+
+            <p>
+              The <code>stdin</code> is optional, but necessary if the code
+              expects input.
+            </p>
+
+            <h2 id="host-how">How it works</h2>
+            <p>
+              The connection between the iframe and the host is established via
+              <code>postMessage</code> (
+              <a
+                href="https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage"
+              >
+                mdn docs </a
+              >). Which is managed by the <code>post-me</code> npm package (
+              <a href="https://github.com/alesgenova/post-me">github repo</a>).
+            </p>
+            <p>
+              Methods are exposed within the iframe that can be called using a
+              promise-based interface. This makes it quite easy to integrate
+              with your existing code while allowing the iframe to be hosted
+              externally.
+            </p>
+
+            <h2 id="host-headers">Cross-Origin Headers</h2>
+
+            <p>
+              To get the best experience your page should provide a
+              <a href="https://web.dev/cross-origin-isolation-guide/"
+                >Cross-Origin Isolated context</a
+              >
+              so it can internally use <code>SharedArrayBuffer</code>. Without
+              this Runno falls back to a lower performance hack that has the
+              potential to break in the future.
+            </p>
+
+            <p>
+              To make your website Cross-Origin Isolated set the following
+              headers in your HTTP response:
+            </p>
+
+            <pre><code>Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp</code></pre>
+
+            <p>
+              You can test that your page is Cross-Origin Isolated by opening
+              the browser console and checking
+              <code>crossOriginIsolated</code> (see:
+              <a
+                href="https://developer.mozilla.org/en-US/docs/Web/API/crossOriginIsolated"
+                >mdn docs</a
+              >).
+            </p>
+
+            <h2 id="host-runtimes">Supported Runtimes</h2>
+
+            <p>
+              Runno supports a number of runtimes based on existing packages
+              published to WAPM. These runtimes will be supported by Runno going
+              forward, but may change in underlying binary implementation.
+            </p>
+
+            <ul>
+              <li>
+                <code>python</code> - Runs Python 3 code, not pinned to a
+                particular version but is at least 3.6.
+              </li>
+              <li>
+                <code>quickjs</code> - Runs JavaScript code using the
+                <a href="https://bellard.org/quickjs/">QuickJS engine</a>.
+              </li>
+              <li>
+                <code>sqlite</code> - Runs SQLite commands. Currently just by
+                piping SQL into the sqlite command.
+              </li>
+              <li>
+                <code>clang</code> - Compiles and runs C code using Ben Smith's
+                llvm fork (see:
+                <a href="https://github.com/binji/wasm-clang">wasm-clang</a>).
+              </li>
+              <li>
+                <code>clangpp</code> - Compiles and runs C++ code using the same
+                llvm fork.
+              </li>
+            </ul>
+
+            <p>
+              Over time Runno will support more languages. If your favourite
+              language isn't in this list then consider compiling its tools to
+              Web Assembly and uploading them to WAPM. If you do that part I'll
+              absolutely get support into Runno. For now it needs to be a WASI
+              binary. Some good starting resources are
+              <a
+                href="https://00f.net/2019/04/07/compiling-to-webassembly-with-llvm-and-clang/"
+              >
+                this blog post
+              </a>
+              and <a href="https://github.com/wasienv/wasienv">wasienv</a>.
+            </p>
+
+            <h2 id="host-params">Client Params</h2>
+
+            <p>
+              The client supports parameters which can be used to customise its
+              look and behaviour. These can be set as query parameters as part
+              of the url, like: <code>http://runno.run/?editor=0</code>
+            </p>
+
+            <ul>
+              <li>
+                <code>controls</code> - Whether to display controls, valid
+                values are: <code>0</code> and <code>1</code>.
+              </li>
+              <li>
+                <code>editor</code> - Whether to display the editor, valid
+                values are: <code>0</code> and <code>1</code>.
+              </li>
+              <li>
+                <code>autorun</code> - Whether to automatically run the given
+                code on load, valid values are: <code>0</code> and
+                <code>1</code>.
+              </li>
+              <li>
+                <code>runtime</code> - Which runtime to use, see
+                <a href="#host-runtimes">runtimes</a>.
+              </li>
+              <li>
+                <code>code</code> - URL safe base64 string containing the code
+                to use. See:
+                <a href="https://github.com/commenthol/url-safe-base64"
+                  >url-safe-base64</a
+                >.
+              </li>
+            </ul>
+
+            <h2 id="host-methods">Methods and Helpers</h2>
+
+            <h3>Helpers</h3>
+
+            <h4><code>generateEmbedURL</code></h4>
+            <pre><code>export function generateEmbedURL(
+  code: string,
+  runtime: string,
+  options?: {
+    showControls?: boolean; // Default: true
+    showEditor?: boolean; // Default: true
+    autorun?: boolean; // Default: false
+    baseUrl?: string; // Default: "https://runno.run/"
+  }
+): URL</code></pre>
+            <p>
+              Generates a URL that can be used as the <code>src</code> of an
+              iframe to embed Runno. Arguments and options correspond to the
+              options in <a href="#host-params">Client Params</a>.
+            </p>
+
+            <h4><code>generateEmbedHTML</code></h4>
+            <pre><code>export function generateEmbedHTML(url: URL): string</code></pre>
+            <p>
+              Generates a string representing the HTML for an iframe that can be
+              embedded. It generates the same embed HTML as on this website.
+            </p>
+
+            <h4><code>ConnectRunno</code></h4>
+            <pre><code>export async function ConnectRunno(
+  iframe: HTMLIFrameElement
+): Promise&lt;RunnoHost&gt;</code></pre>
+            <p>
+              Connects to the Runno instance in the passed iframe. Returns a
+              <code>RunnoHost</code> object that can be used to control the
+              Runno client iframe.
+            </p>
+
+            <h3><code>RunnoHost</code> methods</h3>
+
+            <p>
+              These methods are all exposed on the <code>RunnoHost</code> object
+              returned by <code>ConnectRunno</code>.
+            </p>
+
+            <h4><code>showControls</code></h4>
+            <pre><code>showControls(): Promise&lt;void&gt;</code></pre>
+            <p>Shows the controls (run button).</p>
+
+            <h4><code>hideControls</code></h4>
+            <pre><code>hideControls(): Promise&lt;void&gt;</code></pre>
+            <p>Hides the controls (run button).</p>
+
+            <h4><code>showEditor</code></h4>
+            <pre><code>showEditor(): Promise&lt;void&gt;</code></pre>
+            <p>Shows the editor.</p>
+
+            <h4><code>hideEditor</code></h4>
+            <pre><code>hideEditor(): Promise&lt;void&gt;</code></pre>
+            <p>Hides the editor.</p>
+
+            <h4><code>setEditorProgram</code></h4>
+            <pre><code>setEditorProgram(
+  syntax: Syntax,
+  runtime: Runtime,
+  code: string
+): Promise&lt;void&gt;</code></pre>
+            <p>
+              Sets the program in the editor, how to highlight it, and how to
+              run it. <code>Syntax</code> can be <code>python</code>,
+              <code>js</code>, <code>sql</code>, <code>cpp</code>, or
+              <code>undefined</code>.
+            </p>
+
+            <h4><code>getEditorProgram</code></h4>
+            <pre><code>getEditorProgram(): Promise&lt;string&gt;</code></pre>
+            <p>Gets the current program in the editor.</p>
+
+            <h4><code>interactiveRunCode</code></h4>
+            <pre><code>interactiveRunCode(runtime: Runtime, code: string): Promise&lt;CommandResult&gt;</code></pre>
+            <p>
+              Runs some code interactively using the given <code>Runtime</code>.
+              It does not change or update the program in the editor.
+            </p>
+
+            <h4><code>interactiveRunFS</code></h4>
+            <pre><code>interactiveRunFS(
+  runtime: Runtime,
+  entryPath: string,
+  fs: FS
+): Promise&lt;CommandResult&gt;</code></pre>
+            <p>
+              Runs a filesystem object interactively using the given
+              <code>Runtime</code>. The <code>entryPath</code> is used as the
+              "main" file to run. It does not change or update the program in
+              the editor.
+            </p>
+
+            <h4><code>interactiveUnsafeCommand</code></h4>
+            <pre><code>interactiveUnsafeCommand(command: string, fs: FS): Promise&lt;CommandResult&gt;</code></pre>
+            <p>
+              Runs a concrete command in a similar way to
+              <a target="_blank" href="https://webassembly.sh">
+                webassembly.sh </a
+              >. This is internally used to support Runno's runtimes. You could
+              use this to pull your own packages from WAPM and run them.
+            </p>
+
+            <h4><code>interactiveStop</code></h4>
+            <pre><code>interactiveStop(): Promise&lt;void&gt;</code></pre>
+            <p>
+              Stops the currently running program. The result will be returned
+              as usual by the <code>Promise</code> associated with the call that
+              started running code.
+            </p>
+
+            <h4><code>headlessRunCode</code></h4>
+            <pre><code>headlessRunCode(
+  runtime: Runtime,
+  code: string,
+  stdin?: string
+): Promise&lt;CommandResult&gt;</code></pre>
+            <p>
+              Runs code headlessly. The user will not have an opportunity to
+              interact with this code. You can provide <code>stdin</code> to
+              specify the input. This is useful for testing code a user has
+              written.
+            </p>
+
+            <h4><code>headlessRunFS</code></h4>
+            <pre><code>headlessRunFS(
+  runtime: Runtime,
+  entryPath: string,
+  fs: FS,
+  stdin?: string
+): Promise&lt;CommandResult&gt;</code></pre>
+            <p>
+              Corresponding headless version of running with an FS. See:
+              <code>interactiveRunFS</code>
+            </p>
+
+            <h4><code>headlessUnsafeCommand</code></h4>
+            <pre><code>headlessUnsafeCommand(
+  command: string,
+  fs: FS,
+  stdin?: string
+): Promise&lt;CommandResult&gt;</code></pre>
+            <p>
+              Corresponding headless version of running an unsafe command. See:
+              <code>interactiveUnsafeCommand</code>
+            </p>
+
+            <h3 class="host-types">Important Types</h3>
+
+            <h4><code>Runtime</code></h4>
+            <pre><code>export type Runtime = "python" | "quickjs" | "sqlite" | "clang" | "clangpp";</code></pre>
+            <p>Runtimes that Runno supports.</p>
+
+            <h4><code>Syntax</code></h4>
+            <pre><code>export type Syntax = "python" | "js" | "sql" | "cpp" | undefined;</code></pre>
+            <p>Syntax highlighting options that the Runno editor supports.</p>
+
+            <h4><code>CommandResult</code></h4>
+            <pre><code>export type CommandResult = {
+  stdin: string;
+  stdout: string;
+  stderr: string;
+  tty: string;
+  fs: FS;
+  prepareResult?: {
+    stdin: string;
+    stdout: string;
+    stderr: string;
+    tty: string;
+    fs: FS;
+  };
+};</code></pre>
+            <p>
+              The result from running a command. If the command has a
+              compilation or other type of preparation then the output from this
+              step will be in the optional <code>prepareResult</code> field.
+            </p>
+
+            <h4><code>FS</code></h4>
+            <pre><code>export type FS = {
+  [name: string]: File;
+};</code></pre>
+            <p>
+              A snapshot of a filesystem that can be passed to Runno. If folders
+              are necessary the slashes should be part of the <code>name</code>.
+            </p>
+
+            <h4><code>File</code></h4>
+            <pre><code>export type File = {
+  name: string;
+  content: string | Uint8Array;
+};</code></pre>
+            <p>A snapshot of a file that can be passed to Runno.</p>
+          </section>
+
+          <section class="flow-root mt-16">
+            <h1 id="web-components">Web Components</h1>
+            <p>
+              The building blocks of Runno are available as Web Components that
+              can be bundled into your page. The Runno runtime takes up
+              significant page weight, and has potential unknown security risks.
+              Please be careful about using it.
+            </p>
+
+            <h2 id="component-quickstart">Quickstart</h2>
+            <p></p>
+
+            <h2 id="component-how">How it works</h2>
+            <p></p>
+
+            <h2 id="component-methods">Methods</h2>
+            <p></p>
+          </section>
+        </article>
       </div>
     </main>
     <footer class="bg-white text-black">

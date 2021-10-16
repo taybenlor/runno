@@ -6,13 +6,16 @@ export function generateEmbedURL(
   code: string,
   runtime: string,
   options?: {
+    showControls?: boolean; // Default: true
     showEditor?: boolean; // Default: true
     autorun?: boolean; // Default: false
     baseUrl?: string; // Default: "https://runno.run/"
   }
-) {
+): URL {
   const showEditor =
     options?.showEditor === undefined ? true : options?.showEditor;
+  const showControls =
+    options?.showControls === undefined ? true : options?.showControls;
   const autorun = options?.autorun || false;
   const baseUrl = options?.baseUrl || "https://runno.run/";
   const url = new URL(baseUrl);
@@ -22,12 +25,15 @@ export function generateEmbedURL(
   if (autorun) {
     url.searchParams.append("autorun", "1");
   }
+  if (!showControls) {
+    url.searchParams.append("controls", "0");
+  }
   url.searchParams.append("runtime", runtime);
   url.searchParams.append("code", encode(btoa(code)));
   return url;
 }
 
-export function generateEmbedHTML(url: URL) {
+export function generateEmbedHTML(url: URL): string {
   return `<iframe src="${url}" crossorigin allow="cross-origin-isolated" width="640" height="320" frameBorder="0"></iframe>`;
 }
 
@@ -35,6 +41,14 @@ export class RunnoHost implements RuntimeMethods {
   remoteHandle: RemoteHandle<RuntimeMethods>;
   constructor(remoteHandle: RemoteHandle<RuntimeMethods>) {
     this.remoteHandle = remoteHandle;
+  }
+
+  showControls(): Promise<void> {
+    return this.remoteHandle.call("showControls");
+  }
+
+  hideControls(): Promise<void> {
+    return this.remoteHandle.call("hideControls");
   }
 
   showEditor(): Promise<void> {
@@ -53,6 +67,10 @@ export class RunnoHost implements RuntimeMethods {
     return this.remoteHandle.call("setEditorProgram", syntax, runtime, code);
   }
 
+  getEditorProgram(): Promise<string> {
+    return this.remoteHandle.call("getEditorProgram");
+  }
+
   interactiveRunCode(runtime: Runtime, code: string): Promise<CommandResult> {
     return this.remoteHandle.call("interactiveRunCode", runtime, code);
   }
@@ -69,7 +87,7 @@ export class RunnoHost implements RuntimeMethods {
     return this.remoteHandle.call("interactiveUnsafeCommand", command, fs);
   }
 
-  interactiveStop() {
+  interactiveStop(): Promise<void> {
     return this.remoteHandle.call("interactiveStop");
   }
 
@@ -105,7 +123,7 @@ export class RunnoHost implements RuntimeMethods {
   }
 }
 
-export default async function ConnectRunno(
+export async function ConnectRunno(
   iframe: HTMLIFrameElement
 ): Promise<RunnoHost> {
   const childWindow = iframe.contentWindow;

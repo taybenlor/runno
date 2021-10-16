@@ -26,11 +26,17 @@ export type File = {
 };
 
 export type RuntimeMethods = {
+  showControls: () => void;
+
+  hideControls: () => void;
+
   showEditor: () => void;
 
   hideEditor: () => void;
 
   setEditorProgram: (syntax: Syntax, runtime: Runtime, code: string) => void;
+
+  getEditorProgram: () => Promise<string>;
 
   interactiveRunCode: (
     runtime: Runtime,

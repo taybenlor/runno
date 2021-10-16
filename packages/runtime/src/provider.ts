@@ -9,6 +9,7 @@ import {
 } from "@runno/host";
 import { WasmFs } from "./wasmfs";
 import { headlessRunCommand } from "./headless";
+import { ControlsElement } from "./controls";
 
 type RuntimeCommands = {
   prepare?: Array<string>;
@@ -54,10 +55,16 @@ function commandsForRuntime(name: string, entryPath: string): RuntimeCommands {
 export class RunnoProvider implements RuntimeMethods {
   terminal: TerminalElement;
   editor: EditorElement;
+  controls?: ControlsElement;
 
-  constructor(terminal: TerminalElement, editor: EditorElement) {
+  constructor(
+    terminal: TerminalElement,
+    editor: EditorElement,
+    controls?: ControlsElement
+  ) {
     this.terminal = terminal;
     this.editor = editor;
+    this.controls = controls;
   }
 
   //
@@ -74,6 +81,14 @@ export class RunnoProvider implements RuntimeMethods {
   // Public Interface
   //
 
+  showControls() {
+    this.controls?.show();
+  }
+
+  hideControls() {
+    this.controls?.hide();
+  }
+
   showEditor() {
     this.editor.show();
   }
@@ -84,6 +99,10 @@ export class RunnoProvider implements RuntimeMethods {
 
   setEditorProgram(syntax: Syntax, runtime: Runtime, code: string) {
     this.editor.setProgram(syntax, runtime, code);
+  }
+
+  getEditorProgram() {
+    return Promise.resolve(this.editor.program);
   }
 
   interactiveRunCode(runtime: Runtime, code: string): Promise<CommandResult> {
