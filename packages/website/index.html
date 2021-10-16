@@ -10,14 +10,34 @@
   <body class="font-tobias text-white bg-black">
     <main class="bg-black">
       <div class="bg-sunset pb-8 relative">
-        <header class="py-4">
-          <h1 class="text-lg">
-            <img src="images/logo.svg" alt="Runno" />
-          </h1>
-        </header>
-        <runno-starfield>
+        <runno-starfield class="pointer-events-none">
           <img src="images/star.svg" />
         </runno-starfield>
+        <header class="py-4">
+          <a href="/" title="Runno" class="absolute">
+            <h1 class="text-lg">
+              <img src="images/logo.svg" alt="Runno" />
+            </h1>
+          </a>
+          <nav class="font-sans container mx-auto flex justify-end z-10">
+            <a
+              target="_blank"
+              href="https://github.com/taybenlor/runno"
+              class="inline-flex font-medium hover:text-yellow group"
+            >
+              <img
+                src="images/github-light.png"
+                class="w-6 h-6 mr-2 block group-hover:hidden"
+              />
+              <img
+                src="images/github-yellow.png"
+                class="w-6 h-6 mr-2 hidden group-hover:block"
+              />
+              GitHub
+            </a>
+          </nav>
+        </header>
+
         <img class="absolute bottom-0 right-0" src="images/sun.svg" />
         <div class="container mx-auto relative">
           <h1 class="text-5xl font-bold text-center my-8">
@@ -349,14 +369,17 @@ print(f"G'day {name}, welcome to Runno.")
       </div>
     </main>
     <footer class="bg-white text-black">
-      <div class="container mx-auto py-8">
+      <div class="container mx-auto py-8 font-sans">
         <p>
           A passion project by
           <a class="text-pink" href="https://taybenlor.com">Ben Taylor</a> (<a
             class="text-pink"
             href="https://twitter.com/taybenlor"
             >@taybenlor</a
-          >). Shoot me an email if you want to chat about Runno (<a
+          >). The source is available
+          <a class="text-pink" href="https://github.com/taybenlor/runno"
+            >on GitHub</a
+          >. Shoot me an email if you want to chat about Runno (<a
             class="text-pink"
             href="mailto:runno@taybenlor.com"
             >runno@taybenlor.com</a

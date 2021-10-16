@@ -14,8 +14,10 @@ function seenPosition(
 
 function avoidPosition(position: [number, number]) {
   const [x, y] = position;
-  //     Avoid logo            Avoid title text
-  return (x < 20 && y < 25) || (x > 30 && x < 70 && y > 30);
+  //     Avoid logo            Avoid nav             Avoid title text
+  return (
+    (x < 20 && y < 25) || (x > 80 && y < 25) || (x > 30 && x < 70 && y > 30)
+  );
 }
 
 export class StarfieldElement extends HTMLElement {
