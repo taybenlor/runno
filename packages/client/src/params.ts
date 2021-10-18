@@ -1,6 +1,6 @@
 import { decode } from "url-safe-base64";
 
-import { Runtime, RuntimeMethods, Syntax } from "@runno/host";
+import { Runtime, RuntimeMethods, runtimeToSyntax } from "@runno/host";
 
 function isTruthy(param: string | null | undefined) {
   if (param === null || param === undefined) {
@@ -16,25 +16,6 @@ function isTruthy(param: string | null | undefined) {
   }
 
   return true;
-}
-
-function runtimeToSyntax(runtime: string | undefined | null): Syntax {
-  if (runtime == "python") {
-    return "python";
-  }
-  if (runtime == "quickjs") {
-    return "js";
-  }
-  if (runtime == "sqlite") {
-    return "sql";
-  }
-  if (runtime == "clang") {
-    return "cpp";
-  }
-  if (runtime == "clangpp") {
-    return "cpp";
-  }
-  return undefined;
 }
 
 export function handleParams(provider: RuntimeMethods) {

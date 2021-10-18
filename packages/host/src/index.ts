@@ -37,6 +37,25 @@ export function generateEmbedHTML(url: URL): string {
   return `<iframe src="${url}" crossorigin allow="cross-origin-isolated" width="640" height="320" frameBorder="0"></iframe>`;
 }
 
+export function runtimeToSyntax(runtime: string | undefined | null): Syntax {
+  if (runtime == "python") {
+    return "python";
+  }
+  if (runtime == "quickjs") {
+    return "js";
+  }
+  if (runtime == "sqlite") {
+    return "sql";
+  }
+  if (runtime == "clang") {
+    return "cpp";
+  }
+  if (runtime == "clangpp") {
+    return "cpp";
+  }
+  return undefined;
+}
+
 export class RunnoHost implements RuntimeMethods {
   remoteHandle: RemoteHandle<RuntimeMethods>;
   constructor(remoteHandle: RemoteHandle<RuntimeMethods>) {

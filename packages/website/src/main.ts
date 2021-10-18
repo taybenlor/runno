@@ -1,8 +1,9 @@
 import { StarfieldElement } from "./starfield";
 import { exampleForRuntime } from "./examples";
 import { Runtime, generateEmbedURL, generateEmbedHTML } from "@runno/host";
+import { defineElements } from "@runno/runtime";
 
-// Define this custom element
+defineElements();
 customElements.define("runno-starfield", StarfieldElement);
 
 const codeText = document.getElementById("code") as HTMLTextAreaElement;

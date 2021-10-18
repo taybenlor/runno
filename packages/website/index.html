@@ -220,7 +220,10 @@ print(f"G'day {name}, welcome to Runno.")
               <a href="#component-how">How it works</a>
             </li>
             <li class="pl-4">
-              <a href="#component-methods">Methods</a>
+              <a href="#component-methods">Elements</a>
+            </li>
+            <li class="pl-4">
+              <a href="#component-helpers">Helpers</a>
             </li>
           </nav>
         </div>
@@ -376,6 +379,10 @@ print(f"G'day {name}, welcome to Runno.")
               <li>
                 XTerm.js - a fully featured terminal that can be run in the
                 browser
+              </li>
+              <li>
+                CodeMirror - a great web-based code editor that's always a
+                delight to integrate
               </li>
               <li>
                 The extensive work by many in the web development community on
@@ -621,7 +628,7 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
               Runno client iframe.
             </p>
 
-            <h3><code>RunnoHost</code> methods</h3>
+            <h3 id="runno-host"><code>RunnoHost</code> methods</h3>
 
             <p>
               These methods are all exposed on the <code>RunnoHost</code> object
@@ -787,19 +794,258 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
             <h1 id="web-components">Web Components</h1>
             <p>
               The building blocks of Runno are available as Web Components that
-              can be bundled into your page. The Runno runtime takes up
-              significant page weight, and has potential unknown security risks.
-              Please be careful about using it.
+              can be bundled into your page. You can then use them just like
+              other HTML in your website.
+            </p>
+            <p>
+              You'll need to be using a modern web stack that includes a bundler
+              of some sort to use the Host API. If you get stuck,
+              <a
+                href="https://github.com/taybenlor/runno/blob/main/packages/host/src/index.ts"
+              >
+                the source is relatively easy to understand
+              </a>
+              .
             </p>
 
             <h2 id="component-quickstart">Quickstart</h2>
-            <p></p>
+            <p>Start by adding <code>@runno/runtime</code> to your package:</p>
+
+            <pre><code>$ npm install @runno/runtime</code></pre>
+
+            <p>Then you'll be able to import <code>defineElements</code>.</p>
+
+            <pre><code>import { defineElements } from '@runno/runtime'</code></pre>
+
+            <p>And call it as part of your main script while the page loads.</p>
+
+            <pre><code>defineElements();</code></pre>
+
+            <p>
+              Once you've called <code>defineElements</code> you can use runno
+              elements on the page.
+            </p>
+
+            <pre><code>&lt;runno-run runtime="python" editor controls&gt;
+print('Hello, World!')
+&lt;/runno-run&gt;</code></pre>
+
+            <p>Which would render as:</p>
+
+            <runno-run runtime="python" editor controls>
+              print('Hello, World!')
+            </runno-run>
 
             <h2 id="component-how">How it works</h2>
-            <p></p>
+            <p>
+              The Runno iframe is implemented using these web components and so
+              there is a lot of overlap in how they work. Rather than repeating
+              the documentation:
+            </p>
+            <ul>
+              <li>
+                Your webpage needs to be a
+                <a href="#host-headers">Cross-Origin Isolated context</a>.
+              </li>
+              <li>
+                The <code>runno-run</code> element implements the
+                <a href="#runno-host">
+                  <code class="!text-pink">RunnoHost</code> methods </a
+                >.
+              </li>
+              <li>
+                All the <code>Runtime</code> and <code>Syntax</code> options can
+                have the same variables.
+              </li>
+              <li>
+                The code still runs within a WebAssembly sandbox isolating it
+                from your page.
+              </li>
+            </ul>
+            <p>Some things work differently without the iframe:</p>
+            <ul>
+              <li>
+                For browsers that don't support
+                <code>SharedArrayBuffer</code> the fallback is a prompt. It's
+                possible to fix this with a <code>ServiceWorker</code>. Contact
+                me if you need help.
+              </li>
+              <li>
+                Without the iframe as an extra layer, some security mitigations
+                won't work. For example: it will be easier to lock up the tab
+                with an infinite loop.
+              </li>
+              <li>There's no <code>autorun</code> option.</li>
+            </ul>
 
-            <h2 id="component-methods">Methods</h2>
-            <p></p>
+            <h2 id="component-elements">Elements</h2>
+
+            <h4><code>runno-run</code></h4>
+            <pre><code>&lt;runno-run
+  syntax="Syntax" &lt;!-- optional --&gt;
+  runtime="Runtime" &lt;!-- optional --&gt;
+  code="string" &lt;!-- optional --&gt;
+  editor &lt;!-- optional, presence displays the editor --&gt;
+  controls &lt;!-- optional, presence displays the controls --&gt;
+&gt;
+  &lt;!-- content is treated as code if not set as an attribute --&gt;
+&lt;/runno-run&gt;
+</code></pre>
+            <p>
+              The <code>runno-run</code> element implements all of Runno's
+              public APIs and acts as a wrapper around the editor, terminal and
+              controls. It's the main thing you should be using.
+            </p>
+
+            <p>
+              On top of the
+              <a href="#runno-host">
+                <code class="!text-pink">RunnoHost</code> methods
+              </a>
+              you can also call:
+            </p>
+            <ul>
+              <li>
+                <code>run()</code> - runs the code in the editor (needs a
+                runtime)
+              </li>
+              <li><code>stop()</code> - stops the code running</li>
+              <li>
+                <code>running</code> - property, whether the element is
+                currently running
+              </li>
+            </ul>
+
+            <h4><code>runno-editor</code></h4>
+            <pre><code>&lt;runno-editor
+  syntax="Syntax" &lt;!-- optional --&gt;
+  runtime="Runtime" &lt;!-- optional --&gt;
+  code="string" &lt;!-- optional --&gt;
+&gt;
+  &lt;!-- content is treated as code if not set as an attribute --&gt;
+&lt;/runno-editor&gt;
+</code></pre>
+            <p>
+              The editor doesn't do much by itself, but does provide a neat
+              little instance of CodeMirror. You can also call:
+            </p>
+            <ul>
+              <li><code>program</code> - gets the current program</li>
+              <li>
+                <code
+                  >setProgram(syntax: Syntax, runtime: Runtime, code:
+                  string)</code
+                >
+                - sets the current program
+              </li>
+            </ul>
+
+            <h4><code>runno-terminal</code></h4>
+            <pre><code>&lt;runno-terminal&gt;&lt;/runno-terminal&gt;</code></pre>
+            <p>
+              The terminal is responsible for actually running the code. Without
+              a <code>runno-run</code> element to command it, it's a bit harder
+              to use. But you might find something cool to do with it!
+            </p>
+            <ul>
+              <li>
+                <code
+                  >writeFile(path: string, content: string | Buffer |
+                  Uint8Array)</code
+                >
+                - writes a file to the local file system
+              </li>
+              <li>
+                <code
+                  >runCommand(command: string):
+                  Promise&lt;CommandResult&gt;</code
+                >
+                - Runs a raw command (see:
+                <code>interactiveUnsafeCommand</code>)
+              </li>
+              <li>
+                <code>isReadyForCommand()</code>
+                - Whether it's ready for a command (not running one)
+              </li>
+              <li>
+                <code>stop()</code>
+                - Stops the currently running program
+              </li>
+              <li>
+                <code>focus()</code>
+                - Focuses the input
+              </li>
+              <li>
+                <code>clear()</code>
+                - Clears the terminal
+              </li>
+            </ul>
+
+            <h4><code>runno-controls</code></h4>
+            <pre><code>&lt;runno-controls
+  running &lt;!-- optional, presence displays the stop button --&gt;
+&gt;&lt;/runno-controls&gt;</code></pre>
+            <p>
+              The controls don't do much without being hooked up! When the
+              buttons are clicked, they fire events:
+            </p>
+
+            <ul>
+              <li>
+                <code>runno-run</code>
+                - when the run button is clicked
+              </li>
+              <li>
+                <code>runno-stop</code>
+                - when the stop button is clicked
+              </li>
+            </ul>
+
+            <p>You can also cause these events to be triggered:</p>
+
+            <ul>
+              <li>
+                <code>run()</code>
+                - emits a run event
+              </li>
+              <li>
+                <code>stop()</code>
+                - emits a stop event
+              </li>
+            </ul>
+
+            <h2 id="component-helpers">Helpers</h2>
+
+            <h4><code>headlessRunCommand</code></h4>
+            <pre><code>headlessRunCommand(
+  command: string,
+  fs: FS,
+  stdin?: string
+): Promise&lt;CommandResult&gt;</code></pre>
+            <p>
+              Same as <code>headlessUnsafeCommand</code> in the Host API. Handy
+              if you want to use Runno's runtime without any UI.
+            </p>
+
+            <h4><code>class RunnoProvider</code></h4>
+            <pre><code>class RunnoProvider(
+  terminal: TerminalElement,
+  editor: EditorElement,
+  controls?: ControlsElement
+)</code></pre>
+            <p>
+              If you wanted to piece together the bits of a
+              <code>runno-run</code> element, this is how you'd do it. Construct
+              a <code>RunnoProvider</code>
+              with a terminal, editor and controls then call it like it's a
+              <code>RunnoHost</code>.
+            </p>
+
+            <h2>Integration</h2>
+            <p>
+              If you'd like to do more with the web components or runtime,
+              please contact me. I'm quite interested in adding extra features!
+            </p>
           </section>
         </article>
       </div>

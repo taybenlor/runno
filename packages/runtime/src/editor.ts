@@ -4,7 +4,8 @@ import { python } from "@codemirror/lang-python";
 import { sql } from "@codemirror/lang-sql";
 import { cpp } from "@codemirror/lang-cpp";
 import { HighlightStyle, tags as t } from "@codemirror/highlight";
-import { Runtime, Syntax } from "@runno/host";
+import { Runtime, Syntax, runtimeToSyntax } from "@runno/host";
+import { elementCodeContent } from "./helpers";
 
 // TODO: This is just the one-dark theme colors on a light background
 // Need to find some new colours, or pick some of my own
@@ -91,7 +92,13 @@ function syntaxToExtensions(syntax: Syntax) {
 }
 
 export class EditorElement extends HTMLElement {
-  runtime: Runtime | undefined;
+  static get observedAttributes() {
+    return ["runtime", "syntax", "code"];
+  }
+
+  runtime?: Runtime;
+  syntax?: Syntax;
+  code?: string;
 
   private view: EditorView;
 
@@ -111,17 +118,47 @@ export class EditorElement extends HTMLElement {
         height: 100%;
       }
     </style>
+    <pre hidden><slot></slot></pre>
     `;
 
     this.view = new EditorView({
-      state: EditorState.create({ extensions: syntaxToExtensions(undefined) }),
+      state: EditorState.create({
+        doc: this.code,
+        extensions: syntaxToExtensions(undefined),
+      }),
       root: this.shadowRoot!,
       parent: this.shadowRoot!,
     });
   }
 
+  connectedCallback() {
+    setTimeout(() => {
+      if (!this.code) {
+        const code = elementCodeContent(this);
+        if (code.trim() != "") {
+          this.code = code;
+        }
+      }
+    }, 0);
+  }
+
+  attributeChangedCallback(name: string, oldValue: any, newValue: any) {
+    (this as any)[name] = newValue;
+
+    if (oldValue != newValue && this.runtime) {
+      this.setProgram(this.syntax, this.runtime, this.code || this.program);
+    }
+  }
+
   setProgram(syntax: Syntax, runtime: Runtime, code: string) {
     this.runtime = runtime;
+
+    if (!syntax) {
+      syntax = runtimeToSyntax(runtime);
+    }
+
+    // TODO: The way I'm doing this is a bit of a weird hack
+    this.code = undefined; // Editor is source of truth from now on
     this.view.setState(
       EditorState.create({
         doc: code,

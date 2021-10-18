@@ -22,6 +22,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "watch": "vite build --watch",
     "build": "tsc && vite build",
     "serve": "vite preview",
     "lint": "npx eslint src"
