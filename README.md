@@ -181,10 +181,14 @@ A number of open-source projects and standards have been used to make Runno poss
 
 - [Wasmer](https://wasmer.io/), [WAPM](https://wapm.io/), and [WebAssembly.sh](https://webassembly.sh) - the Wasmer team have built a lot of great tools for running Web Assembly. WAPM, the Web Assembly Package Manager is key to how Runno works. WebAssembly.sh was a great inspiration and starting point.
 
-- WASI - the [Web Assembly System Interface](https://hacks.mozilla.org/2019/03/standardizing-wasi-a-webassembly-system-interface/) is a standard for interacting with code compiled for web assembly that makes it both secure and portable
+- WASI and WebAssembly - a bunch of people from various working groups and especially the Bytecode Alliance have been involved in making WASM and WASI what it is today. Thanks heaps!
 
 - [XTerm.js](https://xtermjs.org/) - a fully featured terminal that can be run in the browser
+
+- [CodeMirror](https://codemirror.net) - a great web-based code editor that's always a delight to integrate
 
 - The extensive work by many in the web development community on making native code and APIs run successfully inside the browser.
 
 Thanks to everyone who has built compatibility layers for the web. The web becomes a better platform with every new piece of software we can run on it!
+
+Also big thanks to my friends who tolerate me constantly talking about WASM. Thanks especially to Shelley, Katie, Jesse, Jim, Odin, Hailey, Sam and other Sam. 
