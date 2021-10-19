@@ -1,7 +1,8 @@
 {
+  "private": "true",
   "name": "@runno/terminal",
-  "version": "0.10.2",
-  "description": "A terminal-like component for the browser, that fetches and runs Wasm modules in the context of a shell. 🐚",
+  "version": "0.1.0",
+  "description": "A terminal-like component for the browser, that fetches and runs Wasm modules in the context of a shell. Forked from wasmer.",
   "module": "lib/unoptimized/wasm-terminal.esm.js",
   "iife": "lib/unoptimized/wasm-terminal.iife.js",
   "types": "src/index.ts",

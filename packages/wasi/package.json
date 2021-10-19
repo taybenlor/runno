@@ -1,7 +1,8 @@
 {
+  "private": "true",
   "name": "@runno/wasi",
-  "version": "0.10.2",
-  "description": "Isomorphic Javascript library for interacting with WASI Modules in Node.js and the Browser. 📚",
+  "version": "0.1.0",
+  "description": "Isomorphic Javascript library for interacting with WASI Modules in Node.js and the Browser. Forked from wasmer.",
   "main": "lib/index.cjs.js",
   "module": "lib/index.esm.js",
   "types": "lib/lib/index.d.ts",

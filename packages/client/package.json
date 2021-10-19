@@ -1,5 +1,4 @@
 {
-  "private": true,
   "name": "@runno/client",
   "author": "Ben Taylor",
   "description": "iframe client for @runno",

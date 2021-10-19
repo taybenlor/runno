@@ -1,5 +1,4 @@
 {
-  "private": true,
   "name": "@runno/host",
   "version": "0.1.0",
   "description": "iframe host for @runno",

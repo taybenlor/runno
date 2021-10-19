@@ -1,5 +1,4 @@
 {
-  "private": true,
   "name": "@runno/runtime",
   "author": "Ben Taylor",
   "description": "Runtime for @runno",
