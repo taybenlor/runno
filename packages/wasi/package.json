@@ -1,6 +1,6 @@
 {
   "name": "@runno/wasi",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Isomorphic Javascript library for interacting with WASI Modules in Node.js and the Browser. Forked from wasmer.",
   "author": "Ben Taylor <runno@taybenlor.com>",
   "license": "MIT",

@@ -1,6 +1,6 @@
 {
   "name": "@runno/terminal",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "author": "Ben Taylor <runno@taybenlor.com>",
   "description": "A terminal-like component for the browser, that fetches and runs Wasm modules in the context of a shell. Forked from wasmer.",
   "license": "MIT",
@@ -26,7 +26,7 @@
     "docs": "npx typedoc src/ --out docs --target es6 --theme minimal --mode file"
   },
   "dependencies": {
-    "@runno/wasi": "^0.1.3",
+    "@runno/wasi": "^0.1.4",
     "@wasmer/io-devices": "^0.10.2",
     "@wasmer/wasmfs": "^0.10.2",
     "comlink": "^4.0.5",

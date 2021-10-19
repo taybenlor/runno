@@ -2,7 +2,7 @@
   "name": "@runno/runtime",
   "author": "Ben Taylor <runno@taybenlor.com>",
   "description": "Runtime for @runno",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -49,8 +49,8 @@
     "@codemirror/lang-javascript": "^0.19.1",
     "@codemirror/lang-python": "^0.19.2",
     "@codemirror/lang-sql": "^0.19.3",
-    "@runno/host": "^0.1.3",
-    "@runno/terminal": "^0.1.3",
+    "@runno/host": "^0.1.4",
+    "@runno/terminal": "^0.1.4",
     "@wasmer/wasm-transformer": "^0.10.2",
     "buffer": "^5.7.1",
     "events": "^3.3.0",
