@@ -2,6 +2,11 @@
   "name": "@runno/wasi",
   "version": "0.1.3",
   "description": "Isomorphic Javascript library for interacting with WASI Modules in Node.js and the Browser. Forked from wasmer.",
+  "author": "Ben Taylor <runno@taybenlor.com>",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "lib/index.cjs.js",
   "module": "lib/index.esm.js",
   "types": "lib/lib/index.d.ts",
@@ -46,5 +51,5 @@
     "rollup-plugin-typescript2": "^0.30.0",
     "typescript": "^4.3.5"
   },
-  "gitHead": "b58fae36ecec7b97cbe184f2483d584a7650b8b3"
+  "gitHead": "812d21ec7c0c5d57c0274caaf7ff21c79ca79c1f"
 }
