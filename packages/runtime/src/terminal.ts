@@ -91,11 +91,6 @@ export class TerminalElement extends HTMLElement {
     this.wasmFs.volume.writeFileSync(path, content);
   }
 
-  async getStdout(): Promise<string> {
-    const stdout = await this.wasmFs.getStdOut();
-    return stdout.toString();
-  }
-
   /**
    * Run a command and then wait for it to complete executing.
    * Promise resolves when the command is finished.

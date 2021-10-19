@@ -13,16 +13,19 @@ import { EditorElement } from "./editor";
 import { ControlsElement } from "./controls";
 import { TerminalElement } from "./terminal";
 import { RunnoProvider } from "./provider";
+import { elementCodeContent } from "./helpers";
 
 export class RunElement extends LitElement implements RuntimeMethods {
   static styles = css`
     :host {
       display: flex;
       flex-direction: column;
+      min-height: 140px;
     }
 
     runno-editor {
       background: white;
+      color: black;
       max-height: 70vh;
     }
 
@@ -35,6 +38,9 @@ export class RunElement extends LitElement implements RuntimeMethods {
     }
   `;
 
+  @property({ type: String }) runtime: string = "python";
+  @property({ type: String }) syntax?: string;
+  @property({ type: String }) code?: string;
   @property({ type: Boolean, reflect: true }) editor: boolean = false;
   @property({ type: Boolean, reflect: true }) controls: boolean = false;
 
@@ -163,6 +169,19 @@ export class RunElement extends LitElement implements RuntimeMethods {
   // Lifecycle
   //
 
+  connectedCallback() {
+    super.connectedCallback();
+
+    setTimeout(() => {
+      if (!this.code) {
+        const code = elementCodeContent(this);
+        if (code.trim() != "") {
+          this.code = code;
+        }
+      }
+    }, 0);
+  }
+
   firstUpdated() {
     this._provider = new RunnoProvider(
       this.terminalRef.value!,
@@ -179,6 +198,9 @@ export class RunElement extends LitElement implements RuntimeMethods {
   render() {
     return html`
       <runno-editor
+        runtime=${this.runtime}
+        syntax=${this.syntax}
+        code=${this.code}
         ${ref(this.editorRef)}
         ?hidden=${!this.editor}
       ></runno-editor>
@@ -190,6 +212,7 @@ export class RunElement extends LitElement implements RuntimeMethods {
         @runno-stop=${this.stop}
       ></runno-controls>
       <runno-terminal ${ref(this.terminalRef)}></runno-terminal>
+      <pre hidden><slot></slot></pre>
     `;
   }
 }

@@ -22,6 +22,7 @@
     "vite": "^2.3.5"
   },
   "dependencies": {
-    "@runno/host": "../host"
+    "@runno/host": "../host",
+    "@runno/runtime": "../runtime"
   }
 }
