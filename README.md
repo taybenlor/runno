@@ -1,6 +1,6 @@
-# DISCLAIMER
+👨‍💻 **Use Runno** 👉 [Runno.dev](https://runno.dev/)
 
-Runno is not yet public and not ready to be public. Please don't share it. Thanks!
+📖 **Documentation** 👉 [Runno.dev](https://runno.dev/#know-runno)
 
 # Runno
 
