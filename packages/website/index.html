@@ -256,10 +256,10 @@ print(f"G'day {name}, welcome to Runno.")
             <p>
               When you click run on a Runno example the web assembly binary for
               that programming language is collected from
-              <a href="https://wapm.io">WAPM</a> (the Web Assembly Package
-              Manager). It's then run in a Web Worker, inside a sandbox with an
-              in-memory file system. It's connected up to a terminal emulator
-              and simple IO is routed back and forth.
+              <a target="_blank" href="https://wapm.io">WAPM</a> (the Web
+              Assembly Package Manager). It's then run in a Web Worker, inside a
+              sandbox with an in-memory file system. It's connected up to a
+              terminal emulator and simple IO is routed back and forth.
             </p>
 
             <h2 id="why-browser">Why run in the browser?</h2>
@@ -413,6 +413,7 @@ print(f"G'day {name}, welcome to Runno.")
               You'll need to be using a modern web stack that includes a bundler
               of some sort to use the Host API. If you get stuck,
               <a
+                target="_blank"
                 href="https://github.com/taybenlor/runno/blob/main/packages/host/src/index.ts"
               >
                 the source is relatively easy to understand
@@ -466,11 +467,14 @@ print(f"G'day {name}, welcome to Runno.")
               The connection between the iframe and the host is established via
               <code>postMessage</code> (
               <a
+                target="_blank"
                 href="https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage"
               >
                 mdn docs </a
               >). Which is managed by the <code>post-me</code> npm package (
-              <a href="https://github.com/alesgenova/post-me">github repo</a>).
+              <a target="_blank" href="https://github.com/alesgenova/post-me"
+                >github repo</a
+              >).
             </p>
             <p>
               Methods are exposed within the iframe that can be called using a
@@ -483,7 +487,9 @@ print(f"G'day {name}, welcome to Runno.")
 
             <p>
               To get the best experience your page should provide a
-              <a href="https://web.dev/cross-origin-isolation-guide/"
+              <a
+                target="_blank"
+                href="https://web.dev/cross-origin-isolation-guide/"
                 >Cross-Origin Isolated context</a
               >
               so it can internally use <code>SharedArrayBuffer</code>. Without
@@ -504,6 +510,7 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
               the browser console and checking
               <code>crossOriginIsolated</code> (see:
               <a
+                target="_blank"
                 href="https://developer.mozilla.org/en-US/docs/Web/API/crossOriginIsolated"
                 >mdn docs</a
               >).
@@ -524,7 +531,9 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
               </li>
               <li>
                 <code>quickjs</code> - Runs JavaScript code using the
-                <a href="https://bellard.org/quickjs/">QuickJS engine</a>.
+                <a target="_blank" href="https://bellard.org/quickjs/"
+                  >QuickJS engine</a
+                >.
               </li>
               <li>
                 <code>sqlite</code> - Runs SQLite commands. Currently just by
@@ -533,7 +542,9 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
               <li>
                 <code>clang</code> - Compiles and runs C code using Ben Smith's
                 llvm fork (see:
-                <a href="https://github.com/binji/wasm-clang">wasm-clang</a>).
+                <a target="_blank" href="https://github.com/binji/wasm-clang"
+                  >wasm-clang</a
+                >).
               </li>
               <li>
                 <code>clangpp</code> - Compiles and runs C++ code using the same
@@ -548,11 +559,15 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
               absolutely get support into Runno. For now it needs to be a WASI
               binary. Some good starting resources are
               <a
+                target="_blank"
                 href="https://00f.net/2019/04/07/compiling-to-webassembly-with-llvm-and-clang/"
               >
                 this blog post
               </a>
-              and <a href="https://github.com/wasienv/wasienv">wasienv</a>.
+              and
+              <a target="_blank" href="https://github.com/wasienv/wasienv"
+                >wasienv</a
+              >.
             </p>
 
             <h2 id="host-params">Client Params</h2>
@@ -584,7 +599,9 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
               <li>
                 <code>code</code> - URL safe base64 string containing the code
                 to use. See:
-                <a href="https://github.com/commenthol/url-safe-base64"
+                <a
+                  target="_blank"
+                  href="https://github.com/commenthol/url-safe-base64"
                   >url-safe-base64</a
                 >.
               </li>
@@ -799,13 +816,15 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
             </p>
             <p>
               You'll need to be using a modern web stack that includes a bundler
-              of some sort to use the Host API. If you get stuck,
+              of some sort to use the web components. If you haven't used web
+              components before you can
               <a
-                href="https://github.com/taybenlor/runno/blob/main/packages/host/src/index.ts"
-              >
-                the source is relatively easy to understand
-              </a>
-              .
+                target="_blank"
+                href="https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements"
+                >learn about them on MDN</a
+              >, or dive in. They work like normal HTML elements, you can style
+              them with classes, give them ids etc - but also they have custom
+              behaviour.
             </p>
 
             <h2 id="component-quickstart">Quickstart</h2>
@@ -1054,12 +1073,19 @@ print('Hello, World!')
       <div class="container mx-auto py-8 font-sans">
         <p>
           A passion project by
-          <a class="text-pink" href="https://taybenlor.com">Ben Taylor</a> (<a
+          <a class="text-pink" target="_blank" href="https://taybenlor.com"
+            >Ben Taylor</a
+          >
+          (<a
             class="text-pink"
+            target="_blank"
             href="https://twitter.com/taybenlor"
             >@taybenlor</a
           >). The source is available
-          <a class="text-pink" href="https://github.com/taybenlor/runno"
+          <a
+            class="text-pink"
+            target="_blank"
+            href="https://github.com/taybenlor/runno"
             >on GitHub</a
           >. Shoot me an email if you want to chat about Runno (<a
             class="text-pink"
