@@ -2,7 +2,7 @@
   "name": "@runno/website",
   "author": "Ben Taylor",
   "description": "Runtime for @runno",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "MIT",
   "engines": {
     "node": ">=12"
