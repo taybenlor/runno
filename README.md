@@ -21,8 +21,6 @@ Runno is hosted publicly at:
 - [https://runno.dev](https://runno.dev) - Website / Host
 - [https://runno.run](https://runno.run) - Client
 
-It's not ready to be public yet so please don't share. Thanks!
-
 ## Client
 
 The client is the virtual terminal application which pulls down packages and
