@@ -23,7 +23,7 @@
   "author": "Wasmer Engineering Team <engineering@wasmer.io>",
   "license": "MIT",
   "dependencies": {
-    "@runno/wasi": "../wasi",
+    "@runno/wasi": "^0.1.2",
     "@wasmer/io-devices": "^0.10.2",
     "@wasmer/wasmfs": "^0.10.2",
     "comlink": "^4.0.5",
@@ -50,5 +50,6 @@
     "rollup-plugin-typescript2": "^0.30.0",
     "rollup-plugin-url": "^3.0.1",
     "typescript": "^4.3.5"
-  }
+  },
+  "gitHead": "b58fae36ecec7b97cbe184f2483d584a7650b8b3"
 }
