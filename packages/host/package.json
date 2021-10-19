@@ -1,6 +1,6 @@
 {
   "name": "@runno/host",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "iframe host for @runno",
   "license": "MIT",
   "main": "dist/index.js",

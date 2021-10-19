@@ -1,6 +1,6 @@
 {
   "name": "@runno/terminal",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A terminal-like component for the browser, that fetches and runs Wasm modules in the context of a shell. Forked from wasmer.",
   "module": "lib/unoptimized/wasm-terminal.esm.js",
   "iife": "lib/unoptimized/wasm-terminal.iife.js",
@@ -23,7 +23,7 @@
   "author": "Wasmer Engineering Team <engineering@wasmer.io>",
   "license": "MIT",
   "dependencies": {
-    "@runno/wasi": "^0.1.2",
+    "@runno/wasi": "^0.1.3",
     "@wasmer/io-devices": "^0.10.2",
     "@wasmer/wasmfs": "^0.10.2",
     "comlink": "^4.0.5",
