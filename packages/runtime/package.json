@@ -46,8 +46,8 @@
     "@codemirror/lang-javascript": "^0.19.1",
     "@codemirror/lang-python": "^0.19.2",
     "@codemirror/lang-sql": "^0.19.3",
-    "@runno/host": "../host",
-    "@runno/terminal": "../terminal",
+    "@runno/host": "^0.1.1",
+    "@runno/terminal": "^0.1.1",
     "@wasmer/wasm-transformer": "^0.10.2",
     "buffer": "^5.7.1",
     "events": "^3.3.0",
@@ -64,5 +64,6 @@
     "text-table": "^0.2.0",
     "util": "^0.12.4",
     "xterm": "^4.12.0"
-  }
+  },
+  "gitHead": "94061c61c369ddd238c4484f522050b47be9171d"
 }

@@ -1,5 +1,4 @@
 {
-  "private": "true",
   "name": "@runno/terminal",
   "version": "0.1.1",
   "description": "A terminal-like component for the browser, that fetches and runs Wasm modules in the context of a shell. Forked from wasmer.",

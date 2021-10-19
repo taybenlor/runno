@@ -20,11 +20,12 @@
     "vite": "^2.3.5"
   },
   "dependencies": {
-    "@runno/host": "../host",
-    "@runno/runtime": "../runtime",
-    "@runno/terminal": "../terminal",
+    "@runno/host": "^0.1.1",
+    "@runno/runtime": "^0.1.1",
+    "@runno/terminal": "^0.1.1",
     "normalize.css": "^8.0.1",
     "post-me": "^0.4.5",
     "url-safe-base64": "^1.1.1"
-  }
+  },
+  "gitHead": "94061c61c369ddd238c4484f522050b47be9171d"
 }

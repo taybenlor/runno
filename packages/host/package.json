@@ -34,5 +34,6 @@
   "dependencies": {
     "post-me": "^0.4.5",
     "url-safe-base64": "^1.1.1"
-  }
+  },
+  "gitHead": "94061c61c369ddd238c4484f522050b47be9171d"
 }
