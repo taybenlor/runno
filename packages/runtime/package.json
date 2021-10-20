@@ -7,7 +7,7 @@
     "type": "git",
     "url": "git://github.com/taybenlor/runno.git"
   },
-  "version": "0.1.4",
+  "version": "0.1.5",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -54,8 +54,8 @@
     "@codemirror/lang-javascript": "^0.19.1",
     "@codemirror/lang-python": "^0.19.2",
     "@codemirror/lang-sql": "^0.19.3",
-    "@runno/host": "^0.1.4",
-    "@runno/terminal": "^0.1.4",
+    "@runno/host": "^0.1.5",
+    "@runno/terminal": "^0.1.5",
     "@wasmer/wasm-transformer": "^0.10.2",
     "buffer": "^5.7.1",
     "events": "^3.3.0",
