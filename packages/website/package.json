@@ -1,9 +1,14 @@
 {
+  "private": "true",
   "name": "@runno/website",
   "description": "Runtime for @runno",
   "version": "0.1.4",
   "author": "Ben Taylor <runno@taybenlor.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/taybenlor/runno.git"
+  },
   "publishConfig": {
     "access": "public"
   },

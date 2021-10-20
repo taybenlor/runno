@@ -2,6 +2,11 @@
   "name": "@runno/runtime",
   "author": "Ben Taylor <runno@taybenlor.com>",
   "description": "Runtime for @runno",
+  "website": "https://runno.dev",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/taybenlor/runno.git"
+  },
   "version": "0.1.4",
   "license": "MIT",
   "publishConfig": {

@@ -3,6 +3,11 @@
   "version": "0.1.4",
   "author": "Ben Taylor <runno@taybenlor.com>",
   "description": "A terminal-like component for the browser, that fetches and runs Wasm modules in the context of a shell. Forked from wasmer.",
+  "website": "https://github.com/taybenlor/runno",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/taybenlor/runno.git"
+  },
   "license": "MIT",
   "publishConfig": {
     "access": "public"
