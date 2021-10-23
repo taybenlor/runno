@@ -35,7 +35,7 @@
     "@types/url-safe-base64": "^1.1.0",
     "fs-extra": "^9.1.0",
     "husky": "^6.0.0",
-    "jest": "^25.5.4",
+    "jest": "^27.3.1",
     "tsdx": "^0.14.1",
     "tslib": "^2.2.0",
     "typescript": "^3.9.9"
