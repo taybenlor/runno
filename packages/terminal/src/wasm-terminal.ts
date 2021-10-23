@@ -114,40 +114,7 @@ export default class WasmTerminal {
   }
 
   focus() {
-    // this.xterm.blur();
     this.xterm.focus();
-    // this.xterm.scrollToBottom();
-
-    // To fix iOS keyboard, scroll to the cursor in the terminal
-    this.scrollToCursor();
-  }
-
-  scrollToCursor() {
-    if (!this.container) {
-      return;
-    }
-
-    // We don't need cursorX, since we want to start at the beginning of the terminal.
-    const cursorY = this.wasmTty.getBuffer().cursorY;
-    const size = this.wasmTty.getSize();
-
-    const containerBoundingClientRect = this.container.getBoundingClientRect();
-
-    // Find how much to scroll because of our cursor
-    const cursorOffsetY =
-      (cursorY / size.rows) * containerBoundingClientRect.height;
-
-    let scrollX = containerBoundingClientRect.left;
-    let scrollY = containerBoundingClientRect.top + cursorOffsetY + 10;
-
-    if (scrollX < 0) {
-      scrollX = 0;
-    }
-    if (scrollY > document.body.scrollHeight) {
-      scrollY = document.body.scrollHeight;
-    }
-
-    window.scrollTo(scrollX, scrollY);
   }
 
   print(message: string, sync?: boolean) {
