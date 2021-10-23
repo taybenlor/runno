@@ -1,6 +1,6 @@
 {
   "name": "@runno/wasi",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Javascript library for interacting with WASI Modules in the Browser. Forked from wasmer.",
   "author": "Ben Taylor <runno@taybenlor.com>",
   "website": "https://github.com/taybenlor/runno",
