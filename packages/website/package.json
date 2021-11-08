@@ -24,7 +24,7 @@
     "@tailwindcss/typography": "^0.4.1",
     "autoprefixer": "^10.3.7",
     "postcss": "^8.3.11",
-    "tailwindcss": "^2.1.4",
+    "tailwindcss": "^2.2.19",
     "typescript": "^4.2.3",
     "vite": "^2.3.5"
   },
