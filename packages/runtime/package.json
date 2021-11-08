@@ -57,7 +57,7 @@
     "@runno/host": "^0.1.6",
     "@runno/terminal": "^0.1.6",
     "@wasmer/wasm-transformer": "^0.10.2",
-    "buffer": "^5.7.1",
+    "buffer": "^6.0.3",
     "events": "^3.3.0",
     "globalthis": "^1.0.2",
     "js-untar": "^2.0.0",
