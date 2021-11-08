@@ -5,7 +5,6 @@ import * as xtermDefault from "xterm";
 const Terminal = xtermDefault.Terminal || xterm.Terminal;
 import { FitAddon } from "xterm-addon-fit";
 import { WebLinksAddon } from "xterm-addon-web-links";
-// import { WebglAddon } from 'xterm-addon-webgl';
 
 import { default as WasmTerminalConfig } from "./wasm-terminal-config";
 import WasmTty from "./wasm-tty/wasm-tty";
@@ -84,7 +83,6 @@ export default class WasmTerminal {
     this.container = container;
 
     this.xterm.open(container);
-    // this.xterm.loadAddon(new WebglAddon());
     this.isOpen = true;
     setTimeout(() => {
       // Fix for Mobile Browsers and their virtual keyboards

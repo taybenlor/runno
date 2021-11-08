@@ -39,8 +39,7 @@
     "shell-quote": "^1.7.1",
     "xterm": "^4.1.0",
     "xterm-addon-fit": "^0.2.1",
-    "xterm-addon-web-links": "^0.2.1",
-    "xterm-addon-webgl": "^0.2.1"
+    "xterm-addon-web-links": "^0.2.1"
   },
   "devDependencies": {
     "@types/shell-quote": "^1.7.0",
