@@ -122,7 +122,7 @@ export default class CommandRunner {
     } catch (c) {
       if (this.wasmTty) {
         this.wasmTty.print("\r\n");
-        this.wasmTty.print(`wasm shell: parse error (${c.toString()})\r\n`);
+        this.wasmTty.print(`wasm shell: parse error (${c})\r\n`);
       }
       console.error(c);
       // TODO: Figure out what to pass through on error

@@ -1,5 +1,5 @@
 import { WasmFs } from "@wasmer/wasmfs";
-import { WASIExitError } from "@runno/wasi";
+import { WASIExitError, WASIKillError } from "@runno/wasi";
 
 import CommandOptions from "../command/command-options";
 import Command from "../command/command";
@@ -65,6 +65,10 @@ function waitForMessage(baseURL: string, id: string): any {
       throw new Error("Timeout waiting");
     }
   }
+}
+
+class UserError extends Error {
+  user: boolean = true;
 }
 
 export type ProcessInit = {
@@ -160,25 +164,25 @@ export default class Process {
     } catch (e) {
       if (e instanceof WASIExitError) {
         // const exitCode = e.code;
+        // TODO: Return this code somehow
+        console.log("TODO: finished with code", e.code);
         end();
         // Set timeout to allow any lingering data callback to be launched out
         return;
-      }
-
-      let error = "Unknown Error";
-
-      if (e.code !== undefined) {
-        error = `exited with code: ${e.code}`;
-      } else if (e.signal !== undefined) {
-        error = `killed with signal: ${e.signal}`;
-      } else if (e.user !== undefined) {
+      } else if (e instanceof UserError) {
         // Don't Error, just end the process
         end();
         return;
       }
 
+      let error = "Unknown Error";
+
+      if (e instanceof WASIKillError) {
+        error = `killed with signal: ${e.signal}`;
+      }
+
       console.error("Failed Running:", e);
-      this.errorCallback(error, this.wasmFs.toJSON(), e.user !== undefined);
+      this.errorCallback(error, this.wasmFs.toJSON(), false);
     }
   }
 
@@ -255,10 +259,8 @@ export default class Process {
         if (this.stdoutCallback) {
           this.stdoutCallback(new TextEncoder().encode("\n"));
         }
-        const userError = new Error("Process killed by user");
-        (userError as any).user = true;
+        const userError = new UserError("Process killed by user");
         throw userError;
-        return -1;
       }
       responseStdin += "\n";
       if (this.stdoutCallback) {
