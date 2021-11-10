@@ -440,7 +440,7 @@ print(f"G'day {name}, welcome to Runno.")
               <code>interactiveRunCode</code>.
             </p>
 
-            <pre><code>const result = await runno.interactiveRunCode("python", codeSample);</code></pre>
+            <pre><code>const { result } = await runno.interactiveRunCode("python", codeSample);</code></pre>
 
             <p>
               The result has properties for <code>stdin</code>,
@@ -455,7 +455,7 @@ print(f"G'day {name}, welcome to Runno.")
               <code>headlessRunCode</code>.
             </p>
 
-            <pre><code>const result = await runno.headlessRunCode("python", codeSample, stdin);</code></pre>
+            <pre><code>const { result } = await runno.headlessRunCode("python", codeSample, stdin);</code></pre>
 
             <p>
               The <code>stdin</code> is optional, but necessary if the code
@@ -686,7 +686,7 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
             <p>Gets the current program in the editor.</p>
 
             <h4><code>interactiveRunCode</code></h4>
-            <pre><code>interactiveRunCode(runtime: Runtime, code: string): Promise&lt;CommandResult&gt;</code></pre>
+            <pre><code>interactiveRunCode(runtime: Runtime, code: string): Promise&lt;RunResult&gt;</code></pre>
             <p>
               Runs some code interactively using the given <code>Runtime</code>.
               It does not change or update the program in the editor.
@@ -697,7 +697,7 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
   runtime: Runtime,
   entryPath: string,
   fs: FS
-): Promise&lt;CommandResult&gt;</code></pre>
+): Promise&lt;RunResult&gt;</code></pre>
             <p>
               Runs a filesystem object interactively using the given
               <code>Runtime</code>. The <code>entryPath</code> is used as the
@@ -706,7 +706,7 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
             </p>
 
             <h4><code>interactiveUnsafeCommand</code></h4>
-            <pre><code>interactiveUnsafeCommand(command: string, fs: FS): Promise&lt;CommandResult&gt;</code></pre>
+            <pre><code>interactiveUnsafeCommand(command: string, fs: FS): Promise&lt;RunResult&gt;</code></pre>
             <p>
               Runs a concrete command in a similar way to
               <a target="_blank" href="https://webassembly.sh">
@@ -728,7 +728,7 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
   runtime: Runtime,
   code: string,
   stdin?: string
-): Promise&lt;CommandResult&gt;</code></pre>
+): Promise&lt;RunResult&gt;</code></pre>
             <p>
               Runs code headlessly. The user will not have an opportunity to
               interact with this code. You can provide <code>stdin</code> to
@@ -742,7 +742,7 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
   entryPath: string,
   fs: FS,
   stdin?: string
-): Promise&lt;CommandResult&gt;</code></pre>
+): Promise&lt;RunResult&gt;</code></pre>
             <p>
               Corresponding headless version of running with an FS. See:
               <code>interactiveRunFS</code>
@@ -753,7 +753,7 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
   command: string,
   fs: FS,
   stdin?: string
-): Promise&lt;CommandResult&gt;</code></pre>
+): Promise&lt;RunResult&gt;</code></pre>
             <p>
               Corresponding headless version of running an unsafe command. See:
               <code>interactiveUnsafeCommand</code>
@@ -776,18 +776,19 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
   stderr: string;
   tty: string;
   fs: FS;
-  prepareResult?: {
-    stdin: string;
-    stdout: string;
-    stderr: string;
-    tty: string;
-    fs: FS;
-  };
+  exit: number;
+};</code></pre>
+            <p>The result from running a command.</p>
+
+            <h4><code>RunResult</code></h4>
+            <pre><code>export type RunResult = {
+  result?: CommandResult;
+  prepare?: CommandResult;
 };</code></pre>
             <p>
-              The result from running a command. If the command has a
+              The result from running using Runno. If the runtime has a
               compilation or other type of preparation then the output from this
-              step will be in the optional <code>prepareResult</code> field.
+              step will be in the optional <code>prepare</code> field.
             </p>
 
             <h4><code>FS</code></h4>
@@ -976,8 +977,7 @@ print('Hello, World!')
               </li>
               <li>
                 <code
-                  >runCommand(command: string):
-                  Promise&lt;CommandResult&gt;</code
+                  >runCommand(command: string): Promise&lt;RunResult&gt;</code
                 >
                 - Runs a raw command (see:
                 <code>interactiveUnsafeCommand</code>)
@@ -1040,7 +1040,7 @@ print('Hello, World!')
   command: string,
   fs: FS,
   stdin?: string
-): Promise&lt;CommandResult&gt;</code></pre>
+): Promise&lt;RunResult&gt;</code></pre>
             <p>
               Same as <code>headlessUnsafeCommand</code> in the Host API. Handy
               if you want to use Runno's runtime without any UI.

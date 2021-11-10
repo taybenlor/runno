@@ -2,13 +2,7 @@ import { html, css, LitElement } from "lit";
 import { property, state } from "lit/decorators.js";
 import { createRef, Ref, ref } from "lit/directives/ref.js";
 
-import {
-  Runtime,
-  RuntimeMethods,
-  Syntax,
-  CommandResult,
-  FS,
-} from "@runno/host";
+import { Runtime, RuntimeMethods, Syntax, RunResult, FS } from "@runno/host";
 import { EditorElement } from "./editor";
 import { ControlsElement } from "./controls";
 import { TerminalElement } from "./terminal";
@@ -56,7 +50,7 @@ export class RunElement extends LitElement implements RuntimeMethods {
     return this._running;
   }
 
-  public async run(): Promise<CommandResult> {
+  public async run(): Promise<RunResult> {
     const editor = this.editorRef.value!;
     if (!editor.runtime) {
       throw new Error("The editor has no runtime");
@@ -101,10 +95,7 @@ export class RunElement extends LitElement implements RuntimeMethods {
     return this._provider.getEditorProgram();
   }
 
-  async interactiveRunCode(
-    runtime: Runtime,
-    code: string
-  ): Promise<CommandResult> {
+  async interactiveRunCode(runtime: Runtime, code: string): Promise<RunResult> {
     this._running = true;
     const result = await this._provider.interactiveRunCode(runtime, code);
     this._running = false;
@@ -115,7 +106,7 @@ export class RunElement extends LitElement implements RuntimeMethods {
     runtime: Runtime,
     entryPath: string,
     fs: FS
-  ): Promise<CommandResult> {
+  ): Promise<RunResult> {
     this._running = true;
     const result = await this._provider.interactiveRunFS(
       runtime,
@@ -126,10 +117,7 @@ export class RunElement extends LitElement implements RuntimeMethods {
     return result;
   }
 
-  async interactiveUnsafeCommand(
-    command: string,
-    fs: FS
-  ): Promise<CommandResult> {
+  async interactiveUnsafeCommand(command: string, fs: FS): Promise<RunResult> {
     this._running = true;
     const result = await this._provider.interactiveUnsafeCommand(command, fs);
     this._running = false;
@@ -144,7 +132,7 @@ export class RunElement extends LitElement implements RuntimeMethods {
     runtime: Runtime,
     code: string,
     stdin?: string
-  ): Promise<CommandResult> {
+  ): Promise<RunResult> {
     return this._provider.headlessRunCode(runtime, code, stdin);
   }
 
@@ -153,7 +141,7 @@ export class RunElement extends LitElement implements RuntimeMethods {
     entryPath: string,
     fs: FS,
     stdin?: string
-  ): Promise<CommandResult> {
+  ): Promise<RunResult> {
     return this._provider.headlessRunFS(runtime, entryPath, fs, stdin);
   }
 
@@ -161,7 +149,7 @@ export class RunElement extends LitElement implements RuntimeMethods {
     command: string,
     fs: FS,
     stdin?: string
-  ): Promise<CommandResult> {
+  ): Promise<RunResult> {
     return this._provider.headlessUnsafeCommand(command, fs, stdin);
   }
 

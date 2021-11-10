@@ -31,6 +31,7 @@
     "docs": "npx typedoc src/ --out docs --target es6 --theme minimal --mode file"
   },
   "dependencies": {
+    "@runno/host": "^0.1.6",
     "@runno/wasi": "^0.1.6",
     "@wasmer/io-devices": "^0.10.2",
     "@wasmer/wasmfs": "^0.10.2",

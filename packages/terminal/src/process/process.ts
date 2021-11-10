@@ -106,7 +106,7 @@ export default class Process {
     wasmFsJson: any,
     stdoutCallback: Function,
     stderrCallback: Function,
-    endCallback: Function,
+    endCallback: (fs: any, exitStatus: number) => void,
     errorCallback: Function,
     startStdinReadCallback?: Function,
     sharedStdinBuffer?: SharedArrayBuffer,
@@ -149,9 +149,9 @@ export default class Process {
   }
 
   async start(pipedStdinData?: Uint8Array) {
-    const end = () => {
+    const end = (exitStatus: number) => {
       setTimeout(() => {
-        this.endCallback(this.wasmFs.toJSON());
+        this.endCallback(this.wasmFs.toJSON(), exitStatus);
       }, 50);
     };
 
@@ -160,18 +160,15 @@ export default class Process {
         this.pipedStdin = new TextDecoder("utf-8").decode(pipedStdinData);
       }
       await this.command.run(this.wasmFs);
-      end();
+      end(0);
     } catch (e) {
       if (e instanceof WASIExitError) {
-        // const exitCode = e.code;
-        // TODO: Return this code somehow
-        console.log("TODO: finished with code", e.code);
-        end();
-        // Set timeout to allow any lingering data callback to be launched out
+        end(e.code || 0);
         return;
       } else if (e instanceof UserError) {
         // Don't Error, just end the process
-        end();
+        // TODO: Figure out correct semantics
+        end(0);
         return;
       }
 

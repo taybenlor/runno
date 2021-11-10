@@ -1,5 +1,7 @@
 import { IBufferLine } from "xterm";
 
+import { CommandResult } from "@runno/host";
+
 import {
   ActiveCharPrompt,
   ActivePrompt,
@@ -16,10 +18,7 @@ import WasmTerminalConfig from "../wasm-terminal-config";
 
 import WasmTty from "../wasm-tty/wasm-tty";
 
-import {
-  default as CommandRunner,
-  CommandResult,
-} from "../command-runner/command-runner";
+import { default as CommandRunner } from "../command-runner/command-runner";
 
 /**
  * A shell is the primary interface that is used to start other programs.
