@@ -116,7 +116,7 @@ export class TerminalElement extends HTMLElement {
     for (const [filename, content] of Object.entries(result.fs)) {
       newfs[filename] = {
         name: filename,
-        content: content as Uint8Array,
+        content: content as unknown as Uint8Array,
       };
     }
     return result;

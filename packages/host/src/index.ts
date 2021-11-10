@@ -1,5 +1,5 @@
 import { ParentHandshake, RemoteHandle, WindowMessenger } from "post-me";
-import { Runtime, RuntimeMethods, CommandResult, FS, Syntax } from "./types";
+import { Runtime, RuntimeMethods, RunResult, FS, Syntax } from "./types";
 import { encode } from "url-safe-base64";
 
 export function generateEmbedURL(
@@ -90,7 +90,7 @@ export class RunnoHost implements RuntimeMethods {
     return this.remoteHandle.call("getEditorProgram");
   }
 
-  interactiveRunCode(runtime: Runtime, code: string): Promise<CommandResult> {
+  interactiveRunCode(runtime: Runtime, code: string): Promise<RunResult> {
     return this.remoteHandle.call("interactiveRunCode", runtime, code);
   }
 
@@ -98,11 +98,11 @@ export class RunnoHost implements RuntimeMethods {
     runtime: Runtime,
     entryPath: string,
     fs: FS
-  ): Promise<CommandResult> {
+  ): Promise<RunResult> {
     return this.remoteHandle.call("interactiveRunFS", runtime, entryPath, fs);
   }
 
-  interactiveUnsafeCommand(command: string, fs: FS): Promise<CommandResult> {
+  interactiveUnsafeCommand(command: string, fs: FS): Promise<RunResult> {
     return this.remoteHandle.call("interactiveUnsafeCommand", command, fs);
   }
 
@@ -114,7 +114,7 @@ export class RunnoHost implements RuntimeMethods {
     runtime: Runtime,
     code: string,
     stdin?: string
-  ): Promise<CommandResult> {
+  ): Promise<RunResult> {
     return this.remoteHandle.call("headlessRunCode", runtime, code, stdin);
   }
 
@@ -123,7 +123,7 @@ export class RunnoHost implements RuntimeMethods {
     entryPath: string,
     fs: FS,
     stdin?: string
-  ): Promise<CommandResult> {
+  ): Promise<RunResult> {
     return this.remoteHandle.call(
       "headlessRunFS",
       runtime,
@@ -137,7 +137,7 @@ export class RunnoHost implements RuntimeMethods {
     command: string,
     fs: FS,
     stdin?: string
-  ): Promise<CommandResult> {
+  ): Promise<RunResult> {
     return this.remoteHandle.call("headlessUnsafeCommand", command, fs, stdin);
   }
 }

@@ -7,13 +7,12 @@ export type CommandResult = {
   stderr: string;
   tty: string;
   fs: FS;
-  prepareResult?: {
-    stdin: string;
-    stdout: string;
-    stderr: string;
-    tty: string;
-    fs: FS;
-  };
+  exit: number;
+};
+
+export type RunResult = {
+  result?: CommandResult;
+  prepare?: CommandResult;
 };
 
 export type FS = {
@@ -38,18 +37,15 @@ export type RuntimeMethods = {
 
   getEditorProgram: () => Promise<string>;
 
-  interactiveRunCode: (
-    runtime: Runtime,
-    code: string
-  ) => Promise<CommandResult>;
+  interactiveRunCode: (runtime: Runtime, code: string) => Promise<RunResult>;
 
   interactiveRunFS: (
     runtime: Runtime,
     entryPath: string,
     fs: FS
-  ) => Promise<CommandResult>;
+  ) => Promise<RunResult>;
 
-  interactiveUnsafeCommand: (command: string, fs: FS) => Promise<CommandResult>;
+  interactiveUnsafeCommand: (command: string, fs: FS) => Promise<RunResult>;
 
   interactiveStop: () => void;
 
@@ -57,18 +53,18 @@ export type RuntimeMethods = {
     runtime: Runtime,
     code: string,
     stdin?: string
-  ) => Promise<CommandResult>;
+  ) => Promise<RunResult>;
 
   headlessRunFS: (
     runtime: Runtime,
     entryPath: string,
     fs: FS,
     stdin?: string
-  ) => Promise<CommandResult>;
+  ) => Promise<RunResult>;
 
   headlessUnsafeCommand: (
     command: string,
     fs: FS,
     stdin?: string
-  ) => Promise<CommandResult>;
+  ) => Promise<RunResult>;
 };

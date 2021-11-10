@@ -1,6 +1,7 @@
 import { EditorElement } from "./editor";
 import { TerminalElement } from "./terminal";
 import {
+  RunResult,
   CommandResult,
   FS,
   Runtime,
@@ -32,7 +33,7 @@ function commandsForRuntime(name: string, entryPath: string): RuntimeCommands {
   if (name === "clang") {
     return {
       prepare: [
-        `clang -cc1 -triple wasm32-unkown-wasi -isysroot /sys -internal-isystem /sys/include -ferror-limit 4 -fmessage-length 80 -fcolor-diagnostics -O2 -emit-obj -o ./program.o ${entryPath}`,
+        `clang -cc1 -Werror -triple wasm32-unkown-wasi -isysroot /sys -internal-isystem /sys/include -ferror-limit 4 -fmessage-length 80 -fcolor-diagnostics -O2 -emit-obj -o ./program.o ${entryPath}`,
         `wasm-ld -L/sys/lib/wasm32-wasi /sys/lib/wasm32-wasi/crt1.o ./program.o -lc -o ./program.wasm`,
       ],
       run: `wasmer run ./program.wasm`,
@@ -42,7 +43,7 @@ function commandsForRuntime(name: string, entryPath: string): RuntimeCommands {
   if (name === "clangpp") {
     return {
       prepare: [
-        `runno-clang -cc1 -emit-obj -disable-free -isysroot /sys -internal-isystem /sys/include/c++/v1 -internal-isystem /sys/include -internal-isystem /sys/lib/clang/8.0.1/include -ferror-limit 4 -fmessage-length 80 -fcolor-diagnostics -O2 -o program.o -x c++  ${entryPath}`,
+        `runno-clang -cc1 -Werror -emit-obj -disable-free -isysroot /sys -internal-isystem /sys/include/c++/v1 -internal-isystem /sys/include -internal-isystem /sys/lib/clang/8.0.1/include -ferror-limit 4 -fmessage-length 80 -fcolor-diagnostics -O2 -o program.o -x c++  ${entryPath}`,
         `runno-wasm-ld --no-threads --export-dynamic -z stack-size=1048576 -L/sys/lib/wasm32-wasi /sys/lib/wasm32-wasi/crt1.o program.o -lc -lc++ -lc++abi -o ./program.wasm`,
       ],
       run: `wasmer run ./program.wasm`,
@@ -105,7 +106,7 @@ export class RunnoProvider implements RuntimeMethods {
     return Promise.resolve(this.editor.program);
   }
 
-  interactiveRunCode(runtime: Runtime, code: string): Promise<CommandResult> {
+  interactiveRunCode(runtime: Runtime, code: string): Promise<RunResult> {
     return this.interactiveRunFS(runtime, "program", {
       program: { name: "program", content: code },
     });
@@ -115,52 +116,56 @@ export class RunnoProvider implements RuntimeMethods {
     runtime: Runtime,
     entryPath: string,
     fs: FS
-  ): Promise<CommandResult> {
+  ): Promise<RunResult> {
     const commands = commandsForRuntime(runtime, entryPath);
 
     this.writeFS(fs);
 
-    const prepared: {
-      prepareResult?: {
-        stdin: string;
-        stdout: string;
-        stderr: string;
-        tty: string;
-        fs: FS;
-      };
-    } = {};
+    let prepare: CommandResult | undefined = undefined;
     if (commands.prepare) {
-      prepared.prepareResult = {
+      prepare = {
         stdin: "",
         stdout: "",
         stderr: "",
         tty: "",
         fs: {},
+        exit: 0,
       };
       for (const command of commands.prepare || []) {
-        const result = await this.interactiveUnsafeCommand(command, {});
-        prepared.prepareResult.stdin += result.stdin;
-        prepared.prepareResult.stdout += result.stdout;
-        prepared.prepareResult.stderr += result.stderr;
-        prepared.prepareResult.tty += result.tty;
+        const { result } = await this.interactiveUnsafeCommand(command, {});
+        if (!result) {
+          throw new Error("Unexpected missing result");
+        }
+        prepare.stdin += result.stdin;
+        prepare.stdout += result.stdout;
+        prepare.stderr += result.stderr;
+        prepare.tty += result.tty;
 
         // It's okay not to merge here since the FS is cumulative
         // over each run.
-        prepared.prepareResult.fs = result.fs;
+        prepare.fs = result.fs;
+        prepare.exit = result.exit;
+
+        if (result.exit !== 0) {
+          // If a prepare step fails then we stop.
+          return {
+            prepare,
+          };
+        }
       }
     }
 
-    const result = await this.interactiveUnsafeCommand(commands.run, {});
-    return {
-      ...result,
-      ...prepared,
-    };
+    const { result } = await this.interactiveUnsafeCommand(commands.run, {});
+    return { result, prepare };
   }
 
-  interactiveUnsafeCommand(command: string, fs: FS): Promise<CommandResult> {
+  async interactiveUnsafeCommand(command: string, fs: FS): Promise<RunResult> {
     this.writeFS(fs);
     this.terminal.clear();
-    return this.terminal.runCommand(command);
+    const result = await this.terminal.runCommand(command);
+    return {
+      result,
+    };
   }
 
   interactiveStop(): void {
@@ -171,7 +176,7 @@ export class RunnoProvider implements RuntimeMethods {
     runtime: Runtime,
     code: string,
     stdin?: string
-  ): Promise<CommandResult> {
+  ): Promise<RunResult> {
     return this.headlessRunFS(
       runtime,
       "program",
@@ -187,45 +192,51 @@ export class RunnoProvider implements RuntimeMethods {
     entryPath: string,
     fs: FS,
     stdin?: string
-  ): Promise<CommandResult> {
+  ): Promise<RunResult> {
     const commands = commandsForRuntime(runtime, entryPath);
 
-    const prepared: {
-      prepareResult?: {
-        stdin: string;
-        stdout: string;
-        stderr: string;
-        tty: string;
-        fs: FS;
-      };
-    } = {};
-
+    let prepare: CommandResult | undefined = undefined;
     if (commands.prepare) {
-      prepared.prepareResult = {
+      prepare = {
         stdin: "",
         stdout: "",
         stderr: "",
         tty: "",
         fs: {},
+        exit: 0,
       };
       for (const command of commands.prepare || []) {
-        const result = await this.headlessUnsafeCommand(command, fs, stdin);
-        prepared.prepareResult.stdin += result.stdin;
-        prepared.prepareResult.stdout += result.stdout;
-        prepared.prepareResult.stderr += result.stderr;
-        prepared.prepareResult.tty += result.tty;
+        const { result } = await this.interactiveUnsafeCommand(command, {});
+        if (!result) {
+          throw new Error("Unexpected missing result");
+        }
+        prepare.stdin += result.stdin;
+        prepare.stdout += result.stdout;
+        prepare.stderr += result.stderr;
+        prepare.tty += result.tty;
 
-        // It's okay not to merge here since the FS will be cumulative
+        // It's okay not to merge here since the FS is cumulative
         // over each run.
-        prepared.prepareResult.fs = result.fs;
-        fs = result.fs;
+        prepare.fs = result.fs;
+        prepare.exit = result.exit;
+
+        if (result.exit !== 0) {
+          // If a prepare step fails then we stop.
+          return {
+            prepare,
+          };
+        }
       }
     }
 
-    const result = await this.headlessUnsafeCommand(commands.run, fs, stdin);
+    const { result } = await this.headlessUnsafeCommand(
+      commands.run,
+      fs,
+      stdin
+    );
     return {
-      ...result,
-      ...prepared,
+      result,
+      prepare,
     };
   }
 
@@ -233,7 +244,7 @@ export class RunnoProvider implements RuntimeMethods {
     command: string,
     fs: FS,
     stdin?: string
-  ): Promise<CommandResult> {
+  ): Promise<RunResult> {
     const wasmfs = new WasmFs();
     const jsonFs: { [name: string]: string | Uint8Array } = {
       "/dev/stdin": "",
@@ -245,6 +256,9 @@ export class RunnoProvider implements RuntimeMethods {
     }
     wasmfs.fromJSON(jsonFs);
 
-    return await headlessRunCommand(command, wasmfs, stdin);
+    const result = await headlessRunCommand(command, wasmfs, stdin);
+    return {
+      result,
+    };
   }
 }

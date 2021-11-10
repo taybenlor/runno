@@ -4,20 +4,14 @@ import * as Comlink from "comlink";
 // @ts-ignore
 import parse from "shell-parse";
 
+import { CommandResult } from "@runno/host";
+
 import Process from "../process/process";
 import CommandOptions from "../command/command-options";
 
 import WasmTerminalConfig from "../wasm-terminal-config";
 
 import WasmTty from "../wasm-tty/wasm-tty";
-
-export type CommandResult = {
-  stdout: string;
-  stdin: string;
-  stderr: string;
-  tty: string;
-  fs: any;
-};
 
 type WorkerProcessData = {
   process: Comlink.Remote<Process>;
@@ -132,6 +126,7 @@ export default class CommandRunner {
         stderr: this.stderr,
         tty: this.tty,
         fs: {},
+        exit: 1,
       });
       return;
     }
@@ -164,6 +159,7 @@ export default class CommandRunner {
       stderr: this.stderr,
       tty: this.tty,
       fs: {},
+      exit: 1,
     });
   }
 
@@ -452,7 +448,8 @@ export default class CommandRunner {
       commandOptionIndex: number;
       processWorker?: Worker;
     },
-    wasmFsJson: any
+    wasmFsJson: any,
+    exitStatus: number
   ) {
     const { commandOptionIndex, processWorker } = endCallbackConfig;
 
@@ -480,6 +477,7 @@ export default class CommandRunner {
         stderr: this.stderr,
         tty: this.tty,
         fs: wasmFsJson,
+        exit: exitStatus,
       });
     }
 
@@ -511,6 +509,7 @@ export default class CommandRunner {
       stderr: this.stderr,
       tty: this.tty,
       fs: wasmFsJson,
+      exit: 1,
     });
   }
 

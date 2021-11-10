@@ -22,30 +22,34 @@ ConnectRunno(runtimeIframe).then((runno: RunnoHost) => {
   runButton.addEventListener("click", async function () {
     const code = codeEl.value;
 
-    const { stdin, stdout, stderr, tty } = await runno.interactiveRunCode(
+    const { result } = await runno.interactiveRunCode(
       runtimeSelect.value as Runtime,
       code
     );
 
-    stdoutEl.textContent = stdout;
-    stdinEl.textContent = stdin;
-    stderrEl.textContent = stderr;
-    ttyEl.textContent = tty;
+    if (result) {
+      stdoutEl.textContent = result.stdout;
+      stdinEl.textContent = result.stdin;
+      stderrEl.textContent = result.stderr;
+      ttyEl.textContent = result.tty;
+    }
   });
 
   headlessButton.addEventListener("click", async function () {
     const code = codeEl.value;
     const codeStdin = headlessStdinEl.value;
 
-    const { stdin, stdout, stderr, tty } = await runno.headlessRunCode(
+    const { result } = await runno.headlessRunCode(
       runtimeSelect.value as Runtime,
       code,
       codeStdin
     );
 
-    stdoutEl.textContent = stdout;
-    stdinEl.textContent = stdin;
-    stderrEl.textContent = stderr;
-    ttyEl.textContent = tty;
+    if (result) {
+      stdoutEl.textContent = result.stdout;
+      stdinEl.textContent = result.stdin;
+      stderrEl.textContent = result.stderr;
+      ttyEl.textContent = result.tty;
+    }
   });
 });
