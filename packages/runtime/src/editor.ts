@@ -7,21 +7,19 @@ import { HighlightStyle, tags as t } from "@codemirror/highlight";
 import { Runtime, Syntax, runtimeToSyntax } from "@runno/host";
 import { elementCodeContent } from "./helpers";
 
-// TODO: This is just the one-dark theme colors on a light background
-// Need to find some new colours, or pick some of my own
-// https://github.com/dempfi/ayu
-// Might be a better fit
+// This is just the one-dark theme colors
+// adjusted for a light background
 //
-const chalky = "#e5c07b",
-  coral = "#e06c75",
-  cyan = "#56b6c2",
-  invalid = "#ffffff",
-  ivory = "#abb2bf",
-  stone = "#7d8799",
-  malibu = "#61afef",
-  sage = "#98c379",
-  whiskey = "#d19a66",
-  violet = "#c678dd";
+const chalky = "#D3C101",
+  coral = "#E3439D",
+  cyan = "#2CB2C3",
+  invalid = "#000000",
+  ivory = "#8A909C",
+  stone = "#B0B9C8",
+  malibu = "#008CFF",
+  sage = "#77CA3B",
+  whiskey = "#E38730",
+  violet = "#C067DA";
 
 export const highlightStyle = HighlightStyle.define([
   { tag: t.keyword, color: violet },
