@@ -2,9 +2,11 @@ import { StarfieldElement } from "./starfield";
 import { exampleForRuntime } from "./examples";
 import { Runtime, generateEmbedURL, generateEmbedHTML } from "@runno/host";
 import { defineElements } from "@runno/runtime";
+import { VersionElement } from "./version";
 
 defineElements();
 customElements.define("runno-starfield", StarfieldElement);
+customElements.define("runno-version", VersionElement);
 
 const codeText = document.getElementById("code") as HTMLTextAreaElement;
 const runtimeSelect = document.getElementById(
