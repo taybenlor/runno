@@ -438,22 +438,30 @@ print(f"G'day {name}, welcome to Runno.")
 
             <p>Start by adding <code>@runno/host</code> to your package:</p>
 
-            <pre><code>$ npm install @runno/host</code></pre>
+            <runno-code>$ npm install @runno/host</runno-code>
 
             <p>Then you'll be able to import <code>ConnectRunno</code>.</p>
 
-            <pre><code>import { ConnectRunno } from '@runno/host'</code></pre>
+            <runno-code syntax="js">
+              import { ConnectRunno } from '@runno/host'
+            </runno-code>
 
             <p>And use it with an existing Runno iframe.</p>
 
-            <pre><code>const runno = await ConnectRunno(iframe);</code></pre>
+            <runno-code syntax="js">
+              const iframe = document.querySelector('iframe'); const runno =
+              await ConnectRunno(iframe);
+            </runno-code>
 
             <p>
               To run a code sample interactively use
               <code>interactiveRunCode</code>.
             </p>
 
-            <pre><code>const { result } = await runno.interactiveRunCode("python", codeSample);</code></pre>
+            <runno-code syntax="js">
+              const { result } = await runno.interactiveRunCode( "python",
+              codeSample );
+            </runno-code>
 
             <p>
               The result has properties for <code>stdin</code>,
@@ -468,7 +476,10 @@ print(f"G'day {name}, welcome to Runno.")
               <code>headlessRunCode</code>.
             </p>
 
-            <pre><code>const { result } = await runno.headlessRunCode("python", codeSample, stdin);</code></pre>
+            <runno-code syntax="js">
+              const { result } = await runno.headlessRunCode( "python",
+              codeSample, stdin );
+            </runno-code>
 
             <p>
               The <code>stdin</code> is optional, but necessary if the code
@@ -844,24 +855,27 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
             <h2 id="component-quickstart">Quickstart</h2>
             <p>Start by adding <code>@runno/runtime</code> to your package:</p>
 
-            <pre><code>$ npm install @runno/runtime</code></pre>
+            <runno-code>$ npm install @runno/runtime</runno-code>
 
             <p>Then you'll be able to import <code>defineElements</code>.</p>
 
-            <pre><code>import { defineElements } from '@runno/runtime'</code></pre>
+            <runno-code syntax="js"
+              >import { defineElements } from '@runno/runtime'</runno-code
+            >
 
             <p>And call it as part of your main script while the page loads.</p>
 
-            <pre><code>defineElements();</code></pre>
+            <runno-code syntax="js">defineElements();</runno-code>
 
             <p>
               Once you've called <code>defineElements</code> you can use runno
               elements on the page.
             </p>
 
-            <pre><code>&lt;runno-run runtime="python" editor controls&gt;
-print('Hello, World!')
-&lt;/runno-run&gt;</code></pre>
+            <runno-code syntax="html"
+              >&lt;runno-run runtime="python" editor controls&gt; print('Hello,
+              World!') &lt;/runno-run&gt;</runno-code
+            >
 
             <p>Which would render as:</p>
 

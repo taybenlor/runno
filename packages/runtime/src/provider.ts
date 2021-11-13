@@ -1,5 +1,5 @@
-import { EditorElement } from "./editor";
-import { TerminalElement } from "./terminal";
+import { EditorElement } from "./elements/editor";
+import { TerminalElement } from "./elements/terminal";
 import {
   RunResult,
   CommandResult,
@@ -10,7 +10,7 @@ import {
 } from "@runno/host";
 import { WasmFs } from "./wasmfs";
 import { headlessRunCommand } from "./headless";
-import { ControlsElement } from "./controls";
+import { ControlsElement } from "./elements/controls";
 
 type RuntimeCommands = {
   prepare?: Array<string>;
