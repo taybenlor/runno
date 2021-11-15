@@ -33,7 +33,7 @@
   "dependencies": {
     "@runno/host": "^0.1.6",
     "@runno/wasi": "^0.1.6",
-    "@wasmer/io-devices": "^0.10.2",
+    "@wasmer/io-devices": "^0.12.0",
     "@wasmer/wasmfs": "^0.10.2",
     "comlink": "^4.0.5",
     "shell-parse": "0.0.2",
