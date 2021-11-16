@@ -6,8 +6,8 @@ import { Runtime, RuntimeMethods, Syntax, RunResult, FS } from "@runno/host";
 import { EditorElement } from "./editor";
 import { ControlsElement } from "./controls";
 import { TerminalElement } from "./terminal";
-import { RunnoProvider } from "./provider";
-import { elementCodeContent } from "./helpers";
+import { RunnoProvider } from "../provider";
+import { elementCodeContent } from "../helpers";
 
 export class RunElement extends LitElement implements RuntimeMethods {
   static styles = css`

@@ -1,10 +1,10 @@
 import WasmTerminal from "@runno/terminal";
 import processWorkerURL from "@runno/terminal/lib/workers/process.worker.js?url";
-import { WasmFs } from "./wasmfs";
+import { WasmFs } from "../wasmfs";
 import { CommandResult, FS } from "@runno/host";
 import xtermcss from "xterm/css/xterm.css";
 
-import WAPM from "./wapm/wapm";
+import WAPM from "../wapm/wapm";
 
 export class TerminalElement extends HTMLElement {
   wasmFs: WasmFs;
