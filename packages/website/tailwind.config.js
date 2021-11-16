@@ -1,3 +1,5 @@
+const plugin = require("tailwindcss/plugin");
+
 module.exports = {
   mode: "jit",
   purge: ["./index.html"],
@@ -81,5 +83,23 @@ module.exports = {
   variants: {
     extend: {},
   },
-  plugins: [require("@tailwindcss/typography")],
+  plugins: [
+    require("@tailwindcss/typography"),
+    plugin(({ addUtilities }) => {
+      addUtilities(
+        {
+          ".columns-1": {
+            columns: "1",
+          },
+          ".columns-2": {
+            columns: "2",
+          },
+          ".columns-3": {
+            columns: "3",
+          },
+        },
+        { variants: ["responsive"] }
+      );
+    }),
+  ],
 };

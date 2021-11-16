@@ -18,23 +18,36 @@
         <header class="py-4">
           <a href="/" title="Runno" class="absolute">
             <h1 class="text-lg">
-              <img src="images/logo.svg" alt="Runno" />
+              <img src="images/logo.svg" alt="Runno" class="sm:inline-block" />
+              <span
+                class="
+                  inline-block
+                  text-yellow
+                  font-mono
+                  text-xs text-center
+                  border border-yellow
+                  p-2
+                  mt-4
+                  ml-4
+                  sm:mt-0
+                "
+              >
+                v<runno-version>0.0.0</runno-version> - beta as heck
+              </span>
             </h1>
-            <h2
-              class="
-                inline-block
-                text-yellow
-                font-mono
-                text-xs text-center
-                border border-yellow
-                p-2
-                m-4
-              "
-            >
-              v<runno-version>0.0.0</runno-version> - beta as heck
-            </h2>
           </a>
-          <nav class="font-sans container mx-auto flex justify-end z-10">
+          <nav
+            class="
+              font-sans
+              container
+              mx-auto
+              flex
+              justify-end
+              z-10
+              pr-4
+              sm:pr-0
+            "
+          >
             <a
               target="_blank"
               href="https://github.com/taybenlor/runno"
@@ -54,8 +67,8 @@
         </header>
 
         <img class="absolute bottom-0 right-0" src="images/sun.svg" />
-        <div class="container mx-auto relative">
-          <h1 class="text-5xl font-bold text-center my-8">
+        <div class="container mx-auto relative p-4 sm:p-0">
+          <h1 class="text-5xl font-bold text-center mt-10 mb-8">
             Make your code samples Runno.
           </h1>
           <div class="w-1/3 mx-auto">
@@ -65,8 +78,15 @@
             <hr class="w-2/5 border-t border-yellow my-2 h-0 mx-auto" />
           </div>
 
-          <div class="flex items-stretch py-16 font-mono">
-            <form class="flex flex-col flex-grow mr-8">
+          <div class="flex flex-wrap items-stretch py-16 font-mono">
+            <form
+              class="
+                flex flex-col flex-grow
+                w-full
+                mb-8
+                lg:w-auto lg:mr-8 lg:mb-0
+              "
+            >
               <div class="relative border border-yellow">
                 <label
                   class="
@@ -146,7 +166,9 @@ print(f"G'day {name}, welcome to Runno.")
               </div>
             </form>
 
-            <div class="flex-grow flex flex-col items-stretch">
+            <div
+              class="flex-grow flex flex-col items-stretch w-1/3 h-80 lg:h-auto"
+            >
               <div class="bg-lightBlue py-2 text-center relative">
                 <span class="absolute left-4">
                   <span
@@ -178,9 +200,22 @@ print(f"G'day {name}, welcome to Runno.")
         <img class="absolute top-0 right-0" src="images/sun-reflection.svg" />
       </div>
 
-      <div class="flex container mx-auto my-16 relative">
-        <div class="">
-          <nav class="border border-lightBlue mr-8 p-2 list-none sticky top-4">
+      <div class="flex flex-wrap container mx-auto my-16 relative">
+        <div class="mb-8 p-4 text-sm w-[65ch] md:text-base lg:w-auto sm:p-0">
+          <nav
+            class="
+              border border-lightBlue
+              mr-8
+              p-2
+              list-none
+              sticky
+              top-4
+              columns-2
+              w-full
+              sm:columns-3
+              lg:w-auto lg:columns-1
+            "
+          >
             <li class="text-yellow">
               <a href="#know-runno">Getting to know Runno</a>
             </li>
@@ -241,7 +276,15 @@ print(f"G'day {name}, welcome to Runno.")
           </nav>
         </div>
 
-        <article class="prose">
+        <article
+          class="
+            prose
+            p-4
+            w-full
+            sm:w-auto sm:p-0 sm:prose-sm
+            md:prose md:w-auto
+          "
+        >
           <section>
             <h1 id="know-runno">Getting to know Runno</h1>
             <h2 id="using-runno">Using Runno</h2>
