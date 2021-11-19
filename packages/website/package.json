@@ -2,7 +2,7 @@
   "private": "true",
   "name": "@runno/website",
   "description": "Runtime for @runno",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "author": "Ben Taylor <runno@taybenlor.com>",
   "license": "MIT",
   "repository": {
@@ -29,8 +29,8 @@
     "vite": "^2.6.13"
   },
   "dependencies": {
-    "@runno/host": "^0.1.6",
-    "@runno/runtime": "^0.1.6"
+    "@runno/host": "^0.2.0",
+    "@runno/runtime": "^0.2.0"
   },
   "gitHead": "812d21ec7c0c5d57c0274caaf7ff21c79ca79c1f"
 }
