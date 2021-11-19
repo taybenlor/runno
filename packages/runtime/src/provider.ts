@@ -162,7 +162,24 @@ export class RunnoProvider implements RuntimeMethods {
   async interactiveUnsafeCommand(command: string, fs: FS): Promise<RunResult> {
     this.writeFS(fs);
     this.terminal.clear();
-    const result = await this.terminal.runCommand(command);
+    let result = await this.terminal.runCommand(command);
+    if (result.exit === 1) {
+      const isSafari = /^((?!chrome|android).)*safari/i.test(
+        navigator.userAgent
+      );
+      if (isSafari) {
+        // Safari seems to hit its call stack maximum probably due to the super
+        // large number of promises used, followed by calling WebAssembly etc.
+        // A neat solution is to just run the whole thing again since the second
+        // time it uses less promises because the binary is already downloaded.
+        // TODO: Fix this a different way see:
+        // https://github.com/taybenlor/runno/issues/152
+        this.writeFS(fs);
+        this.terminal.clear();
+        this.terminal.wasmTerminal.wasmTty.clearTty();
+        result = await this.terminal.runCommand(command);
+      }
+    }
     return {
       result,
     };
