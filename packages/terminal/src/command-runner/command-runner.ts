@@ -504,10 +504,10 @@ export default class CommandRunner {
 
     if (error.includes("call stack")) {
       this.wasmTty?.print(
-        `Error in runtime: ${error} If you're using Safari this happens with some runtimes. Try another browser (sorry!).`
+        `Error in runtime "${error}". If you're using Safari this happens with some runtimes. Try another browser (sorry!).`
       );
     } else {
-      this.wasmTty?.print(`Error in runtime: ${error}`);
+      this.wasmTty?.print(`Error in runtime "${error}".`);
     }
 
     // Kill the process
