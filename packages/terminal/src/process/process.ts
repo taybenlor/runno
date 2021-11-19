@@ -170,16 +170,15 @@ export default class Process {
         // TODO: Figure out correct semantics
         end(0);
         return;
+      } else if (e instanceof WASIKillError) {
+        this.errorCallback(
+          `Killed with signal: ${(e as any).signal}`,
+          this.wasmFs.toJSON(),
+          false
+        );
+      } else {
+        this.errorCallback((e as any).toString(), this.wasmFs.toJSON(), false);
       }
-
-      let error = "Unknown Error";
-
-      if (e instanceof WASIKillError) {
-        error = `killed with signal: ${e.signal}`;
-      }
-
-      console.error("Failed Running:", e);
-      this.errorCallback(error, this.wasmFs.toJSON(), false);
     }
   }
 

@@ -493,12 +493,21 @@ export default class CommandRunner {
     const { commandOptionIndex } = errorCallbackConfig;
 
     console.error(
-      `${this.commandOptionsForProcessesToRun[commandOptionIndex].args[0]}: ${error}`
+      `${this.commandOptionsForProcessesToRun[commandOptionIndex].args[0]}`,
+      error
     );
 
     // Sync our filesystem
     if (wasmFsJson) {
       this.wasmTerminalConfig.wasmFs.fromJSON(wasmFsJson);
+    }
+
+    if (error.includes("call stack")) {
+      this.wasmTty?.print(
+        `Error in runtime "${error}". If you're using Safari this happens with some runtimes. Try another browser (sorry!).`
+      );
+    } else {
+      this.wasmTty?.print(`Error in runtime "${error}".`);
     }
 
     // Kill the process
