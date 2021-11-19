@@ -504,7 +504,7 @@ export default class CommandRunner {
 
     if (error.includes("call stack")) {
       this.wasmTty?.print(
-        `Error in runtime "${error}". If you're using Safari this happens with some runtimes. Try another browser (sorry!).`
+        `Error in runtime "${error}". If you're using Safari try running again.`
       );
     } else {
       this.wasmTty?.print(`Error in runtime "${error}".`);

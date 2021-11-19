@@ -99,12 +99,6 @@ $ npm run build  # make sure the dependent libraries are built
 $ npm run dev
 ```
 
-If things seem to fail you might need to run `npm install` in each of the packages. Try:
-
-```
-npx lerna exec npm install
-```
-
 At that point you should be able to navigate to:
 
 - `localhost:4321` - Website
@@ -191,4 +185,4 @@ A number of open-source projects and standards have been used to make Runno poss
 
 Thanks to everyone who has built compatibility layers for the web. The web becomes a better platform with every new piece of software we can run on it!
 
-Also big thanks to my friends who tolerate me constantly talking about WASM. Thanks especially to Shelley, Katie, Jesse, Jim, Odin, Hailey, Sam and other Sam. 
+Also big thanks to my friends who tolerate me constantly talking about WASM. Thanks especially to Shelley, Katie, Jesse, Jim, Odin, Hailey, Sam and other Sam.
