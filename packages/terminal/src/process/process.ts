@@ -170,6 +170,8 @@ export default class Process {
         // TODO: Figure out correct semantics
         end(0);
         return;
+      } else if (e instanceof RangeError) {
+        this.errorCallback(e.message, this.wasmFs.toJSON(), false);
       }
 
       let error = "Unknown Error";
