@@ -3,10 +3,12 @@ import { exampleForRuntime } from "./examples";
 import { Runtime, generateEmbedURL, generateEmbedHTML } from "@runno/host";
 import { defineElements } from "@runno/runtime";
 import { VersionElement } from "./version";
+import { ScrollHighlightElement } from "./scroll-highlight";
 
 defineElements();
 customElements.define("runno-starfield", StarfieldElement);
 customElements.define("runno-version", VersionElement);
+customElements.define("runno-scroll-highlight", ScrollHighlightElement);
 
 const codeText = document.getElementById("code") as HTMLTextAreaElement;
 const runtimeSelect = document.getElementById(
