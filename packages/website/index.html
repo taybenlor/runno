@@ -399,14 +399,16 @@ else:
 
             <div class="bg-white px-4 flow-root rounded text-black">
               <p>An infinite loop runs forever:</p>
+              <!-- prettier-ignore -->
               <runno-run
                 runtime="quickjs"
                 editor
                 controls
                 class="w-full h-80 p-1.5 bg-black rounded text-sm"
               >
-                while (true) { console.log("Help I'm trapped in a code
-                factory!"); }
+                while (true) {
+                  console.log("Help I'm trapped in a code factory!");
+                }
               </runno-run>
               <p>Try changing the text to your own example!</p>
             </div>
