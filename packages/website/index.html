@@ -235,6 +235,9 @@ print(f"G'day {name}, welcome to Runno.")
               <a href="#using-runno">Using Runno</a>
             </li>
             <li class="pl-4">
+              <a href="#examples">Examples</a>
+            </li>
+            <li class="pl-4">
               <a href="#how-it-works">How it works</a>
             </li>
             <li class="pl-4">
@@ -305,6 +308,7 @@ print(f"G'day {name}, welcome to Runno.")
               the iframe into your website. Now you've got a snippet of code
               that someone can run and edit!
             </p>
+
             <p>
               For advanced uses, the iframe can be controlled with the
               <a href="#host-api">host API</a>. With the host API you can pass
@@ -312,6 +316,100 @@ print(f"G'day {name}, welcome to Runno.")
               interactive and headless modes. Or bake Runno into your app with
               the <a href="#web-components">runtime web components</a>.
             </p>
+
+            <h2 id="examples">Examples</h2>
+            <p>
+              Lets say you're writing a blog post and want to explain how an
+              <code>if</code> statement works. You've written a code sample like
+              this:
+            </p>
+            <pre><code>name = input("What's your name? ")
+if "i" in name.lower():
+  print("You've got an I in your name, how selfish.")
+else:
+  print("There's no I in your name.")
+</code></pre>
+
+            <p>
+              You can take that snippet to Runno, select the <code>python</code>
+              runtime and paste in your code. Then you can select the embed
+              field and copy the generated iframe. Paste it into your blog like:
+            </p>
+
+            <pre><code>&lt;p&gt;
+  Here's an example of an if statement:
+&lt;/p&gt;
+
+&lt;iframe src="&hellip;" crossorigin allow="cross-origin-isolated" width="640" height="320" frameBorder="0"&gt;&lt;/iframe&gt;
+
+&lt;p&gt;
+  You can use an if statement to&hellip;
+&lt;/p&gt;
+</code></pre>
+
+            <p>And it would work something like:</p>
+
+            <div class="bg-white px-4 flow-root rounded text-black">
+              <p>Here's an example of an if statement:</p>
+              <iframe
+                src="https://runno.run/?editor=1&amp;runtime=python&amp;code=bmFtZSA9IGlucHV0KCJXaGF0J3MgeW91ciBuYW1lPyAiKQppZiAiaSIgaW4gbmFtZS5sb3dlcigpOgogIHByaW50KCJZb3UndmUgZ290IGFuIEkgaW4geW91ciBuYW1lLCBob3cgc2VsZmlzaC4iKQplbHNlOgogIHByaW50KCJUaGVyZSdzIG5vIEkgaW4geW91ciBuYW1lLiIp"
+                crossorigin
+                allow="cross-origin-isolated"
+                height="320"
+                class="w-full p-1.5 bg-black rounded"
+              ></iframe>
+              <p>You can use an if statement to&hellip;</p>
+            </div>
+
+            <p>
+              Now your readers can run your example to try it out. They can even
+              edit it and check they understand how it works!
+            </p>
+
+            <p>
+              If you find you're using Runno a lot on your blog, you can use the
+              Runno Web Components (<a href="#web-components">documentation</a
+              >). First follow the
+              <a href="#component-quickstart">quickstart guide</a> to make sure
+              it's set up correctly.
+            </p>
+
+            <p>
+              Once you've got Runno installed you can use the same features
+              without needing to use an iframe. Lets say you were explaining how
+              infinite loops work in JavaScript:
+            </p>
+
+            <pre><code>&lt;p&gt;
+  An infinite loop runs forever:
+&lt;/p&gt;
+
+&lt;runno-run runtime="quickjs" editor controls&gt;
+  while (true) {
+    console.log("Help I'm trapped in a code factory!");
+  }
+&lt;/runno-run&gt;
+
+&lt;p&gt;
+  Try changing the text to your own example!
+&lt;/p&gt;
+            </code></pre>
+
+            <p>And it would work in the same way as the iframe:</p>
+
+            <div class="bg-white px-4 flow-root rounded text-black">
+              <p>An infinite loop runs forever:</p>
+              <runno-run
+                runtime="quickjs"
+                editor
+                controls
+                class="w-full h-80 p-1.5 bg-black rounded text-sm"
+              >
+                while (true) { console.log("Help I'm trapped in a code
+                factory!"); }
+              </runno-run>
+              <p>Try changing the text to your own example!</p>
+            </div>
 
             <h2 id="how-it-works">How it works</h2>
             <p>
@@ -342,10 +440,10 @@ print(f"G'day {name}, welcome to Runno.")
             <p>
               If you're writing a blog post, your own course, or writing
               documentation it's difficult to implement your own sandbox. You
-              really want to use something that someone else has built. But that
-              means running on their servers, which is going to cost you money!
-              By running on the client you eliminate needing any third party
-              involvement.
+              really want to use something that someone else has built. Even if
+              an open source solution existed you'd have to deploy a server and
+              maintain it! By running on the client you eliminate needing any
+              servers or third party involvement.
             </p>
             <p>
               Plus it's pretty cool that you can just run code in your browser!
