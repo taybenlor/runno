@@ -21,33 +21,6 @@ describe("ShellUtils", () => {
     });
   });
 
-  describe("isIncompleteInput", () => {
-    it("should handle complete input", async () => {
-      expect(ShellUtils.isIncompleteInput("test 1 2 for you")).toBe(false);
-    });
-
-    it("should handle single quote", async () => {
-      expect(ShellUtils.isIncompleteInput("test 1 2 ' for you")).toBe(true);
-    });
-
-    it("should handle double quote", async () => {
-      expect(ShellUtils.isIncompleteInput('test 1 2 " for you')).toBe(true);
-    });
-
-    it("should handle trailing slash", async () => {
-      expect(ShellUtils.isIncompleteInput("test 1 2 for you \\")).toBe(true);
-    });
-
-    it("should handle trailing incomplete boolean", async () => {
-      expect(ShellUtils.isIncompleteInput("test 1 2 for you &&")).toBe(true);
-      expect(ShellUtils.isIncompleteInput("test 1 2 for you ||")).toBe(true);
-    });
-
-    it("should handle trailing pipe", async () => {
-      expect(ShellUtils.isIncompleteInput("test 1 2 for you |")).toBe(true);
-    });
-  });
-
   describe("hasTrailingWhitespace", () => {
     it("should pass golden test", async () => {
       expect(ShellUtils.hasTrailingWhitespace("test 1 2 for you")).toBe(false);
