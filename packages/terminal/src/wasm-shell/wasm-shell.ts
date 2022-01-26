@@ -10,7 +10,6 @@ import {
   collectAutocompleteCandidates,
   getLastToken,
   hasTrailingWhitespace,
-  isIncompleteInput,
 } from "./shell-utils";
 import ShellHistory from "./shell-history";
 
@@ -424,11 +423,7 @@ export default class WasmShell {
         case "\r": // ENTER
         case "\x0a": // CTRL+J
         case "\x0d": // CTRL+M
-          if (isIncompleteInput(this.wasmTty.getInput())) {
-            this.handleCursorInsert("\n");
-          } else {
-            this.handleReadComplete();
-          }
+          this.handleReadComplete();
           break;
 
         case "\x7F": // BACKSPACE
