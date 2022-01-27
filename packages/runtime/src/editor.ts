@@ -79,7 +79,6 @@ function syntaxToExtensions(syntax: Syntax) {
     return [basicSetup, theme, highlightStyle, python()];
   }
   if (syntax == "ruby") {
-    // TODO: Add Ruby highlighting
     return [basicSetup, theme, highlightStyle, ruby()];
   }
   if (syntax == "js") {
