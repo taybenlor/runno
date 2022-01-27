@@ -53,6 +53,9 @@ export function runtimeToSyntax(runtime: string | undefined | null): Syntax {
   if (runtime == "clangpp") {
     return "cpp";
   }
+  if (runtime == "ruby") {
+    return "ruby";
+  }
   return undefined;
 }
 

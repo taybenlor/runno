@@ -1,6 +1,7 @@
 import { EditorState, EditorView, basicSetup } from "@codemirror/basic-setup";
 import { javascript } from "@codemirror/lang-javascript";
 import { python } from "@codemirror/lang-python";
+import { ruby } from "runno-codemirror-lang-ruby";
 import { sql } from "@codemirror/lang-sql";
 import { cpp } from "@codemirror/lang-cpp";
 import { HighlightStyle, tags as t } from "@codemirror/highlight";
@@ -76,6 +77,9 @@ const theme = EditorView.theme({
 function syntaxToExtensions(syntax: Syntax) {
   if (syntax == "python") {
     return [basicSetup, theme, highlightStyle, python()];
+  }
+  if (syntax == "ruby") {
+    return [basicSetup, theme, highlightStyle, ruby()];
   }
   if (syntax == "js") {
     return [basicSetup, theme, highlightStyle, javascript()];
