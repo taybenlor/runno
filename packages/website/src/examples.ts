@@ -43,8 +43,8 @@ print(f"G'day {name}, welcome to Runno.")
 const ruby = `
 puts "Hello, World!"
 print "What's your name? " 
-name = gets
-puts "G'day #{name.chomp}, welcome to Runno."
+name = gets.chomp
+puts "G'day #{name}, welcome to Runno."
 `.trimLeft();
 
 const quickjs = `
