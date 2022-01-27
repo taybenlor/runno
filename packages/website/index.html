@@ -154,6 +154,7 @@ print(f"G'day {name}, welcome to Runno.")
                     <option value="python" selected default>
                       Python (CPython)
                     </option>
+                    <option value="ruby">Ruby (Ruby)</option>
                     <option value="quickjs">JavaScript (QuickJS)</option>
                     <option value="sqlite">SQL (SQLite)</option>
                     <option value="clang">C (clang)</option>
@@ -715,6 +716,10 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
                 particular version but is at least 3.6.
               </li>
               <li>
+                <code>ruby</code> - Runs Ruby code, not pinned to a particular
+                version but is at least 3.2.
+              </li>
+              <li>
                 <code>quickjs</code> - Runs JavaScript code using the
                 <a target="_blank" href="https://bellard.org/quickjs/"
                   >QuickJS engine</a
@@ -862,8 +867,8 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
             <p>
               Sets the program in the editor, how to highlight it, and how to
               run it. <code>Syntax</code> can be <code>python</code>,
-              <code>js</code>, <code>sql</code>, <code>cpp</code>, or
-              <code>undefined</code>.
+              <code>ruby</code>, <code>js</code>, <code>sql</code>,
+              <code>cpp</code>, or <code>undefined</code>.
             </p>
 
             <h4><code>getEditorProgram</code></h4>
@@ -947,11 +952,11 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
             <h3 class="host-types">Important Types</h3>
 
             <h4><code>Runtime</code></h4>
-            <pre><code>export type Runtime = "python" | "quickjs" | "sqlite" | "clang" | "clangpp";</code></pre>
+            <pre><code>export type Runtime = "python" | "quickjs" | "sqlite" | "clang" | "clangpp" | "ruby";</code></pre>
             <p>Runtimes that Runno supports.</p>
 
             <h4><code>Syntax</code></h4>
-            <pre><code>export type Syntax = "python" | "js" | "sql" | "cpp" | undefined;</code></pre>
+            <pre><code>export type Syntax = "python" | "js" | "sql" | "cpp" | "ruby" | undefined;</code></pre>
             <p>Syntax highlighting options that the Runno editor supports.</p>
 
             <h4><code>CommandResult</code></h4>

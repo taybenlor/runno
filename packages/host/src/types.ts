@@ -1,5 +1,11 @@
-export type Runtime = "python" | "quickjs" | "sqlite" | "clang" | "clangpp";
-export type Syntax = "python" | "js" | "sql" | "cpp" | undefined;
+export type Runtime =
+  | "python"
+  | "quickjs"
+  | "sqlite"
+  | "clang"
+  | "clangpp"
+  | "ruby";
+export type Syntax = "python" | "js" | "sql" | "cpp" | "ruby" | undefined;
 
 export type CommandResult = {
   stdin: string;

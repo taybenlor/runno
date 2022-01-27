@@ -22,6 +22,10 @@ function commandsForRuntime(name: string, entryPath: string): RuntimeCommands {
     return { run: `python ${entryPath}` };
   }
 
+  if (name === "ruby") {
+    return { run: `cat ${entryPath} | ruby --disable=gems` };
+  }
+
   if (name === "quickjs") {
     return { run: `quickjs --std ${entryPath}` };
   }

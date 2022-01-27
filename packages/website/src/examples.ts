@@ -40,6 +40,13 @@ name = input("What's your name? ")
 print(f"G'day {name}, welcome to Runno.")
 `.trimLeft();
 
+const ruby = `
+puts "Hello, World!"
+print "What's your name? " 
+name = gets
+puts "G'day #{name.chomp}, welcome to Runno."
+`.trimLeft();
+
 const quickjs = `
 std.out.puts("Hello, World!\\nWhat's your name? ");
 std.out.flush();
@@ -71,6 +78,10 @@ export function exampleForRuntime(name: Runtime): string {
 
   if (name == "python") {
     return python;
+  }
+
+  if (name == "ruby") {
+    return ruby;
   }
 
   return "";
