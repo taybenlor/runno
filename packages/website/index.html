@@ -301,7 +301,7 @@ print(f"G'day {name}, welcome to Runno.")
               <a href="#component-how">How it works</a>
             </li>
             <li class="pl-4">
-              <a href="#component-methods">Elements</a>
+              <a href="#component-elements">Elements</a>
             </li>
             <li class="pl-4">
               <a href="#component-helpers">Helpers</a>
@@ -422,7 +422,7 @@ else:
                 runtime="quickjs"
                 editor
                 controls
-                class="w-full h-80 p-1.5 bg-black rounded text-sm"
+                class="w-full bg-black p-1.5 rounded text-sm"
               >
                 while (true) {
                   console.log("Help I'm trapped in a code factory!");
@@ -1125,6 +1125,35 @@ print('Hello, World!')
                 currently running
               </li>
             </ul>
+
+            <p>
+              The <code>runno-run</code> element can be styled with css
+              variables to change the height of the individual
+              <code>runno-editor</code> and <code>runno-terminal</code> elements
+              inside.
+            </p>
+
+            <pre><code>runno-run {
+  /* Sets a specific height for the editor */
+  --runno-editor-height: auto;
+
+  /* Sets a maximum height for the editor */
+  --runno-editor-max-height: 60%;
+
+  /* Sets a specific height for the terminal */
+  --runno-terminal-height: auto;
+
+  /* Sets a minimum height for the terminal */
+  --runno-terminal-min-height: 4rem;
+}</code></pre>
+
+            <p>
+              By default the editor will resize to fit the content you put
+              inside it, and the terminal will be its minimum height. If you set
+              the element to be a fixed height, they will share the space so
+              that the editor gets 60% and the controls and terminal get the
+              rest.
+            </p>
 
             <h4><code>runno-editor</code></h4>
             <pre><code>&lt;runno-editor
