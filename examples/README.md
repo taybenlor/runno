@@ -22,4 +22,7 @@ $ npm run dev
 You're welcome to use these examples as inspiration for how you could use
 Runno. It's all MIT licensed.
 
+Start by reading `index.html`, compare the rendered version to the HTML written
+down.
+
 If you need any help, please post in the Runno discussions board!

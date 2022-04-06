@@ -18,7 +18,7 @@ export class RunElement extends LitElement implements RuntimeMethods {
     }
 
     runno-editor {
-      background: white;
+      background: var(--runno-editor-background, white);
       color: black;
       max-height: 70vh;
     }
@@ -29,6 +29,7 @@ export class RunElement extends LitElement implements RuntimeMethods {
 
     runno-terminal {
       flex-grow: 1;
+      height: var(--runno-terminal-height, auto);
     }
   `;
 
