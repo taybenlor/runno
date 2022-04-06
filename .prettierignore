@@ -2,3 +2,4 @@
 build
 coverage
 packages/runtime/src/assets/vendor
+examples/index.html
