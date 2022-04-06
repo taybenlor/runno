@@ -29,6 +29,7 @@ export class RunElement extends LitElement implements RuntimeMethods {
 
     runno-terminal {
       flex-grow: 1;
+      height: 150px;
     }
   `;
 
