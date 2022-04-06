@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/src/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Runno Examples</title>
+
+    <!-- Runno elements -->
+    <script type="module" src="/src/index.ts"></script>
+
+    <!-- Custom elements that build off Runno -->
+    <script type="module" src="/src/stdin-element.ts"></script>
+    <script type="module" src="/src/stdout-element.ts"></script>
+    <script type="module" src="/src/check-element.ts"></script>
+    <script type="module" src="/src/requirements-element.ts"></script>
+    <script type="module" src="/src/trigger-element.ts"></script>
+
+    <!-- Tailwind included for my convenience -->
+    <link rel="stylesheet" href="/src/index.css" />
+
+    <!-- Globally style the runno-run element -->
+    <style>
+      runno-run {
+        height: 24rem;
+        background: black;
+        box-shadow: rgb(209, 213, 219) 0px 0px 0px 8px;
+        padding-bottom: 1rem;
+        margin-top: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="">
+      <article class="prose container mx-auto my-16">
+        <h1>Runno Examples</h1>
+
+        <p>
+          These examples are best used while also reading
+          <a target="_blank" href="https://runno.dev/#web-components">
+            the documentation </a
+          >. To get the best results with Runno make sure you set the
+          <a
+            target="_blank"
+            href="https://web.dev/cross-origin-isolation-guide/"
+          >
+            Cross-Origin Isolation headers
+          </a>
+          from the server. In this example directory you can find those headers
+          in <code>vite.config.js</code>.
+        </p>
+
+        <h2>Running code</h2>
+
+        <p>
+          You can create a block of runnable code using the
+          <code>runno-run</code> element. Set the <code>runtime</code> to one of
+          the existing runtimes.
+        </p>
+
+        <runno-run runtime="python" controls editor>
+          print("Hi there!") age = input("How old are you? ") if age == "14":
+          print("Heya, twin!") print("See ya later!")
+        </runno-run>
+
+        <p>
+          You don't have to worry about indentation, Runno will strip any of the
+          common indentation from the block of code.
+        </p>
+
+        <h3>Customising the Element</h3>
+
+        <p>
+          You can customise whether you get an <code>editor</code> and the
+          built-in <code>controls</code> with the respective attributes. This
+          element has no editor (the controls still work).
+        </p>
+
+        <runno-run runtime="python" controls>
+          print("Hi there!") age = input("How old are you? ") if age == "14":
+          print("Heya, twin!") print("See ya later!")
+        </runno-run>
+
+        <p>
+          You can also remove the controls and build your own UI. Call methods
+          directly on the <code>runno-run</code> element. In this example,
+          clicking the button will call <code>element.run()</code>.
+        </p>
+
+        <button
+          onclick="runnoElement.run()"
+          class="
+            bg-gray-300
+            px-4
+            py-2
+            hover:bg-gray-200
+            rounded
+            text-gray-800
+            font-semibold
+          "
+        >
+          My Custom Run Button
+        </button>
+
+        <p>
+          You also have access to all the <code>Host</code> methods,
+          <a href="https://runno.dev/#component-how">per the docs</a>.
+        </p>
+
+        <runno-run id="runnoElement" runtime="python">
+          print("Hi there!") age = input("How old are you? ") if age == "14":
+          print("Heya, twin!") print("See ya later!")
+        </runno-run>
+
+        <h3>Styling</h3>
+
+        <p>To style these elements I've written the following CSS:</p>
+
+        <pre>
+runno-run {
+  height: 24rem;
+  background: black;
+  box-shadow: rgb(209, 213, 219) 0px 8px;
+  padding-bottom: 1rem;
+  margin-top: 2rem;
+}</pre
+        >
+
+        <p>
+          This gives the raw look of the Runno elements enough wrapping to look
+          nice. Unfortunately it's not possible to style Runno past the boundary
+          of the <code>runno-run</code> element, but you can build your own UI
+          instead.
+        </p>
+
+        <p>
+          If you want to assemble your own <code>runno-run</code> element,
+          that's also possible. Runno exposes <code>runno-terminal</code> and
+          <code>runno-editor</code>, best to look at the runtime source for
+          these. Particularly <code>packages/runtime/src/run.ts</code>.
+        </p>
+
+        <h2>Extending Runno to Mark Code</h2>
+
+        <p>
+          This example includes a number of extra custom elements that I've
+          built as an example of how you can use Runno to mark code. It uses the
+          <code>runno-run</code> element for running and marking. The extra
+          elements describe what tests to run on the code.
+        </p>
+
+        <runno-run id="activity" runtime="python" editor controls>
+          print("Hi there!") age = input("How old are you? ") ________________:
+          ________________ print("See ya later!")
+        </runno-run>
+
+        <cs-requirements>
+          <div class="flex justify-between mt-12 mb-5">
+            <h3 class="my-0">Requirements</h3>
+            <cs-trigger
+              event="check"
+              class="
+                bg-green-500
+                hover:bg-green-400
+                active:bg-green-600
+                text-white
+                px-4
+                py-2
+                rounded
+                cursor-pointer
+              "
+            >
+              Check
+            </cs-trigger>
+          </div>
+          <cs-check for="activity">
+            <p class="mt-0">The program should run without any errors.</p>
+            <cs-stdin>12</cs-stdin>
+          </cs-check>
+          <cs-check for="activity">
+            <p class="mt-0">
+              The program should ask the user to enter an age and then display
+              the text <code>See ya later!</code> onto the screen.
+            </p>
+            <cs-stdin>13</cs-stdin>
+            <cs-stdout> Hi there! How old are you? 13 See ya later! </cs-stdout>
+          </cs-check>
+          <cs-check for="activity">
+            <p class="mt-0">
+              If the user types <code>"14"</code> for their age, then the
+              program should print <code>Heya, twin!</code> before it prints
+              <code>See ya later!</code>.
+            </p>
+            <cs-stdin>14</cs-stdin>
+            <cs-stdout>
+              Hi there! How old are you? 14 Heya, twin! See ya later!
+            </cs-stdout>
+          </cs-check>
+        </cs-requirements>
+      </article>
+    </main>
+  </body>
+</html>
