@@ -34,17 +34,7 @@ function commandsForRuntime(name: string, entryPath: string): RuntimeCommands {
     return { run: `cat ${entryPath} | sqlite` };
   }
 
-  if (name === "clang") {
-    return {
-      prepare: [
-        `clang -cc1 -Werror -triple wasm32-unkown-wasi -isysroot /sys -internal-isystem /sys/include -ferror-limit 4 -fmessage-length 80 -fcolor-diagnostics -O2 -emit-obj -o ./program.o ${entryPath}`,
-        `wasm-ld -L/sys/lib/wasm32-wasi /sys/lib/wasm32-wasi/crt1.o ./program.o -lc -o ./program.wasm`,
-      ],
-      run: `wasmer run ./program.wasm`,
-    };
-  }
-
-  if (name === "clangpp") {
+  if (name === "clang" || name === "clangpp") {
     return {
       prepare: [
         `runno-clang -cc1 -Werror -emit-obj -disable-free -isysroot /sys -internal-isystem /sys/include/c++/v1 -internal-isystem /sys/include -internal-isystem /sys/lib/clang/8.0.1/include -ferror-limit 4 -fmessage-length 80 -fcolor-diagnostics -O2 -o program.o -x c++  ${entryPath}`,
