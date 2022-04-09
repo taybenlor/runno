@@ -22,6 +22,7 @@ export class RunElement extends LitElement implements RuntimeMethods {
       color: black;
       height: var(--runno-editor-height, auto);
       max-height: var(--runno-editor-max-height, 60%);
+      overflow: auto;
     }
 
     runno-controls {
