@@ -30,12 +30,10 @@
     "prepare": "tsdx build"
   },
   "devDependencies": {
-    "@types/jest": "^27.0.2",
     "@types/node": "^16.11.4",
     "@types/url-safe-base64": "^1.1.0",
     "fs-extra": "^10.0.0",
     "husky": "^7.0.4",
-    "jest": "^27.3.1",
     "tsdx": "^0.14.1",
     "tslib": "^2.2.0",
     "typescript": "^4.4.4"
