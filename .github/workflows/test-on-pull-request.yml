@@ -10,6 +10,8 @@ jobs:
           node-version: "16"
       - name: Install dependencies
         run: npm run bootstrap
+      - name: Build Runno
+        run: npm run build
       - name: Install Playwright
         run: npx playwright install --with-deps
       - name: Run your tests
