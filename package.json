@@ -19,7 +19,9 @@
     "build:runtime": "cd packages/runtime && npm run build",
     "build:website": "cd packages/website && npm run build",
     "build": "npm run build:host && npm run build:wasi && npm run build:terminal && npm run build:runtime && npm run build:client && npm run build:website",
-    "build:deploy": "npm run bootstrap && npm run build"
+    "build:deploy": "npm run bootstrap && npm run build",
+    "test:client": "cd packages/client && npm run test",
+    "test": "npm run test:client"
   },
   "eslintConfig": {
     "extends": "preact",
