@@ -13,7 +13,7 @@
     "access": "public"
   },
   "main": "dist/index.js",
-  "module": "dist/host.esm.js",
+  "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
@@ -23,26 +23,20 @@
     "node": ">=12"
   },
   "scripts": {
-    "dev": "tsdx watch",
-    "build": "tsdx build",
-    "test": "tsdx test",
-    "lint": "tsdx lint",
-    "prepare": "tsdx build"
+    "build:esm": "esbuild src/index.ts --bundle --format=esm --outfile=dist/index.esm.js",
+    "build:cjs": "esbuild src/index.ts --bundle --format=cjs --outfile=dist/index.js",
+    "build:types": "tsc",
+    "build": "npm run build:esm && npm run build:cjs && npm run build:types"
   },
   "devDependencies": {
-    "@types/jest": "^27.0.2",
     "@types/node": "^16.11.4",
     "@types/url-safe-base64": "^1.1.0",
-    "fs-extra": "^10.0.0",
-    "husky": "^7.0.4",
-    "jest": "^27.3.1",
-    "tsdx": "^0.14.1",
+    "esbuild": "^0.14.48",
+    "typescript": "^4.4.4",
     "tslib": "^2.2.0",
-    "typescript": "^4.4.4"
-  },
-  "dependencies": {
     "post-me": "^0.4.5",
     "url-safe-base64": "^1.1.1"
   },
+  "dependencies": {},
   "gitHead": "812d21ec7c0c5d57c0274caaf7ff21c79ca79c1f"
 }

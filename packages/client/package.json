@@ -19,10 +19,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "serve": "vite preview",
-    "lint": "npx eslint src"
+    "serve": "vite",
+    "lint": "npx eslint src",
+    "test:serve": "vite --config tests/vite.config.js",
+    "test:playwright": "playwright test",
+    "test": "npm run test:playwright"
   },
   "devDependencies": {
+    "@playwright/test": "^1.23.1",
     "@types/url-safe-base64": "^1.1.0",
     "eslint": "^8.2.0",
     "typescript": "^4.4.4",
