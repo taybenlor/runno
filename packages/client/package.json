@@ -26,9 +26,6 @@
     "test": "npm run test:playwright"
   },
   "devDependencies": {
-    "@runno/host": "^0.3.0",
-    "@runno/runtime": "^0.3.1",
-    "@runno/terminal": "^0.3.0",
     "@playwright/test": "^1.23.1",
     "@types/url-safe-base64": "^1.1.0",
     "eslint": "^8.2.0",
@@ -36,6 +33,9 @@
     "vite": "^2.6.13"
   },
   "dependencies": {
+    "@runno/host": "^0.3.1",
+    "@runno/runtime": "^0.3.1",
+    "@runno/terminal": "^0.3.1",
     "normalize.css": "^8.0.1",
     "post-me": "^0.4.5",
     "url-safe-base64": "^1.1.1"
