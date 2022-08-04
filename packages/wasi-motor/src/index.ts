@@ -1,3 +1,5 @@
+import * as WASIStandard from "./snapshot_preview1";
+
 type WASMBinary = ArrayBuffer | ReturnType<typeof fetch>;
 
 type WASIDrive = {
@@ -73,6 +75,16 @@ export class WASI {
   }
 
   //
+  // Helpers
+  //
+
+  get envArray(): Array<string> {
+    return Object.keys(this.context.env).map((key) => {
+      return `${key}=${this.context.env[key]}`;
+    });
+  }
+
+  //
   // WASI Implementation
   //
 
@@ -80,7 +92,110 @@ export class WASI {
   //
   // https://github.com/AssemblyScript/assemblyscript/blob/main/std/assembly/bindings/wasi_snapshot_preview1.ts
 
-  args_get(argv: number, argv_buf: number): number {}
+  args_get(argv_ptr_ptr: number, argv_buf_ptr: number): number {
+    writeStringArrayToMemory(
+      this.memory,
+      this.context.args,
+      argv_ptr_ptr,
+      argv_buf_ptr
+    );
+    return WASIStandard.Result.SUCCESS;
+  }
 
-  args_sizes_get(arg_count: Pointer<Size>, argv_buf_size: Pointer<Size>) {}
+  args_sizes_get(argc_ptr: number, argv_buf_size_ptr: number): number {
+    writeStringArraySizesToMemory(
+      this.memory,
+      this.context.args,
+      argc_ptr,
+      argv_buf_size_ptr
+    );
+    return WASIStandard.Result.SUCCESS;
+  }
+
+  clock_res_get(id: number, retptr0: number): number {
+    switch (id) {
+      case WASIStandard.Clock.REALTIME:
+      case WASIStandard.Clock.MONOTONIC:
+      case WASIStandard.Clock.PROCESS_CPUTIME_ID:
+      case WASIStandard.Clock.THREAD_CPUTIME_ID: {
+        const view = new DataView(this.memory.buffer);
+        // TODO: Convert this to use performance.now
+        view.setBigUint64(retptr0, BigInt(1e6), true);
+        return WASIStandard.Result.SUCCESS;
+      }
+    }
+    return WASIStandard.Result.EINVAL;
+  }
+
+  clock_time_get(id: number, precision: bigint, retptr0: number): number {
+    // TODO: Implement this more correctly?
+    switch (id) {
+      case WASIStandard.Clock.REALTIME:
+      case WASIStandard.Clock.MONOTONIC:
+      case WASIStandard.Clock.PROCESS_CPUTIME_ID:
+      case WASIStandard.Clock.THREAD_CPUTIME_ID: {
+        const view = new DataView(this.memory.buffer);
+        // TODO: Convert this to use performance.now
+        view.setBigUint64(retptr0, BigInt(Date.now()) * BigInt(1e6), true);
+        return WASIStandard.Result.SUCCESS;
+      }
+    }
+    return WASIStandard.Result.EINVAL;
+  }
+
+  environ_get(env_ptr_ptr: number, env_buf_ptr: number): number {
+    writeStringArrayToMemory(
+      this.memory,
+      this.envArray,
+      env_ptr_ptr,
+      env_buf_ptr
+    );
+    return WASIStandard.Result.SUCCESS;
+  }
+
+  environ_sizes_get(env_ptr: number, env_buf_size_ptr: number): number {
+    writeStringArraySizesToMemory(
+      this.memory,
+      this.envArray,
+      env_ptr,
+      env_buf_size_ptr
+    );
+    return WASIStandard.Result.SUCCESS;
+  }
+}
+
+function writeStringArrayToMemory(
+  memory: WebAssembly.Memory,
+  values: Array<string>,
+  iter_ptr_ptr: number,
+  buf_ptr: number
+): void {
+  const encoder = new TextEncoder();
+  const buffer = new Uint8Array(memory.buffer);
+
+  const view = new DataView(memory.buffer);
+  for (const value of values) {
+    view.setUint32(iter_ptr_ptr, buf_ptr, true);
+    iter_ptr_ptr += 4;
+
+    const data = encoder.encode(`${value}\0`);
+    buffer.set(data, buf_ptr);
+    buf_ptr += data.length;
+  }
+}
+
+function writeStringArraySizesToMemory(
+  memory: WebAssembly.Memory,
+  values: Array<string>,
+  count_ptr: number,
+  buffer_size_ptr: number
+): void {
+  const view = new DataView(memory.buffer);
+  const encoder = new TextEncoder();
+  const len = values.reduce((acc, value) => {
+    return acc + encoder.encode(`${value}\0`).length;
+  }, 0);
+
+  view.setUint32(count_ptr, values.length, true);
+  view.setUint32(buffer_size_ptr, len, true);
 }
