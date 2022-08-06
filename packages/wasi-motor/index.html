@@ -4,10 +4,30 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + TS</title>
+    <title>WASI Test Page</title>
   </head>
   <body>
-    <div id="app"></div>
+    <main>
+      <form id="form">
+        <label>
+          Program:
+          <select id="program">
+            <option value="/programs/single-arg-is-hello.wasi.wasm">
+              Single Arg is Hello
+            </option>
+          </select>
+        </label>
+        <label>
+          args:
+          <input id="args" type="text" />
+        </label>
+        <label>
+          env:
+          <input id="args" type="text" />
+        </label>
+      </form>
+      <button id="run">Run</button>
+    </main>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -15,6 +15,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build:programs": "cd programs && cargo wasi build -r && cd .. && cp programs/target/wasm32-wasi/release/*.wasi.wasm public/programs/",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },

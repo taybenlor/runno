@@ -14,9 +14,6 @@ type Options = {
   env: Record<string, string>;
 };
 
-type Pointer<T> = number;
-type Size = void;
-
 export class WASIContext {
   drive: WASIDrive;
   args: string[] = [];
@@ -35,27 +32,30 @@ export class WASIContext {
  *
  */
 export class WASI {
-  instance: WebAssembly.Instance;
-  module: WebAssembly.Module;
+  instance!: WebAssembly.Instance;
+  module!: WebAssembly.Module;
   context: WASIContext;
-  memory: WebAssembly.Memory;
+  memory!: WebAssembly.Memory;
 
-  static start(
-    wasm: WebAssembly.WebAssemblyInstantiatedSource,
+  static async start(
+    wasmSource: Response | PromiseLike<Response>,
     context: WASIContext
   ) {
-    const wasi = new WASI(wasm, context);
+    const wasi = new WASI(context);
+    const wasm = await WebAssembly.instantiateStreaming(
+      wasmSource,
+      wasi.getImports()
+    );
+
+    wasi.instance = wasm.instance;
+    wasi.module = wasm.module;
+    wasi.memory = wasi.instance.exports.memory as WebAssembly.Memory;
+
     return wasi.start();
   }
 
-  constructor(
-    wasm: WebAssembly.WebAssemblyInstantiatedSource,
-    context: WASIContext
-  ) {
-    this.instance = wasm.instance;
-    this.module = wasm.module;
+  constructor(context: WASIContext) {
     this.context = context;
-    this.memory = this.instance.exports.memory as WebAssembly.Memory;
   }
 
   start(): number {
