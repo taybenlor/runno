@@ -1,7 +1,5 @@
 import * as WASIStandard from "./snapshot_preview1";
 
-type WASMBinary = ArrayBuffer | ReturnType<typeof fetch>;
-
 type WASIDrive = {
   [name: string]: WASIFile;
 };

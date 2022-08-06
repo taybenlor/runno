@@ -14,3 +14,5 @@
 // Variant cases
 //     ok
 //     err: errno
+
+// TODO: add tests using playwright to automate loading of the wasm binary and running it
