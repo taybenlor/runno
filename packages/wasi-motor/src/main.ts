@@ -3,10 +3,18 @@ import { WASI } from "../lib/main";
 
 // TODO: Provide UI for changing test binaries
 const programSelect = document.getElementById("program")! as HTMLSelectElement;
+const argsInput = document.getElementById("args")! as HTMLInputElement;
 const runButton = document.getElementById("run")! as HTMLButtonElement;
+
+const exitCode = document.getElementById("exit-code")! as HTMLElement;
+
 runButton.addEventListener("click", async () => {
   const url = programSelect.value;
 
-  // TODO: Rewrite WASI Motor API to work with actual WASM apis lol
-  WASI.start(fetch(url), {});
+  const result = await WASI.start(fetch(url), {
+    drive: {},
+    args: argsInput.value.split(" "),
+    env: {},
+  });
+  exitCode.textContent = result.toString();
 });

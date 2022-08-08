@@ -1,4 +1,4 @@
-import * as WASIStandard from "./snapshot_preview1";
+import { Result, Clock } from "./snapshot_preview1";
 
 type WASIDrive = {
   [name: string]: WASIFile;
@@ -26,6 +26,15 @@ export class WASIContext {
   }
 }
 
+class WASIExit extends Error {
+  code: number;
+  constructor(code: number) {
+    super();
+
+    this.code = code;
+  }
+}
+
 /**
  * This implementation adapted from cloudflare/workers-wasi
  * https://github.com/cloudflare/workers-wasi/blob/main/src/index.ts
@@ -37,20 +46,17 @@ export class WASI {
   context: WASIContext;
   memory!: WebAssembly.Memory;
 
+  initialized: boolean = false;
+
   static async start(
     wasmSource: Response | PromiseLike<Response>,
     context: WASIContext
   ) {
     const wasi = new WASI(context);
-    const wasm = await WebAssembly.instantiateStreaming(
-      wasmSource,
-      wasi.getImports()
-    );
-
-    wasi.instance = wasm.instance;
-    wasi.module = wasm.module;
-    wasi.memory = wasi.instance.exports.memory as WebAssembly.Memory;
-
+    const wasm = await WebAssembly.instantiateStreaming(wasmSource, {
+      wasi_snapshot_preview1: wasi.getImports(),
+    });
+    wasi.init(wasm);
     return wasi.start();
   }
 
@@ -58,18 +64,52 @@ export class WASI {
     this.context = context;
   }
 
+  init(wasm: WebAssembly.WebAssemblyInstantiatedSource) {
+    this.instance = wasm.instance;
+    this.module = wasm.module;
+    this.memory = this.instance.exports.memory as WebAssembly.Memory;
+
+    this.initialized = true;
+  }
+
   start(): number {
+    if (!this.initialized) {
+      throw new Error("WASI must be initialized with init(wasm) first");
+    }
+
     // TODO: Investigate Google's Asyncify
     // https://github.com/GoogleChromeLabs/asyncify
     // which allows for async imports/exports so we aren't
     // dependent on blocking IO
 
-    const entrypoint = this.instance.exports._start as () => number;
-    return entrypoint();
+    const entrypoint = this.instance.exports._start as () => void;
+    try {
+      entrypoint();
+    } catch (e) {
+      if (e instanceof WASIExit) {
+        return e.code;
+      } else {
+        throw e;
+      }
+    }
+
+    // Nothing went wrong so I guess this is a 0?
+    // TODO: Find out if default behaviour should be 0
+    return 0;
   }
 
-  getImports(): WebAssembly.Imports {
-    return {};
+  getImports(): WebAssembly.ModuleImports {
+    // TODO: Imports should be explicit and include only the specific WASI fields
+    return {
+      args_get: this.args_get.bind(this),
+      args_sizes_get: this.args_sizes_get.bind(this),
+      clock_res_get: this.clock_res_get.bind(this),
+      clock_time_get: this.clock_time_get.bind(this),
+      environ_get: this.environ_get.bind(this),
+      environ_sizes_get: this.environ_sizes_get.bind(this),
+      fd_write: this.fd_write.bind(this),
+      proc_exit: this.proc_exit.bind(this),
+    };
   }
 
   //
@@ -97,7 +137,7 @@ export class WASI {
       argv_ptr_ptr,
       argv_buf_ptr
     );
-    return WASIStandard.Result.SUCCESS;
+    return Result.SUCCESS;
   }
 
   args_sizes_get(argc_ptr: number, argv_buf_size_ptr: number): number {
@@ -107,38 +147,38 @@ export class WASI {
       argc_ptr,
       argv_buf_size_ptr
     );
-    return WASIStandard.Result.SUCCESS;
+    return Result.SUCCESS;
   }
 
   clock_res_get(id: number, retptr0: number): number {
     switch (id) {
-      case WASIStandard.Clock.REALTIME:
-      case WASIStandard.Clock.MONOTONIC:
-      case WASIStandard.Clock.PROCESS_CPUTIME_ID:
-      case WASIStandard.Clock.THREAD_CPUTIME_ID: {
+      case Clock.REALTIME:
+      case Clock.MONOTONIC:
+      case Clock.PROCESS_CPUTIME_ID:
+      case Clock.THREAD_CPUTIME_ID: {
         const view = new DataView(this.memory.buffer);
         // TODO: Convert this to use performance.now
         view.setBigUint64(retptr0, BigInt(1e6), true);
-        return WASIStandard.Result.SUCCESS;
+        return Result.SUCCESS;
       }
     }
-    return WASIStandard.Result.EINVAL;
+    return Result.EINVAL;
   }
 
   clock_time_get(id: number, precision: bigint, retptr0: number): number {
     // TODO: Implement this more correctly?
     switch (id) {
-      case WASIStandard.Clock.REALTIME:
-      case WASIStandard.Clock.MONOTONIC:
-      case WASIStandard.Clock.PROCESS_CPUTIME_ID:
-      case WASIStandard.Clock.THREAD_CPUTIME_ID: {
+      case Clock.REALTIME:
+      case Clock.MONOTONIC:
+      case Clock.PROCESS_CPUTIME_ID:
+      case Clock.THREAD_CPUTIME_ID: {
         const view = new DataView(this.memory.buffer);
         // TODO: Convert this to use performance.now
         view.setBigUint64(retptr0, BigInt(Date.now()) * BigInt(1e6), true);
-        return WASIStandard.Result.SUCCESS;
+        return Result.SUCCESS;
       }
     }
-    return WASIStandard.Result.EINVAL;
+    return Result.EINVAL;
   }
 
   environ_get(env_ptr_ptr: number, env_buf_ptr: number): number {
@@ -148,7 +188,7 @@ export class WASI {
       env_ptr_ptr,
       env_buf_ptr
     );
-    return WASIStandard.Result.SUCCESS;
+    return Result.SUCCESS;
   }
 
   environ_sizes_get(env_ptr: number, env_buf_size_ptr: number): number {
@@ -158,7 +198,13 @@ export class WASI {
       env_ptr,
       env_buf_size_ptr
     );
-    return WASIStandard.Result.SUCCESS;
+    return Result.SUCCESS;
+  }
+
+  fd_write(): void {}
+
+  proc_exit(code: number): void {
+    throw new WASIExit(code);
   }
 }
 
