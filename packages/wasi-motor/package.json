@@ -14,9 +14,10 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 5173",
     "build:programs": "cd programs && cargo wasi build -r && cd .. && cp programs/target/wasm32-wasi/release/*.wasi.wasm public/programs/",
     "build": "tsc && vite build",
+    "test": "playwright test",
     "preview": "vite preview"
   },
   "devDependencies": {
