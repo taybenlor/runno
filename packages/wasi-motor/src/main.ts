@@ -11,9 +11,11 @@ const exitCode = document.getElementById("exit-code")! as HTMLElement;
 runButton.addEventListener("click", async () => {
   const url = programSelect.value;
 
+  const argsString = argsInput.value;
+
   const result = await WASI.start(fetch(url), {
     drive: {},
-    args: argsInput.value.split(" "),
+    args: argsString ? argsInput.value.split(" ") : [],
     env: {},
   });
   exitCode.textContent = result.toString();
