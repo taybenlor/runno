@@ -22,3 +22,18 @@ test.describe("hello-world", () => {
     await expect(page.locator("#stdout")).toHaveText("Hello, World!");
   });
 });
+
+test.describe("hello-world-stderr", () => {
+  test.beforeEach(async ({ page }) => {
+    await page
+      .locator("select")
+      .selectOption("/programs/hello-world-stderr.wasi.wasm");
+  });
+
+  test("displays hello world and gives zero exit code", async ({ page }) => {
+    await page.locator("text=Run").click();
+
+    await expect(page.locator("#exit-code")).toHaveText("0");
+    await expect(page.locator("#stderr")).toHaveText("Hello, World!");
+  });
+});

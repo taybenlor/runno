@@ -11,6 +11,9 @@ const stdoutPre = document.getElementById("stdout")! as HTMLPreElement;
 const stderrPre = document.getElementById("stderr")! as HTMLPreElement;
 
 runButton.addEventListener("click", async () => {
+  stdoutPre.textContent = "";
+  stderrPre.textContent = "";
+
   const url = programSelect.value;
 
   const argsString = argsInput.value;

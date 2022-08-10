@@ -182,6 +182,8 @@ export interface SnapshotPreview1 {
 
   sched_yield(): number;
 
+  sock_accept(fd: number, flags: number): number;
+
   sock_recv(
     fd: number,
     ri_data_ptr: number,
