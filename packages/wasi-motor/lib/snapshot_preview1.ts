@@ -1,6 +1,7 @@
 // Adapted from https://github.com/cloudflare/workers-wasi/blob/main/src/snapshot_preview1.ts
 
 // See: https://github.com/WebAssembly/WASI/blob/main/phases/snapshot/witx/wasi_snapshot_preview1.witx
+// And: https://github.com/WebAssembly/WASI/blob/main/phases/snapshot/docs.md
 
 export interface SnapshotPreview1 {
   args_get(argv_ptr: number, argv_buf_ptr: number): number;
@@ -202,12 +203,28 @@ export interface SnapshotPreview1 {
 }
 
 export enum Result {
-  SUCCESS = 0,
-  EBADF = 8,
-  EINVAL = 28,
-  ENOENT = 44,
-  ENOSYS = 52,
-  ENOTSUP = 58,
+  SUCCESS = 0, // No error occurred. System call completed successfully.
+  E2BIG = 1, // Argument list too long.
+  EACCESS = 2, // Permission denied.
+  EADDRINUSE = 3, // Address in use.
+  EADDRNOTAVAIL = 4, // Address not available.
+  EAFNOSUPPORT = 5, // Address family not supported.
+  EAGAIN = 6, // Resource unavailable, or operation would block.
+  EALREADY = 7, // Connection already in progress.
+  EBADF = 8, // Bad file descriptor.
+  EBADMSG = 9, // Bad message.
+  EBUSY = 10, // Device or resource busy.
+  ECANCELED = 11, // Operation canceled.
+  ECHILD = 12, // No child processes.
+  ECONNABORTED = 13, // Connection aborted.
+  ECONNREFUSED = 14, // Connection refused.
+  ECONNRESET = 15, // Connection reset.
+  EDEADLK = 16, // Resource deadlock would occur.
+  EDESTADDRREQ = 17, // Destination address required.
+  EINVAL = 28, // Invalid argument.
+  ENOENT = 44, // No such file or directory.
+  ENOSYS = 52, // Function not supported.
+  ENOTSUP = 58, // Not supported, or operation not supported on socket.
 }
 
 export enum Clock {
@@ -216,22 +233,3 @@ export enum Clock {
   PROCESS_CPUTIME_ID = 2,
   THREAD_CPUTIME_ID = 3,
 }
-
-export const iovViews = (
-  view: DataView,
-  iovs_ptr: number,
-  iovs_len: number
-): Array<Uint8Array> => {
-  let result = Array<Uint8Array>(iovs_len);
-
-  for (let i = 0; i < iovs_len; i++) {
-    const bufferPtr = view.getUint32(iovs_ptr, true);
-    iovs_ptr += 4;
-
-    const bufferLen = view.getUint32(iovs_ptr, true);
-    iovs_ptr += 4;
-
-    result[i] = new Uint8Array(view.buffer, bufferPtr, bufferLen);
-  }
-  return result;
-};

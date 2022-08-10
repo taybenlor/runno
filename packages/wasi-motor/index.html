@@ -9,30 +9,47 @@
   <body>
     <main>
       <form id="form">
-        <label>
-          Program:
-          <select id="program">
-            <option value="/programs/single-arg-is-hello.wasi.wasm">
-              Single Arg is Hello
-            </option>
-            <option value="/programs/no-args.wasi.wasm">No Args</option>
-            <option value="/programs/return-arg-count.wasi.wasm">
-              Return Arg Count
-            </option>
-          </select>
-        </label>
-        <label>
-          args:
-          <input id="args" type="text" />
-        </label>
-        <label>
-          env:
-          <input id="env" type="text" />
-        </label>
+        <p>
+          <label>
+            Program:
+            <select id="program">
+              <option value="/programs/single-arg-is-hello.wasi.wasm">
+                Single Arg is Hello
+              </option>
+              <option value="/programs/return-arg-count.wasi.wasm">
+                Return Arg Count
+              </option>
+              <option value="/programs/three-args-foo-bar-baz.wasi.wasm">
+                Three Args: foo bar baz
+              </option>
+              <option value="/programs/hello-world.wasi.wasm">
+                Hello, World!
+              </option>
+            </select>
+          </label>
+        </p>
+        <p>
+          <label>
+            args:
+            <input id="args" type="text" />
+          </label>
+        </p>
+        <p>
+          <label>
+            env:
+            <input id="env" type="text" />
+          </label>
+        </p>
       </form>
       <button id="run">Run</button>
 
       <p><strong>Exit code:</strong><code id="exit-code"></code></p>
+
+      <p><strong>STDOUT</strong></p>
+      <pre id="stdout"></pre>
+
+      <p><strong>STDERR</strong></p>
+      <pre id="stderr"></pre>
     </main>
     <script type="module" src="/src/main.ts"></script>
   </body>

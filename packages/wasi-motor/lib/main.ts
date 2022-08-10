@@ -10,19 +10,44 @@ type WASIFile = {
 };
 
 type Options = {
+  drive: WASIDrive;
   args: string[];
   env: Record<string, string>;
+  stdin: (maxByteLength: number) => string | null;
+  stdout: (out: string) => void;
+  stderr: (err: string) => void;
 };
 
+/**
+ * WASIContext
+ *
+ * The context in which a WASI binary is executed.
+ * This is used for syscalls that get args, environment, use IO and read/write
+ * to files. This gives you programmattic access to the environment that the
+ * WASI binary is executing in.
+ *
+ * Notes:
+ *
+ * stdin - string is passed as JavaScript string but encoded to UTF-8, if this
+ *         ends up longer than maxByteLength it will be truncated.
+ *
+ */
 export class WASIContext {
   drive: WASIDrive;
-  args: string[] = [];
-  env: Record<string, string> = {};
+  args: string[];
+  env: Record<string, string>;
+  stdin: Options["stdin"];
+  stdout: Options["stdout"];
+  stderr: Options["stderr"];
 
-  constructor(drive: WASIDrive, options?: Options) {
-    this.drive = drive;
+  constructor(options?: Partial<Options>) {
+    this.drive = options?.drive ?? {};
     this.args = options?.args ?? [];
     this.env = options?.env ?? {};
+
+    this.stdin = options?.stdin ?? (() => null);
+    this.stdout = options?.stdout ?? (() => {});
+    this.stderr = options?.stderr ?? (() => {});
   }
 }
 
@@ -93,8 +118,7 @@ export class WASI {
       }
     }
 
-    // Nothing went wrong so I guess this is a 0?
-    // TODO: Find out if default behaviour should be 0
+    // Nothing went wrong so this is a 0
     return 0;
   }
 
@@ -165,15 +189,19 @@ export class WASI {
     return Result.EINVAL;
   }
 
-  clock_time_get(id: number, precision: bigint, retptr0: number): number {
-    // TODO: Implement this more correctly?
+  /**
+   * @param id
+   * @param precision
+   * @param retptr0
+   * @returns Result
+   */
+  clock_time_get(id: number, _: bigint, retptr0: number): number {
     switch (id) {
       case Clock.REALTIME:
       case Clock.MONOTONIC:
       case Clock.PROCESS_CPUTIME_ID:
       case Clock.THREAD_CPUTIME_ID: {
         const view = new DataView(this.memory.buffer);
-        // TODO: Convert this to use performance.now
         view.setBigUint64(retptr0, BigInt(Date.now()) * BigInt(1e6), true);
         return Result.SUCCESS;
       }
@@ -201,7 +229,85 @@ export class WASI {
     return Result.SUCCESS;
   }
 
-  fd_write(): void {}
+  fd_read(
+    fd: number,
+    iovs_ptr: number,
+    iovs_len: number,
+    retptr0: number
+  ): number {
+    // Read not supported on stdout and stderr
+    if (fd === 1 || fd === 2) {
+      return Result.ENOTSUP;
+    }
+
+    // Read from stdin
+    if (fd === 0) {
+      const view = new DataView(this.memory.buffer);
+      const iovs = createIOVectors(view, iovs_ptr, iovs_len);
+      const encoder = new TextEncoder();
+
+      let bytesRead = 0;
+      for (const iov of iovs) {
+        // Using callbacks for a blocking call
+        const input = this.context.stdin(iov.byteLength);
+        if (!input) {
+          break;
+        }
+
+        const data = encoder.encode(input);
+        const bytes = Math.min(iov.byteLength, data.byteLength);
+        iov.set(data.subarray(0, bytes));
+
+        bytesRead += bytes;
+      }
+
+      view.setUint32(retptr0, bytesRead, true);
+      return Result.SUCCESS;
+    }
+
+    // TODO: Implement reading from files other than STDIN
+    return Result.ENOSYS;
+  }
+
+  fd_write(
+    fd: number,
+    ciovs_ptr: number,
+    ciovs_len: number,
+    retptr0: number
+  ): number {
+    // Write not supported on STDIN
+    if (fd === 0) {
+      return Result.ENOTSUP;
+    }
+
+    if (fd === 1 || fd === 2) {
+      const stdfn = fd === 1 ? this.context.stdout : this.context.stderr;
+
+      const view = new DataView(this.memory.buffer);
+      const iovs = createIOVectors(view, ciovs_ptr, ciovs_len);
+      const decoder = new TextDecoder();
+
+      let bytesWritten = 0;
+      for (const iov of iovs) {
+        if (iov.byteLength === 0) {
+          continue;
+        }
+
+        // We have to copy the `iov` to restrict text decoder to the bounds of
+        // iov. Otherwise text decoder seems to just read all our memory.
+        const output = decoder.decode(new Uint8Array(iov));
+        stdfn(output);
+        bytesWritten += iov.byteLength;
+      }
+
+      view.setUint32(retptr0, bytesWritten, true);
+
+      return Result.SUCCESS;
+    }
+
+    // TODO: Implement writing to files other than STDIN
+    return Result.ENOSYS;
+  }
 
   proc_exit(code: number): void {
     throw new WASIExit(code);
@@ -242,4 +348,23 @@ function writeStringArraySizesToMemory(
 
   view.setUint32(count_ptr, values.length, true);
   view.setUint32(buffer_size_ptr, len, true);
+}
+
+function createIOVectors(
+  view: DataView,
+  iovs_ptr: number,
+  iovs_len: number
+): Array<Uint8Array> {
+  let result = Array<Uint8Array>(iovs_len);
+
+  for (let i = 0; i < iovs_len; i++) {
+    const bufferPtr = view.getUint32(iovs_ptr, true);
+    iovs_ptr += 4;
+
+    const bufferLen = view.getUint32(iovs_ptr, true);
+    iovs_ptr += 4;
+
+    result[i] = new Uint8Array(view.buffer, bufferPtr, bufferLen);
+  }
+  return result;
 }

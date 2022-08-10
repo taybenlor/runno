@@ -1,28 +1,15 @@
-// TODO: Write specs on args
-//
-// args_get(argv: Pointer<Pointer<u8>>, argv_buf: Pointer<u8>) -> Result<(), errno>
-// Read command-line argument data. The size of the array should match that returned by args_sizes_get. Each argument is expected to be \0 terminated.
-// Params
-//     argv: Pointer<Pointer<u8>>
-//     argv_buf: Pointer<u8>
-// Results
-//     error: Result<(), errno>
-// Variant Layout
-//     size: 8
-//     align: 4
-//     tag_size: 4
-// Variant cases
-//     ok
-//     err: errno
-
-// TODO: add tests using playwright to automate loading of the wasm binary and running it
+// TODO: Might be worth changing this around so that it directly uses the API.
+//       There's some cool stuff around fixtures that Playwright provides:
+//              https://playwright.dev/docs/test-fixtures
 
 import { test, expect } from "@playwright/test";
 
+test.beforeEach(async ({ page }) => {
+  await page.goto("http://localhost:5173");
+});
+
 test.describe("return-arg-count", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("http://localhost:5173");
-
     await page
       .locator("select")
       .selectOption("/programs/return-arg-count.wasi.wasm");
@@ -58,8 +45,6 @@ test.describe("return-arg-count", () => {
 
 test.describe("single-arg-is-hello", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("http://localhost:5173");
-
     await page
       .locator("select")
       .selectOption("/programs/single-arg-is-hello.wasi.wasm");
@@ -74,6 +59,40 @@ test.describe("single-arg-is-hello", () => {
 
   test("gives 0 exit code when run with hello as arg", async ({ page }) => {
     await page.locator("input#args").fill("hello");
+    await page.locator("text=Run").click();
+
+    await expect(page.locator("#exit-code")).toHaveText("0");
+  });
+});
+
+test.describe("three-args-foo-bar-baz", () => {
+  test.beforeEach(async ({ page }) => {
+    await page
+      .locator("select")
+      .selectOption("/programs/three-args-foo-bar-baz.wasi.wasm");
+  });
+
+  test("gives non-zero exit code when run with no args", async ({ page }) => {
+    await page.locator("text=Run").click();
+
+    await expect(page.locator("#exit-code")).not.toBeEmpty();
+    await expect(page.locator("#exit-code")).not.toHaveText("0");
+  });
+
+  test("gives non-zero exit code when run with hello as arg", async ({
+    page,
+  }) => {
+    await page.locator("input#args").fill("hello");
+    await page.locator("text=Run").click();
+
+    await expect(page.locator("#exit-code")).not.toBeEmpty();
+    await expect(page.locator("#exit-code")).not.toHaveText("0");
+  });
+
+  test("gives zero exit code when run with foo bar baz as args", async ({
+    page,
+  }) => {
+    await page.locator("input#args").fill("foo bar baz");
     await page.locator("text=Run").click();
 
     await expect(page.locator("#exit-code")).toHaveText("0");

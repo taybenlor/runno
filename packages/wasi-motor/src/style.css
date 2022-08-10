@@ -25,11 +25,13 @@ a:hover {
 }
 
 body {
-  margin: 0;
+  margin: 0 auto;
   display: flex;
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+
+  max-width: 80vw;
 }
 
 h1 {
