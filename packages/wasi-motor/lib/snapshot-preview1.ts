@@ -227,6 +227,7 @@ export enum Result {
   ENOENT = 44, // No such file or directory.
   ENOSYS = 52, // Function not supported.
   ENOTSUP = 58, // Not supported, or operation not supported on socket.
+  ESPIPE = 70, // Invalid seek.
 }
 
 export enum Clock {
@@ -234,4 +235,10 @@ export enum Clock {
   MONOTONIC = 1,
   PROCESS_CPUTIME_ID = 2,
   THREAD_CPUTIME_ID = 3,
+}
+
+export enum Whence {
+  SET = 0, // Seek relative to start-of-file.
+  CUR = 1, // Seek relative to current position.
+  END = 2, // Seek relative to end-of-file.
 }

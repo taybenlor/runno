@@ -1,5 +1,6 @@
 import { Result, Clock, SnapshotPreview1 } from "./snapshot-preview1";
-import { WASIContext } from "./types";
+import { WASIContext } from "./wasi-context";
+import { WASIDrive } from "./wasi-drive";
 
 /**
  * Implementation of a WASI runner for the browser.
@@ -15,8 +16,9 @@ import { WASIContext } from "./types";
 export class WASI implements SnapshotPreview1 {
   instance!: WebAssembly.Instance;
   module!: WebAssembly.Module;
-  context: WASIContext;
   memory!: WebAssembly.Memory;
+  context: WASIContext;
+  drive: WASIDrive;
 
   initialized: boolean = false;
 
@@ -34,6 +36,7 @@ export class WASI implements SnapshotPreview1 {
 
   constructor(context: WASIContext) {
     this.context = context;
+    this.drive = new WASIDrive(context.fs);
   }
 
   init(wasm: WebAssembly.WebAssemblyInstantiatedSource) {
@@ -286,33 +289,43 @@ export class WASI implements SnapshotPreview1 {
       return Result.ENOTSUP;
     }
 
-    // Read from stdin
-    if (fd === 0) {
-      const view = new DataView(this.memory.buffer);
-      const iovs = createIOVectors(view, iovs_ptr, iovs_len);
-      const encoder = new TextEncoder();
+    const view = new DataView(this.memory.buffer);
+    const iovs = createIOVectors(view, iovs_ptr, iovs_len);
+    const encoder = new TextEncoder();
 
-      let bytesRead = 0;
-      for (const iov of iovs) {
+    let bytesRead = 0;
+    let result: Result = Result.SUCCESS;
+
+    for (const iov of iovs) {
+      let data: Uint8Array;
+
+      // Read from STDIN
+      if (fd === 0) {
         // Using callbacks for a blocking call
         const input = this.context.stdin(iov.byteLength);
         if (!input) {
           break;
         }
 
-        const data = encoder.encode(input);
-        const bytes = Math.min(iov.byteLength, data.byteLength);
-        iov.set(data.subarray(0, bytes));
-
-        bytesRead += bytes;
+        data = encoder.encode(input);
+      } else {
+        const dataOrResult = this.drive.read(fd, iov.byteLength);
+        if (typeof dataOrResult === "number") {
+          result = dataOrResult;
+          break;
+        } else {
+          data = dataOrResult;
+        }
       }
 
-      view.setUint32(retptr0, bytesRead, true);
-      return Result.SUCCESS;
+      const bytes = Math.min(iov.byteLength, data.byteLength);
+      iov.set(data.subarray(0, bytes));
+
+      bytesRead += bytes;
     }
 
-    // TODO: Implement reading from files other than STDIN
-    return Result.ENOSYS;
+    view.setUint32(retptr0, bytesRead, true);
+    return result;
   }
 
   /**
@@ -329,33 +342,37 @@ export class WASI implements SnapshotPreview1 {
       return Result.ENOTSUP;
     }
 
-    if (fd === 1 || fd === 2) {
-      const stdfn = fd === 1 ? this.context.stdout : this.context.stderr;
+    const view = new DataView(this.memory.buffer);
+    const iovs = createIOVectors(view, ciovs_ptr, ciovs_len);
+    const decoder = new TextDecoder();
 
-      const view = new DataView(this.memory.buffer);
-      const iovs = createIOVectors(view, ciovs_ptr, ciovs_len);
-      const decoder = new TextDecoder();
+    let bytesWritten = 0;
 
-      let bytesWritten = 0;
-      for (const iov of iovs) {
-        if (iov.byteLength === 0) {
-          continue;
-        }
+    let result = Result.SUCCESS;
+    for (const iov of iovs) {
+      if (iov.byteLength === 0) {
+        continue;
+      }
 
+      // STDOUT or STDERR
+      if (fd === 1 || fd === 2) {
+        const stdfn = fd === 1 ? this.context.stdout : this.context.stderr;
         // We have to copy the `iov` to restrict text decoder to the bounds of
         // iov. Otherwise text decoder seems to just read all our memory.
         const output = decoder.decode(new Uint8Array(iov));
         stdfn(output);
-        bytesWritten += iov.byteLength;
+      } else {
+        result = this.drive.write(fd, new Uint8Array(iov));
+        if (result != Result.SUCCESS) {
+          break;
+        }
       }
 
-      view.setUint32(retptr0, bytesWritten, true);
-
-      return Result.SUCCESS;
+      bytesWritten += iov.byteLength;
     }
 
-    // TODO: Implement writing to files other than STDOUT/STDERR
-    return Result.ENOSYS;
+    view.setUint32(retptr0, bytesWritten, true);
+    return result;
   }
 
   /**
@@ -380,9 +397,8 @@ export class WASI implements SnapshotPreview1 {
    *
    * @param fd
    */
-  fd_close() {
-    // TODO: Any cleanup should be done here along with syncing
-    return Result.SUCCESS;
+  fd_close(fd: number) {
+    return this.drive.close(fd);
   }
 
   /**
@@ -391,9 +407,8 @@ export class WASI implements SnapshotPreview1 {
    *
    * @param fd
    */
-  fd_datasync() {
-    // TODO: Maybe callback a file write here?
-    return Result.SUCCESS;
+  fd_datasync(fd: number) {
+    return this.drive.sync(fd);
   }
 
   /**
@@ -525,27 +540,31 @@ export class WASI implements SnapshotPreview1 {
    * Move the offset of a file descriptor.
    * Note: This is similar to lseek in POSIX.
    */
-  fd_seek() {
-    // TODO: Implement
-    return Result.ENOSYS;
+  fd_seek(fd: number, offset: bigint, whence: number, retptr0: number) {
+    const [result, newOffset] = this.drive.seek(fd, offset, whence);
+    const view = new DataView(this.memory.buffer);
+    view.setUint32(retptr0, newOffset, true);
+    return result;
   }
 
   /**
    * Synchronize the data and metadata of a file to disk.
    * Note: This is similar to fsync in POSIX.
    */
-  fd_sync() {
-    // TODO: Implement
-    return Result.ENOSYS;
+  fd_sync(fd: number) {
+    return this.drive.sync(fd);
   }
 
   /**
    * Return the current offset of a file descriptor.
    * Note: This is similar to lseek(fd, 0, SEEK_CUR) in POSIX.
    */
-  fd_tell() {
-    // TODO: Implement
-    return Result.ENOSYS;
+  fd_tell(fd: number, retptr0: number): number {
+    const [result, offset] = this.drive.tell(fd);
+
+    const view = new DataView(this.memory.buffer);
+    view.setUint32(retptr0, offset, true);
+    return result;
   }
 
   //
@@ -592,8 +611,27 @@ export class WASI implements SnapshotPreview1 {
    * since this is error-prone in multi-threaded contexts. The returned file
    * descriptor is guaranteed to be less than 2**31.
    * Note: This is similar to openat in POSIX.
+   * @param fd: fd
+   * @param dirflags: lookupflags Flags determining the method of how the path is resolved.
+   * @param path: string The relative path of the file or directory to open, relative to the path_open::fd directory.
+   * @param oflags: oflags The method by which to open the file.
+   * @param fs_rights_base: rights The initial rights of the newly created file descriptor. The implementation is allowed to return a file descriptor with fewer rights than specified, if and only if those rights do not apply to the type of file being opened. The base rights are rights that will apply to operations using the file descriptor itself, while the inheriting rights are rights that apply to file descriptors derived from it.
+   * @param fs_rights_inheriting: rights
+   * @param fdflags: fdflags
+   *
    */
-  path_open() {
+  path_open(
+    fd: number,
+    dirFlags: number,
+    pathOffset: number,
+    pathLen: number,
+    oflags: number,
+    rightsBase: bigint,
+    rightsInheriting: bigint,
+    fdflags: number,
+    retptr0: number
+  ): number {
+    // TODO: Figure out how to do this my architecture isn't really shaped like this
     return Result.ENOSYS;
   }
 
