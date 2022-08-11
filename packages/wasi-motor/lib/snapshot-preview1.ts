@@ -127,12 +127,12 @@ export interface SnapshotPreview1 {
 
   path_open(
     fd: number,
-    dirFlags: number,
-    pathOffset: number,
-    pathLen: number,
+    dir_flags: number,
+    path_ptr: number,
+    path_len: number,
     oflags: number,
-    rightsBase: bigint,
-    rightsInheriting: bigint,
+    rights_base: bigint,
+    rights_inheriting: bigint,
     fdflags: number,
     retptr0: number
   ): number;

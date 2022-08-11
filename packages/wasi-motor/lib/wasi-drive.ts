@@ -12,7 +12,7 @@ export class WASIDrive {
     this.fs = { ...fs };
   }
 
-  open(path: WASIPath): Result {
+  open(fdDir: FileDescriptor, path: WASIPath): Result {
     if (!(path in this.fs)) {
       return Result.ENOENT;
     }

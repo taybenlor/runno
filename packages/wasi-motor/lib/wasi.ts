@@ -612,26 +612,50 @@ export class WASI implements SnapshotPreview1 {
    * descriptor is guaranteed to be less than 2**31.
    * Note: This is similar to openat in POSIX.
    * @param fd: fd
-   * @param dirflags: lookupflags Flags determining the method of how the path is resolved.
-   * @param path: string The relative path of the file or directory to open, relative to the path_open::fd directory.
+   * @param dirflags: lookupflags Flags determining the method of how the path
+   *                  is resolved.
+   * @param path: string The relative path of the file or directory to open,
+   *              relative to the path_open::fd directory.
    * @param oflags: oflags The method by which to open the file.
-   * @param fs_rights_base: rights The initial rights of the newly created file descriptor. The implementation is allowed to return a file descriptor with fewer rights than specified, if and only if those rights do not apply to the type of file being opened. The base rights are rights that will apply to operations using the file descriptor itself, while the inheriting rights are rights that apply to file descriptors derived from it.
+   * @param fs_rights_base: rights The initial rights of the newly created file
+   *                        descriptor. The implementation is allowed to return
+   *                        a file descriptor with fewer rights than specified,
+   *                        if and only if those rights do not apply to the type
+   *                        of file being opened. The base rights are rights
+   *                        that will apply to operations using the file
+   *                        descriptor itself, while the inheriting rights are
+   *                        rights that apply to file descriptors derived from
+   *                        it.
    * @param fs_rights_inheriting: rights
    * @param fdflags: fdflags
    *
    */
   path_open(
     fd: number,
-    dirFlags: number,
-    pathOffset: number,
-    pathLen: number,
-    oflags: number,
-    rightsBase: bigint,
-    rightsInheriting: bigint,
-    fdflags: number,
+    _: number,
+    path_ptr: number,
+    path_len: number,
+    oflags: number, // TODO: This is important and changes opening behaviour
+    rights_base: bigint,
+    rights_inheriting: bigint,
+    fdflags: number, // TODO: This is important and changes write behaviour
     retptr0: number
   ): number {
+    const view = new DataView(this.memory.buffer);
+
+    const pathBuffer = new Uint8Array(path_len);
+    const memory = new Uint8Array(this.memory.buffer);
+    pathBuffer.set(memory.subarray(path_ptr, path_len));
+
+    const decoder = new TextDecoder();
+    const path = decoder.decode(pathBuffer);
+
+    const newFd = this.drive.open(fd, path);
+
+    view.setUint32(retptr0, newFd, true);
+
     // TODO: Figure out how to do this my architecture isn't really shaped like this
+    // geee how do you even start with this
     return Result.ENOSYS;
   }
 
