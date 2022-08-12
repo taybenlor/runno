@@ -25,8 +25,8 @@ type Options = {
  */
 export class WASIContext {
   fs: WASIFS;
-  args: string[];
-  env: Record<string, string>;
+  args: string[]; // Program args (like from a terminal program)
+  env: Record<string, string>; // Environment (like a .env file)
   stdin: Options["stdin"];
   stdout: Options["stdout"];
   stderr: Options["stderr"];

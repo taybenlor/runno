@@ -223,11 +223,65 @@ export enum Result {
   ECONNRESET = 15, // Connection reset.
   EDEADLK = 16, // Resource deadlock would occur.
   EDESTADDRREQ = 17, // Destination address required.
+  EDOM = 18, // Mathematics argument out of domain of function.
+  EDQUOT = 19, // Reserved
+  EEXIST = 20, // File exists
+  EFAULT = 21, // Bad address
+  EFBIG = 22, // File too large
+  EHOSTUNREACH = 23, // Host is unreachable
+  EIDRM = 24, // Identifier removed
+  EILSEQ = 25, // Illegal byte sequence
+  EINPROGRESS = 26, // Operation in progress.
+  EINTR = 27, // Interrupted function.
   EINVAL = 28, // Invalid argument.
+  EIO = 29, // I/O Error.
+  EISCONN = 30, // Socket is connected.
+  EISDIR = 31, // Is a directory.
+  ELOOP = 32, // Too many levels of symbolic links.
+  EMFILE = 33, // File descriptor value too large.
+  EMLINK = 34, // Too many links.
+  EMSGSIZE = 35, // Message too large.
+  EMULTIHOP = 36, // Reserved.
+  ENAMETOOLONG = 37, // Filename too long.
+  ENETDOWN = 38, // Network is down.
+  ENETRESET = 39, // Connection aborted by network.
+  ENETUNREACH = 40, // Network unreachable.
+  ENFILE = 41, // Too many files open in system.
+  ENOBUFS = 42, // No buffer space available.
+  ENODEV = 43, // No such device.
   ENOENT = 44, // No such file or directory.
+  ENOEXEC = 45, // Executable file format error.
+  ENOLCK = 46, // No locks available.
+  ENOLINK = 47, // Reserved.
+  ENOMEM = 48, // Not enough space.
+  ENOMSG = 49, // No message of the desired type.
+  ENOPROTOOPT = 50, // Protocol not available.
+  ENOSPC = 51, // No space left on device.
   ENOSYS = 52, // Function not supported.
+  ENOTCONN = 53, // The socket is not connected.
+  ENOTDIR = 54, // Not a directory or a symbolic link to a directory.
+  ENOTEMPTY = 55, // Directory not empty.
+  ENOTRECOVERABLE = 56, // State not recoverable.
+  ENOTSOCK = 57, // Not a socket.
   ENOTSUP = 58, // Not supported, or operation not supported on socket.
+  ENOTTY = 59, // Inappropriate I/O control operation.
+  ENXIO = 60, // No such device or address.
+  EOVERFLOW = 61, // Value too large to be stored in data type.
+  EOWNERDEAD = 62, // Previous owner died.
+  EPERM = 63, // Operation not permitted.
+  EPIPE = 64, // Broken pipe.
+  EPROTO = 65, // Protocol error.
+  EPROTONOSUPPORT = 66, // Protocol not supported.
+  EPROTOTYPE = 67, // Protocol wrong type for socket.
+  ERANGE = 68, // Result too large.
+  EROFS = 69, // Read-only file system.
   ESPIPE = 70, // Invalid seek.
+  ESRCH = 71, // No such process.
+  ESTALE = 72, // Reserved.
+  ETIMEDOUT = 73, // Connection timed out.
+  ETXTBSY = 74, // Text file busy.
+  EXDEV = 75, // Cross device link.
+  ENOTCAPABLE = 76, // Extension: Capabilities insufficient.
 }
 
 export enum Clock {
@@ -241,4 +295,16 @@ export enum Whence {
   SET = 0, // Seek relative to start-of-file.
   CUR = 1, // Seek relative to current position.
   END = 2, // Seek relative to end-of-file.
+}
+
+export enum LookupFlags {
+  SYMLINK_FOLLOW = 1 << 0, // As long as the resolved path corresponds to a symbolic
+  // link, it is expanded.
+}
+
+export enum OpenFlags {
+  CREAT = 1 << 0, // Create file if it does not exist.
+  DIRECTORY = 1 << 1, // Fail if not a directory.
+  EXCL = 1 << 2, // Fail if file already exists.
+  TRUNC = 1 << 3, // Truncate file to size 0.
 }
