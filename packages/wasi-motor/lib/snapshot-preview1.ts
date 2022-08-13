@@ -308,3 +308,11 @@ export enum OpenFlags {
   EXCL = 1 << 2, // Fail if file already exists.
   TRUNC = 1 << 3, // Truncate file to size 0.
 }
+
+export enum FileDescriptorFlags {
+  APPEND = 1 << 0, // Append mode: Data written to the file is always appended to the file's end.
+  DSYNC = 1 << 1, // Write according to synchronized I/O data integrity completion. Only the data stored in the file is synchronized.
+  NONBLOCK = 1 << 2, // Non-blocking mode.
+  RSYNC = 1 << 3, // Synchronized read I/O operations.
+  SYNC = 1 << 4, // Write according to synchronized I/O file integrity completion. In addition to synchronizing the data stored in the file, the implementation may also synchronously update the file's metadata.
+}

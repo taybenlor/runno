@@ -476,9 +476,48 @@ export class WASI implements SnapshotPreview1 {
    * Read from a file descriptor, without using and updating the file
    * descriptor's offset. Note: This is similar to preadv in POSIX.
    */
-  fd_pread() {
-    // TODO: Implement
-    return Result.ENOSYS;
+  fd_pread(
+    fd: number,
+    iovs_ptr: number,
+    iovs_len: number,
+    offset: bigint, // TODO: I just discard the precision from the bigint
+    retptr0: number
+  ): number {
+    // Read not supported on stdout and stderr
+    if (fd === 1 || fd === 2) {
+      return Result.ENOTSUP;
+    }
+
+    if (fd === 0) {
+      // TODO: What is the meaning of offset if we're reading from stdin?
+      return this.fd_read(fd, iovs_ptr, iovs_len, retptr0);
+    }
+
+    const view = new DataView(this.memory.buffer);
+    const iovs = createIOVectors(view, iovs_ptr, iovs_len);
+
+    let bytesRead = 0;
+    let result: Result = Result.SUCCESS;
+
+    for (const iov of iovs) {
+      let data: Uint8Array;
+
+      const dataOrResult = this.drive.pread(fd, iov.byteLength, Number(offset));
+      if (typeof dataOrResult === "number") {
+        result = dataOrResult;
+        break;
+      } else {
+        data = dataOrResult;
+      }
+
+      const bytes = Math.min(iov.byteLength, data.byteLength);
+      iov.set(data.subarray(0, bytes));
+
+      bytesRead += bytes;
+    }
+
+    view.setUint32(retptr0, bytesRead, true);
+    return result;
   }
 
   /**
@@ -501,9 +540,44 @@ export class WASI implements SnapshotPreview1 {
    * Write to a file descriptor, without using and updating the file
    * descriptor's offset. Note: This is similar to pwritev in POSIX.
    */
-  fd_pwrite() {
-    // TODO: Implement
-    return Result.ENOSYS;
+  fd_pwrite(
+    fd: number,
+    ciovs_ptr: number,
+    ciovs_len: number,
+    offset: bigint,
+    retptr0: number
+  ): number {
+    // Write not supported on STDIN
+    if (fd === 0) {
+      return Result.ENOTSUP;
+    }
+
+    if (fd === 1 || fd === 2) {
+      // TODO: Not sure what pwrite means for STDOUT or STDERR
+      return this.fd_write(fd, ciovs_ptr, ciovs_len, retptr0);
+    }
+
+    const view = new DataView(this.memory.buffer);
+    const iovs = createIOVectors(view, ciovs_ptr, ciovs_len);
+
+    let bytesWritten = 0;
+
+    let result = Result.SUCCESS;
+    for (const iov of iovs) {
+      if (iov.byteLength === 0) {
+        continue;
+      }
+
+      result = this.drive.pwrite(fd, new Uint8Array(iov), Number(offset));
+      if (result != Result.SUCCESS) {
+        break;
+      }
+
+      bytesWritten += iov.byteLength;
+    }
+
+    view.setUint32(retptr0, bytesWritten, true);
+    return result;
   }
 
   /**
@@ -635,10 +709,10 @@ export class WASI implements SnapshotPreview1 {
     _: number,
     path_ptr: number,
     path_len: number,
-    oflags: number, // TODO: This is important and changes opening behaviour
+    oflags: number,
     rights_base: bigint,
     rights_inheriting: bigint,
-    fdflags: number, // TODO: This is important and changes write behaviour
+    fdflags: number,
     retptr0: number
   ): number {
     const view = new DataView(this.memory.buffer);
@@ -650,7 +724,7 @@ export class WASI implements SnapshotPreview1 {
     const decoder = new TextDecoder();
     const path = decoder.decode(pathBuffer);
 
-    const newFd = this.drive.open(fd, path);
+    const newFd = this.drive.open(fd, path, oflags, fdflags);
 
     view.setUint32(retptr0, newFd, true);
 

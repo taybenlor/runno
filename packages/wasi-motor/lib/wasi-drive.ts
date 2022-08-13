@@ -1,4 +1,9 @@
-import { OpenFlags, Result, Whence } from "./snapshot-preview1";
+import {
+  FileDescriptorFlags,
+  OpenFlags,
+  Result,
+  Whence,
+} from "./snapshot-preview1";
 import { WASIFile, WASIFS, WASIPath } from "./types";
 
 type FileDescriptor = number;
@@ -61,7 +66,7 @@ export class WASIDrive {
     fdDir: FileDescriptor,
     path: WASIPath,
     oflags: number,
-    _: number
+    fdflags: number
   ): Result {
     const createFileIfNone: boolean = !!(oflags & OpenFlags.CREAT);
     const failIfNotDir: boolean = !!(oflags & OpenFlags.DIRECTORY);
@@ -133,6 +138,19 @@ export class WASIDrive {
     return file.read(bytes);
   }
 
+  pread(
+    fd: FileDescriptor,
+    bytes: number,
+    offset: number
+  ): Result | Uint8Array {
+    const file = this.openMap.get(fd!);
+    if (!file || file instanceof OpenDirectory) {
+      return Result.EBADF;
+    }
+
+    return file.pread(bytes, offset);
+  }
+
   write(fd: FileDescriptor, data: Uint8Array): Result {
     const file = this.openMap.get(fd)!;
     if (!file || file instanceof OpenDirectory) {
@@ -140,6 +158,16 @@ export class WASIDrive {
     }
 
     file.write(data);
+    return Result.SUCCESS;
+  }
+
+  pwrite(fd: FileDescriptor, data: Uint8Array, offset: number): Result {
+    const file = this.openMap.get(fd)!;
+    if (!file || file instanceof OpenDirectory) {
+      return Result.EBADF;
+    }
+
+    file.pwrite(data, offset);
     return Result.SUCCESS;
   }
 
@@ -177,8 +205,13 @@ class OpenFile {
   buffer: Uint8Array;
   offset: number = 0;
   isDirty: boolean = false;
+  flagAppend: boolean;
+  flagDSync: boolean;
+  flagNonBlock: boolean;
+  flagRSync: boolean;
+  flagSync: boolean;
 
-  constructor(file: WASIFile) {
+  constructor(file: WASIFile, fdflags: number) {
     this.file = file;
 
     if (this.file.mode === "string") {
@@ -187,6 +220,12 @@ class OpenFile {
     } else {
       this.buffer = new Uint8Array(this.file.content);
     }
+
+    this.flagAppend = !!(fdflags & FileDescriptorFlags.APPEND);
+    this.flagDSync = !!(fdflags & FileDescriptorFlags.DSYNC);
+    this.flagNonBlock = !!(fdflags & FileDescriptorFlags.NONBLOCK);
+    this.flagRSync = !!(fdflags & FileDescriptorFlags.RSYNC);
+    this.flagSync = !!(fdflags & FileDescriptorFlags.SYNC);
   }
 
   read(bytes: number) {
@@ -197,18 +236,61 @@ class OpenFile {
     return ret;
   }
 
+  pread(bytes: number, offset: number) {
+    const ret = new Uint8Array(this.buffer.subarray(offset, bytes));
+    return ret;
+  }
+
   write(data: Uint8Array) {
     this.isDirty = true;
-    const bytes = data.byteLength;
-    if (this.offset + bytes > this.buffer.byteLength) {
-      const newBuffer = new Uint8Array(this.offset + bytes);
+
+    if (this.flagAppend) {
+      // TODO: Not sure what the semantics for offset are here
+      const newBuffer = new Uint8Array(
+        this.buffer.byteLength + data.byteLength
+      );
+      newBuffer.set(this.buffer);
+      newBuffer.set(data, this.buffer.byteLength);
+      this.buffer = newBuffer;
+    } else if (this.offset + data.byteLength > this.buffer.byteLength) {
+      const newBuffer = new Uint8Array(this.offset + data.byteLength);
       newBuffer.set(this.buffer);
       newBuffer.set(data, this.offset);
       this.buffer = newBuffer;
+      this.offset += data.byteLength;
+    } else {
+      this.buffer.set(data, this.offset);
+      this.offset += data.byteLength;
     }
 
-    this.buffer.set(data, this.offset);
-    this.offset += data.byteLength;
+    if (this.flagDSync || this.flagSync) {
+      this.sync();
+    }
+  }
+
+  pwrite(data: Uint8Array, offset: number) {
+    this.isDirty = true;
+
+    if (this.flagAppend) {
+      // TODO: Not sure what the semantics for offset are here?
+      const newBuffer = new Uint8Array(
+        this.buffer.byteLength + data.byteLength + offset
+      );
+      newBuffer.set(this.buffer);
+      newBuffer.set(data, this.buffer.byteLength + offset);
+      this.buffer = newBuffer;
+    } else if (offset + data.byteLength > this.buffer.byteLength) {
+      const newBuffer = new Uint8Array(offset + data.byteLength);
+      newBuffer.set(this.buffer);
+      newBuffer.set(data, offset);
+      this.buffer = newBuffer;
+    } else {
+      this.buffer.set(data);
+    }
+
+    if (this.flagDSync || this.flagSync) {
+      this.sync();
+    }
   }
 
   sync() {
