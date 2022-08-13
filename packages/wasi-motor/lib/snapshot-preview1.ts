@@ -297,22 +297,55 @@ export enum Whence {
   END = 2, // Seek relative to end-of-file.
 }
 
-export enum LookupFlags {
-  SYMLINK_FOLLOW = 1 << 0, // As long as the resolved path corresponds to a symbolic
+export const LookupFlags = {
+  SYMLINK_FOLLOW: 1 << 0, // As long as the resolved path corresponds to a symbolic
   // link, it is expanded.
-}
+};
 
-export enum OpenFlags {
-  CREAT = 1 << 0, // Create file if it does not exist.
-  DIRECTORY = 1 << 1, // Fail if not a directory.
-  EXCL = 1 << 2, // Fail if file already exists.
-  TRUNC = 1 << 3, // Truncate file to size 0.
-}
+export const OpenFlags = {
+  CREAT: 1 << 0, // Create file if it does not exist.
+  DIRECTORY: 1 << 1, // Fail if not a directory.
+  EXCL: 1 << 2, // Fail if file already exists.
+  TRUNC: 1 << 3, // Truncate file to size 0.
+};
 
-export enum FileDescriptorFlags {
-  APPEND = 1 << 0, // Append mode: Data written to the file is always appended to the file's end.
-  DSYNC = 1 << 1, // Write according to synchronized I/O data integrity completion. Only the data stored in the file is synchronized.
-  NONBLOCK = 1 << 2, // Non-blocking mode.
-  RSYNC = 1 << 3, // Synchronized read I/O operations.
-  SYNC = 1 << 4, // Write according to synchronized I/O file integrity completion. In addition to synchronizing the data stored in the file, the implementation may also synchronously update the file's metadata.
-}
+export const FileDescriptorFlags = {
+  APPEND: 1 << 0, // Append mode: Data written to the file is always appended to the file's end.
+  DSYNC: 1 << 1, // Write according to synchronized I/O data integrity completion. Only the data stored in the file is synchronized.
+  NONBLOCK: 1 << 2, // Non-blocking mode.
+  RSYNC: 1 << 3, // Synchronized read I/O operations.
+  SYNC: 1 << 4, // Write according to synchronized I/O file integrity completion. In addition to synchronizing the data stored in the file, the implementation may also synchronously update the file's metadata.
+};
+
+export const RightsFlags = {
+  FD_DATASYNC: BigInt(1) << BigInt(0),
+  FD_READ: BigInt(1) << BigInt(1),
+  FD_SEEK: BigInt(1) << BigInt(2),
+  FD_FDSTAT_SET_FLAGS: BigInt(1) << BigInt(3),
+  FD_SYNC: BigInt(1) << BigInt(4),
+  FD_TELL: BigInt(1) << BigInt(5),
+  FD_WRITE: BigInt(1) << BigInt(6),
+  FD_ADVISE: BigInt(1) << BigInt(7),
+  FD_ALLOCATE: BigInt(1) << BigInt(8),
+  PATH_CREATE_DIRECTORY: BigInt(1) << BigInt(9),
+  PATH_CREATE_FILE: BigInt(1) << BigInt(10),
+  PATH_LINK_SOURCE: BigInt(1) << BigInt(11),
+  PATH_LINK_TARGET: BigInt(1) << BigInt(12),
+  PATH_OPEN: BigInt(1) << BigInt(13),
+  FD_READDIR: BigInt(1) << BigInt(14),
+  PATH_READLINK: BigInt(1) << BigInt(15),
+  PATH_RENAME_SOURCE: BigInt(1) << BigInt(16),
+  PATH_RENAME_TARGET: BigInt(1) << BigInt(17),
+  PATH_FILESTAT_GET: BigInt(1) << BigInt(18),
+  PATH_FILESTAT_SET_SIZE: BigInt(1) << BigInt(19),
+  PATH_FILESTAT_SET_TIMES: BigInt(1) << BigInt(20),
+  FD_FILESTAT_GET: BigInt(1) << BigInt(21),
+  FD_FILESTAT_SET_SIZE: BigInt(1) << BigInt(22),
+  FD_FILESTAT_SET_TIMES: BigInt(1) << BigInt(23),
+  PATH_SYMLINK: BigInt(1) << BigInt(24),
+  PATH_REMOVE_DIRECTORY: BigInt(1) << BigInt(25),
+  PATH_UNLINK_FILE: BigInt(1) << BigInt(26),
+  POLL_FD_READWRITE: BigInt(1) << BigInt(27),
+  SOCK_SHUTDOWN: BigInt(1) << BigInt(28),
+  SOCK_ACCEPT: BigInt(1) << BigInt(29),
+};
