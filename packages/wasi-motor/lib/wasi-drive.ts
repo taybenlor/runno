@@ -25,7 +25,7 @@ export class WASIDrive {
     // See:
     //   1. how to access preopens - https://github.com/WebAssembly/WASI/issues/323
     //   2. how preopens work - https://github.com/WebAssembly/WASI/issues/352
-    this.openMap.set(3, new OpenDirectory(this.fs));
+    this.openMap.set(3, new OpenDirectory(this.fs, ""));
   }
 
   //
@@ -46,8 +46,8 @@ export class WASIDrive {
     return [Result.SUCCESS, fd];
   }
 
-  private openDir(fs: WASIFS): DriveResult<FileDescriptor> {
-    const directory = new OpenDirectory(fs);
+  private openDir(fs: WASIFS, prefix: string): DriveResult<FileDescriptor> {
+    const directory = new OpenDirectory(fs, prefix);
     const fd = this.nextFD;
     this.openMap.set(fd, directory);
     this.nextFD++;
@@ -68,12 +68,9 @@ export class WASIDrive {
     const failIfFileExists: boolean = !!(oflags & OpenFlags.EXCL);
     const truncateFile: boolean = !!(oflags & OpenFlags.TRUNC);
 
-    const tree = this.openMap.get(fdDir);
-    if (!tree) {
-      return [Result.EBADF];
-    }
-
-    if (tree instanceof OpenFile) {
+    const openDir = this.openMap.get(fdDir);
+    if (!(openDir instanceof OpenDirectory)) {
+      // Must be relative to a directory
       return [Result.EBADF];
     }
 
@@ -87,11 +84,10 @@ export class WASIDrive {
       }
       return this.openFile(this.fs[path], truncateFile, fdflags);
     } else if (Object.keys(this.fs).find((s) => s.startsWith(`${path}/`))) {
+      const prefix = `${path}/`;
       // This is a directory
-      const dir = Object.entries(this.fs).filter(([s]) =>
-        s.startsWith(`${path}/`)
-      );
-      return this.openDir(Object.fromEntries(dir));
+      const dir = Object.entries(this.fs).filter(([s]) => s.startsWith(prefix));
+      return this.openDir(Object.fromEntries(dir), prefix);
     } else {
       if (createFileIfNone) {
         this.fs[path] = {
@@ -193,6 +189,74 @@ export class WASIDrive {
 
     return [Result.SUCCESS, file.tell()];
   }
+
+  renumber(oldFd: FileDescriptor, newFd: FileDescriptor): Result {
+    if (!this.exists(oldFd) || !this.exists(newFd)) {
+      return Result.EBADF;
+    }
+
+    if (oldFd === newFd) {
+      return Result.SUCCESS;
+    }
+
+    this.close(newFd);
+    this.openMap.set(newFd, this.openMap.get(oldFd)!);
+    return Result.SUCCESS;
+  }
+
+  unlink(fdDir: FileDescriptor, path: string): Result {
+    const openDir = this.openMap.get(fdDir);
+    if (!(openDir instanceof OpenDirectory)) {
+      // Must be relative to a directory
+      return Result.EBADF;
+    }
+
+    if (!openDir.contains(path)) {
+      return Result.ENOENT;
+    }
+
+    delete this.fs[openDir.fullPath(path)];
+    return Result.SUCCESS;
+  }
+
+  rename(
+    oldFdDir: FileDescriptor,
+    oldPath: string,
+    newFdDir: FileDescriptor,
+    newPath: string
+  ): Result {
+    const oldDir = this.openMap.get(oldFdDir);
+    const newDir = this.openMap.get(newFdDir);
+    if (
+      !(oldDir instanceof OpenDirectory) ||
+      !(newDir instanceof OpenDirectory)
+    ) {
+      // Must be relative to a directory
+      return Result.EBADF;
+    }
+
+    if (!oldDir.contains(oldPath)) {
+      return Result.ENOENT;
+    }
+
+    if (newDir.contains(newPath)) {
+      return Result.EEXIST;
+    }
+
+    const oldFullPath = oldDir.fullPath(oldPath);
+    const newFullPath = newDir.fullPath(newPath);
+
+    this.fs[newFullPath] = this.fs[oldFullPath];
+    delete this.fs[oldFullPath];
+
+    // TODO: Should this handle the case where oldPath is open?
+
+    return Result.SUCCESS;
+  }
+
+  //
+  // Public Helpers
+  //
 
   exists(fd: FileDescriptor): boolean {
     return this.openMap.has(fd);
@@ -362,7 +426,18 @@ class OpenFile {
 
 class OpenDirectory {
   dir: WASIFS;
-  constructor(dir: WASIFS) {
+  prefix: string; // full folder path including /
+
+  constructor(dir: WASIFS, prefix: string) {
     this.dir = dir;
+    this.prefix = prefix;
+  }
+
+  contains(relativePath: string) {
+    return this.fullPath(relativePath) in this.dir;
+  }
+
+  fullPath(relativePath: string) {
+    return `${this.prefix}${relativePath}`;
   }
 }

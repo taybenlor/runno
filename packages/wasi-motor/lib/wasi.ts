@@ -205,7 +205,6 @@ export class WASI implements SnapshotPreview1 {
       case Clock.PROCESS_CPUTIME_ID:
       case Clock.THREAD_CPUTIME_ID: {
         const view = new DataView(this.memory.buffer);
-        // TODO: Convert this to use performance.now
         view.setBigUint64(retptr0, BigInt(1e6), true);
         return Result.SUCCESS;
       }
@@ -656,13 +655,7 @@ export class WASI implements SnapshotPreview1 {
    * case it's too small to fit a single large directory entry, or skip the
    * oversized directory entry.
    */
-  fd_readdir(
-    fd: number,
-    buf: number,
-    buf_len: number,
-    cookie: bigint,
-    retptr0: number
-  ): number {
+  fd_readdir(): number {
     // TODO: Implement
     console.error("UNIMPLEMENTED", "fd_readdir");
     return Result.ENOSYS;
@@ -678,10 +671,8 @@ export class WASI implements SnapshotPreview1 {
    * atomically renumber file descriptors, which would disappear if dup2() were
    * to be removed entirely.
    */
-  fd_renumber() {
-    // TODO: Implement
-    console.error("UNIMPLEMENTED", "fd_renumber");
-    return Result.ENOSYS;
+  fd_renumber(old_fd: number, new_fd: number): number {
+    return this.drive.renumber(old_fd, new_fd);
   }
 
   /**
@@ -726,16 +717,6 @@ export class WASI implements SnapshotPreview1 {
   //
 
   /**
-   * Create a directory. Note: This is similar to mkdirat in POSIX.
-   */
-  path_create_directory() {
-    // TODO: Implement
-
-    console.error("UNIMPLEMENTED", "path_create_directory");
-    return Result.ENOSYS;
-  }
-
-  /**
    * Return the attributes of a file or directory.
    * Note: This is similar to stat in POSIX.
    */
@@ -750,15 +731,6 @@ export class WASI implements SnapshotPreview1 {
    * Note: This is similar to utimensat in POSIX.
    */
   path_filestat_set_times() {
-    // TODO: Implement
-    console.error("UNIMPLEMENTED", "path_filestat_set_times");
-    return Result.ENOSYS;
-  }
-
-  /**
-   * Create a hard link. Note: This is similar to linkat in POSIX.
-   */
-  path_link() {
     // TODO: Implement
     console.error("UNIMPLEMENTED", "path_filestat_set_times");
     return Result.ENOSYS;
@@ -796,17 +768,13 @@ export class WASI implements SnapshotPreview1 {
     path_ptr: number,
     path_len: number,
     oflags: number,
-    rights_base: bigint,
-    rights_inheriting: bigint,
+    rights_base: bigint, // Runno just gives everything full rights
+    rights_inheriting: bigint, // Runno just gives everything full rights
     fdflags: number,
     retptr0: number
   ): number {
     const view = new DataView(this.memory.buffer);
-
-    const pathBuffer = new Uint8Array(this.memory.buffer, path_ptr, path_len);
-
-    const decoder = new TextDecoder();
-    const path = decoder.decode(pathBuffer);
+    const path = readString(this.memory, path_ptr, path_len);
 
     const [result, newFd] = this.drive.open(fd, path, oflags, fdflags);
     if (result) {
@@ -816,6 +784,50 @@ export class WASI implements SnapshotPreview1 {
 
     view.setUint32(retptr0, newFd, true);
     return result;
+  }
+
+  /**
+   * Rename a file or directory. Note: This is similar to renameat in POSIX.
+   */
+  path_rename(
+    old_fd_dir: number,
+    old_path_ptr: number,
+    old_path_len: number,
+    new_fd_dir: number,
+    new_path_ptr: number,
+    new_path_len: number
+  ): number {
+    const oldPath = readString(this.memory, old_path_ptr, old_path_len);
+    const newPath = readString(this.memory, new_path_ptr, new_path_len);
+
+    return this.drive.rename(old_fd_dir, oldPath, new_fd_dir, newPath);
+  }
+
+  /**
+   * Unlink a file. Return errno::isdir if the path refers to a directory.
+   * Note: This is similar to unlinkat(fd, path, 0) in POSIX.
+   */
+  path_unlink_file(fd: number, path_ptr: number, path_len: number): number {
+    const path = readString(this.memory, path_ptr, path_len);
+    return this.drive.unlink(fd, path);
+  }
+
+  //
+  // Unimplemented - these operations are not supported by Runno
+  //
+
+  /**
+   * Create a directory. Note: This is similar to mkdirat in POSIX.
+   */
+  path_create_directory() {
+    return Result.ENOSYS;
+  }
+
+  /**
+   * Create a hard link. Note: This is similar to linkat in POSIX.
+   */
+  path_link() {
+    return Result.ENOSYS;
   }
 
   /**
@@ -835,30 +847,11 @@ export class WASI implements SnapshotPreview1 {
   }
 
   /**
-   * Rename a file or directory. Note: This is similar to renameat in POSIX.
-   */
-  path_rename() {
-    return Result.ENOSYS;
-  }
-
-  /**
    * Create a symbolic link. Note: This is similar to symlinkat in POSIX.
    */
   path_symlink() {
     return Result.ENOSYS;
   }
-
-  /**
-   * Unlink a file. Return errno::isdir if the path refers to a directory.
-   * Note: This is similar to unlinkat(fd, path, 0) in POSIX.
-   */
-  path_unlink_file() {
-    return Result.ENOSYS;
-  }
-
-  //
-  // Unimplemented
-  //
 
   /**
    * Concurrently poll for the occurrence of a set of events.
@@ -951,6 +944,18 @@ class WASIExit extends Error {
 }
 
 /**
+ * Reads a string from WASM memory.
+ *
+ * @param memory WebAssembly Memory
+ * @param ptr the offset in the memory where the string starts
+ * @param len the length of the string
+ * @returns the string at that address
+ */
+function readString(memory: WebAssembly.Memory, ptr: number, len: number) {
+  return new TextDecoder().decode(new Uint8Array(memory.buffer, ptr, len));
+}
+
+/**
  * Writes an array of strings to memory, used for args and env.
  *
  * @param memory WebAssembly Memory
@@ -972,6 +977,7 @@ function writeStringArrayToMemory(
     view.setUint32(iter_ptr_ptr, buf_ptr, true);
     iter_ptr_ptr += 4;
 
+    // TODO: Do we need a null terminator on the string?
     const data = encoder.encode(`${value}\0`);
     buffer.set(data, buf_ptr);
     buf_ptr += data.length;
@@ -996,6 +1002,7 @@ function writeStringArraySizesToMemory(
   const view = new DataView(memory.buffer);
   const encoder = new TextEncoder();
   const len = values.reduce((acc, value) => {
+    // TODO: Do we need a null terminator on the string?
     return acc + encoder.encode(`${value}\0`).length;
   }, 0);
 
