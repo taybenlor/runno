@@ -34,5 +34,6 @@ runButton.addEventListener("click", async () => {
       },
     })
   );
-  exitCode.textContent = result.toString();
+  exitCode.textContent = result.exitCode.toString();
+  console.log("execution result", result);
 });

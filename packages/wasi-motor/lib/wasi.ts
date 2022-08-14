@@ -5,8 +5,14 @@ import {
   RightsFlags,
   PreopenType,
 } from "./snapshot-preview1";
+import { WASIFS } from "./types";
 import { WASIContext } from "./wasi-context";
 import { WASIDrive } from "./wasi-drive";
+
+type WASIExecutionResult = {
+  exitCode: number;
+  fs: WASIFS;
+};
 
 /**
  * Implementation of a WASI runner for the browser.
@@ -53,7 +59,7 @@ export class WASI implements SnapshotPreview1 {
     this.initialized = true;
   }
 
-  start(): number {
+  start(): WASIExecutionResult {
     if (!this.initialized) {
       throw new Error("WASI must be initialized with init(wasm) first");
     }
@@ -67,15 +73,22 @@ export class WASI implements SnapshotPreview1 {
     try {
       entrypoint();
     } catch (e) {
+      console.error("Execution error", e);
       if (e instanceof WASIExit) {
-        return e.code;
+        return {
+          exitCode: e.code,
+          fs: this.drive.fs,
+        };
       } else {
         throw e;
       }
     }
 
     // Nothing went wrong so this is a 0
-    return 0;
+    return {
+      exitCode: 0,
+      fs: this.drive.fs,
+    };
   }
 
   getImports(): WebAssembly.ModuleImports & SnapshotPreview1 {

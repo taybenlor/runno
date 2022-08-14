@@ -9,29 +9,15 @@ import { WASIFile, WASIFS, WASIPath } from "./types";
 
 type FileDescriptor = number;
 
-type FSTree = {
-  [name: string]: WASIFile | FSTree;
-};
-
 type DriveResult<T> = [Exclude<Result, Result.SUCCESS>] | [Result.SUCCESS, T];
 
-function isWASIFile(
-  maybeWASIFile: WASIFile | FSTree
-): maybeWASIFile is WASIFile {
-  return (
-    "path" in maybeWASIFile &&
-    "mode" in maybeWASIFile &&
-    "content" in maybeWASIFile
-  );
-}
-
 export class WASIDrive {
-  fs: FSTree;
+  fs: WASIFS;
   nextFD: FileDescriptor = 10;
   openMap: Map<FileDescriptor, OpenFile | OpenDirectory> = new Map();
 
   constructor(fs: WASIFS) {
-    this.fs = buildFSTree(fs);
+    this.fs = { ...fs };
 
     // Preopens are discovered by the binary using `fd_prestat_get` and then
     // mapping the integer space until you run out.
@@ -60,8 +46,8 @@ export class WASIDrive {
     return [Result.SUCCESS, fd];
   }
 
-  private openDir(tree: FSTree): DriveResult<FileDescriptor> {
-    const directory = new OpenDirectory(tree);
+  private openDir(fs: WASIFS): DriveResult<FileDescriptor> {
+    const directory = new OpenDirectory(fs);
     const fd = this.nextFD;
     this.openMap.set(fd, directory);
     this.nextFD++;
@@ -84,45 +70,39 @@ export class WASIDrive {
 
     const tree = this.openMap.get(fdDir);
     if (!tree) {
-      // TODO: Remove this log
-      console.error("Open: Missing directory fd", fdDir);
       return [Result.EBADF];
     }
 
     if (tree instanceof OpenFile) {
-      // TODO: Remove this log
-      console.error("Open: fdDir was a file", tree);
       return [Result.EBADF];
     }
 
-    const fileOrDir = findByPath(tree.tree, path);
-    if (!fileOrDir) {
-      if (createFileIfNone) {
-        return this.openFile(
-          {
-            path: path,
-            mode: "binary",
-            content: new Uint8Array(),
-          },
-          truncateFile,
-          fdflags
-        );
-      }
-      return [Result.ENOENT];
-    }
-
-    if (failIfFileExists) {
-      return [Result.EEXIST];
-    }
-
-    if (isWASIFile(fileOrDir)) {
+    if (path in this.fs) {
+      // This is a file
       if (failIfNotDir) {
         return [Result.ENOTDIR];
       }
-      return this.openFile(fileOrDir, truncateFile, fdflags);
+      if (failIfFileExists) {
+        return [Result.EEXIST];
+      }
+      return this.openFile(this.fs[path], truncateFile, fdflags);
+    } else if (Object.keys(this.fs).find((s) => s.startsWith(`${path}/`))) {
+      // This is a directory
+      const dir = Object.entries(this.fs).filter(([s]) =>
+        s.startsWith(`${path}/`)
+      );
+      return this.openDir(Object.fromEntries(dir));
+    } else {
+      if (createFileIfNone) {
+        this.fs[path] = {
+          path: path,
+          mode: "binary",
+          content: new Uint8Array(),
+        };
+        return this.openFile(this.fs[path], truncateFile, fdflags);
+      }
+      return [Result.ENOENT];
     }
-
-    return this.openDir(fileOrDir);
   }
 
   close(fd: FileDescriptor): Result {
@@ -188,6 +168,7 @@ export class WASIDrive {
     }
 
     file.sync();
+
     return Result.SUCCESS;
   }
 
@@ -252,8 +233,6 @@ class OpenFile {
 
   constructor(file: WASIFile, fdflags: number) {
     this.file = file;
-
-    console.log("creating file", file);
 
     if (this.file.mode === "string") {
       const encoder = new TextEncoder();
@@ -382,50 +361,8 @@ class OpenFile {
 }
 
 class OpenDirectory {
-  tree: FSTree;
-  constructor(tree: FSTree) {
-    this.tree = tree;
+  dir: WASIFS;
+  constructor(dir: WASIFS) {
+    this.dir = dir;
   }
-}
-
-function buildFSTree(fs: WASIFS) {
-  const tree: FSTree = {};
-  for (const [path, file] of Object.entries(fs)) {
-    let nestedTree = tree;
-    const nestings = path.split("/");
-    while (nestings.length > 1) {
-      const folder = nestings.shift()!;
-      if (folder in nestedTree) {
-        const nextNesting = nestedTree[folder];
-        if (isWASIFile(nextNesting)) {
-          throw new Error("FS tries to nest files inside files");
-        }
-        nestedTree = nextNesting;
-      } else {
-        nestedTree[folder] = {};
-      }
-    }
-    if (nestings.length === 0) {
-      throw new Error("File path invalid");
-    }
-    const name = nestings.shift()!;
-    nestedTree[name] = file;
-  }
-  return tree;
-}
-
-function findByPath(tree: FSTree, path: WASIPath): FSTree | WASIFile | null {
-  const nestings = path.split("/");
-  while (nestings.length > 0) {
-    const maybeFile = tree[nestings.shift()!];
-    if (!maybeFile) {
-      return null;
-    }
-
-    if (isWASIFile(maybeFile)) {
-      return maybeFile;
-    }
-    tree = maybeFile;
-  }
-  return tree;
 }
