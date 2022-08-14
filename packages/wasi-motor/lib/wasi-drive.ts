@@ -1,5 +1,6 @@
 import {
   FileDescriptorFlags,
+  FileType,
   OpenFlags,
   Result,
   Whence,
@@ -11,6 +12,8 @@ type FileDescriptor = number;
 type FSTree = {
   [name: string]: WASIFile | FSTree;
 };
+
+type DriveResult<T> = [Exclude<Result, Result.SUCCESS>] | [Result.SUCCESS, T];
 
 function isWASIFile(
   maybeWASIFile: WASIFile | FSTree
@@ -42,21 +45,27 @@ export class WASIDrive {
   //
   // Helpers
   //
-  private openFile(fileData: WASIFile, truncateFile: boolean): Result {
-    const file = new OpenFile(fileData);
+  private openFile(
+    fileData: WASIFile,
+    truncateFile: boolean,
+    fdflags: number
+  ): DriveResult<FileDescriptor> {
+    const file = new OpenFile(fileData, fdflags);
     if (truncateFile) {
       file.buffer = new Uint8Array();
     }
-    this.openMap.set(this.nextFD, file);
+    const fd = this.nextFD;
+    this.openMap.set(fd, file);
     this.nextFD++;
-    return Result.SUCCESS;
+    return [Result.SUCCESS, fd];
   }
 
-  private openDir(tree: FSTree): Result {
+  private openDir(tree: FSTree): DriveResult<FileDescriptor> {
     const directory = new OpenDirectory(tree);
-    this.openMap.set(this.nextFD, directory);
+    const fd = this.nextFD;
+    this.openMap.set(fd, directory);
     this.nextFD++;
-    return Result.SUCCESS;
+    return [Result.SUCCESS, fd];
   }
 
   //
@@ -67,7 +76,7 @@ export class WASIDrive {
     path: WASIPath,
     oflags: number,
     fdflags: number
-  ): Result {
+  ): DriveResult<FileDescriptor> {
     const createFileIfNone: boolean = !!(oflags & OpenFlags.CREAT);
     const failIfNotDir: boolean = !!(oflags & OpenFlags.DIRECTORY);
     const failIfFileExists: boolean = !!(oflags & OpenFlags.EXCL);
@@ -77,13 +86,13 @@ export class WASIDrive {
     if (!tree) {
       // TODO: Remove this log
       console.error("Open: Missing directory fd", fdDir);
-      return Result.EBADF;
+      return [Result.EBADF];
     }
 
     if (tree instanceof OpenFile) {
       // TODO: Remove this log
       console.error("Open: fdDir was a file", tree);
-      return Result.EBADF;
+      return [Result.EBADF];
     }
 
     const fileOrDir = findByPath(tree.tree, path);
@@ -95,21 +104,22 @@ export class WASIDrive {
             mode: "binary",
             content: new Uint8Array(),
           },
-          truncateFile
+          truncateFile,
+          fdflags
         );
       }
-      return Result.ENOENT;
+      return [Result.ENOENT];
     }
 
     if (failIfFileExists) {
-      return Result.EEXIST;
+      return [Result.EEXIST];
     }
 
     if (isWASIFile(fileOrDir)) {
       if (failIfNotDir) {
-        return Result.ENOTDIR;
+        return [Result.ENOTDIR];
       }
-      return this.openFile(fileOrDir, truncateFile);
+      return this.openFile(fileOrDir, truncateFile, fdflags);
     }
 
     return this.openDir(fileOrDir);
@@ -129,26 +139,26 @@ export class WASIDrive {
     return Result.SUCCESS;
   }
 
-  read(fd: FileDescriptor, bytes: number): Result | Uint8Array {
+  read(fd: FileDescriptor, bytes: number): DriveResult<Uint8Array> {
     const file = this.openMap.get(fd)!;
     if (!file || file instanceof OpenDirectory) {
-      return Result.EBADF;
+      return [Result.EBADF];
     }
 
-    return file.read(bytes);
+    return [Result.SUCCESS, file.read(bytes)];
   }
 
   pread(
     fd: FileDescriptor,
     bytes: number,
     offset: number
-  ): Result | Uint8Array {
+  ): DriveResult<Uint8Array> {
     const file = this.openMap.get(fd!);
     if (!file || file instanceof OpenDirectory) {
-      return Result.EBADF;
+      return [Result.EBADF];
     }
 
-    return file.pread(bytes, offset);
+    return [Result.SUCCESS, file.pread(bytes, offset)];
   }
 
   write(fd: FileDescriptor, data: Uint8Array): Result {
@@ -181,30 +191,59 @@ export class WASIDrive {
     return Result.SUCCESS;
   }
 
-  seek(fd: FileDescriptor, offset: bigint, whence: Whence): [Result, number] {
+  seek(
+    fd: FileDescriptor,
+    offset: bigint,
+    whence: Whence
+  ): DriveResult<number> {
     const file = this.openMap.get(fd)!;
     if (!file || file instanceof OpenDirectory) {
-      return [Result.EBADF, 0];
+      return [Result.EBADF];
     }
 
     return [Result.SUCCESS, file.seek(offset, whence)];
   }
 
-  tell(fd: FileDescriptor): [Result, number] {
+  tell(fd: FileDescriptor): DriveResult<number> {
     const file = this.openMap.get(fd)!;
     if (!file || file instanceof OpenDirectory) {
-      return [Result.EBADF, 0];
+      return [Result.EBADF];
     }
 
     return [Result.SUCCESS, file.tell()];
+  }
+
+  exists(fd: FileDescriptor): boolean {
+    return this.openMap.has(fd);
+  }
+
+  fileType(fd: FileDescriptor): FileType {
+    const file = this.openMap.get(fd)!;
+    if (!file) {
+      return FileType.UNKNOWN;
+    } else if (file instanceof OpenFile) {
+      return FileType.REGULAR_FILE;
+    } else {
+      return FileType.DIRECTORY;
+    }
+  }
+
+  fileFdflags(fd: FileDescriptor): number {
+    const file = this.openMap.get(fd)!;
+    if (file instanceof OpenFile) {
+      return file.fdflags;
+    } else {
+      return 0;
+    }
   }
 }
 
 class OpenFile {
   file: WASIFile;
   buffer: Uint8Array;
-  offset: number = 0;
+  private offset: number = 0;
   isDirty: boolean = false;
+  fdflags: number;
   flagAppend: boolean;
   flagDSync: boolean;
   flagNonBlock: boolean;
@@ -214,6 +253,8 @@ class OpenFile {
   constructor(file: WASIFile, fdflags: number) {
     this.file = file;
 
+    console.log("creating file", file);
+
     if (this.file.mode === "string") {
       const encoder = new TextEncoder();
       this.buffer = encoder.encode(this.file.content);
@@ -221,6 +262,7 @@ class OpenFile {
       this.buffer = new Uint8Array(this.file.content);
     }
 
+    this.fdflags = fdflags;
     this.flagAppend = !!(fdflags & FileDescriptorFlags.APPEND);
     this.flagDSync = !!(fdflags & FileDescriptorFlags.DSYNC);
     this.flagNonBlock = !!(fdflags & FileDescriptorFlags.NONBLOCK);
@@ -231,6 +273,14 @@ class OpenFile {
   read(bytes: number) {
     const ret = new Uint8Array(
       this.buffer.subarray(this.offset, this.offset + bytes)
+    );
+    console.log(
+      "read buffer",
+      this.offset,
+      bytes,
+      new TextDecoder().decode(new Uint8Array(ret)),
+      "original file",
+      new TextDecoder().decode(new Uint8Array(this.buffer))
     );
     this.offset += bytes;
     return ret;
@@ -318,8 +368,10 @@ class OpenFile {
         break;
       case Whence.CUR:
         this.offset += Number(offset);
+        break;
       case Whence.END:
         this.offset = this.buffer.byteLength + Number(offset);
+        break;
     }
     return this.offset;
   }

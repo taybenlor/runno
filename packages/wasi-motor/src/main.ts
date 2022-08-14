@@ -24,6 +24,14 @@ runButton.addEventListener("click", async () => {
       args: argsString ? argsInput.value.split(" ") : [],
       stdout: (out) => (stdoutPre.textContent += out),
       stderr: (err) => (stderrPre.textContent += err),
+      stdin: () => prompt("stdin (cancel to end stdin):"),
+      fs: {
+        "foo.txt": {
+          path: "foo.txt",
+          mode: "string",
+          content: "gday odin\nhow are you goen?\n",
+        },
+      },
     })
   );
   exitCode.textContent = result.toString();

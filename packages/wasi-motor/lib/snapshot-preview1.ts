@@ -297,6 +297,21 @@ export enum Whence {
   END = 2, // Seek relative to end-of-file.
 }
 
+export enum FileType {
+  UNKNOWN = 0,
+  BLOCK_DEVICE = 1,
+  CHARACTER_DEVICE = 2,
+  DIRECTORY = 3,
+  REGULAR_FILE = 4,
+  SOCKET_DGRAM = 5,
+  SOCKET_STREAM = 6,
+  SYMBOLIC_LINK = 7,
+}
+
+export enum PreopenType {
+  DIR = 0,
+}
+
 export const LookupFlags = {
   SYMLINK_FOLLOW: 1 << 0, // As long as the resolved path corresponds to a symbolic
   // link, it is expanded.

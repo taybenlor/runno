@@ -1,4 +1,10 @@
-import { Result, Clock, SnapshotPreview1 } from "./snapshot-preview1";
+import {
+  Result,
+  Clock,
+  SnapshotPreview1,
+  RightsFlags,
+  PreopenType,
+} from "./snapshot-preview1";
 import { WASIContext } from "./wasi-context";
 import { WASIDrive } from "./wasi-drive";
 
@@ -309,12 +315,12 @@ export class WASI implements SnapshotPreview1 {
 
         data = encoder.encode(input);
       } else {
-        const dataOrResult = this.drive.read(fd, iov.byteLength);
-        if (typeof dataOrResult === "number") {
-          result = dataOrResult;
+        const [error, readData] = this.drive.read(fd, iov.byteLength);
+        if (error) {
+          result = error;
           break;
         } else {
-          data = dataOrResult;
+          data = readData;
         }
       }
 
@@ -379,7 +385,8 @@ export class WASI implements SnapshotPreview1 {
    * Provide file advisory information on a file descriptor.
    * Note: This is similar to posix_fadvise in POSIX.
    */
-  fd_advise() {
+  fd_advise(): number {
+    // We don't care about how the program accesses our FS
     return Result.SUCCESS;
   }
 
@@ -387,8 +394,13 @@ export class WASI implements SnapshotPreview1 {
    * Force the allocation of space in a file.
    * Note: This is similar to posix_fallocate in POSIX.
    */
-  fd_allocate() {
-    return Result.SUCCESS;
+  fd_allocate(fd: number, offset: bigint, length: bigint): number {
+    // TODO: These bigints are being truncated
+    return this.drive.pwrite(
+      fd,
+      new Uint8Array(Number(length)),
+      Number(offset)
+    );
   }
 
   /**
@@ -421,9 +433,23 @@ export class WASI implements SnapshotPreview1 {
    *
    * @returns Result<fdstat, errno>
    */
-  fd_fdstat_get() {
-    // TODO: Implement
-    return Result.ENOSYS;
+  fd_fdstat_get(fd: number, retptr0: number): number {
+    if (!this.drive.exists(fd)) {
+      return Result.EBADF;
+    }
+
+    const type = this.drive.fileType(fd);
+    const fdflags = this.drive.fileFdflags(fd);
+    const rightsBase = ALL_RIGHTS;
+    const rightsInheriting = ALL_RIGHTS;
+
+    const view = new DataView(this.memory.buffer, retptr0, 24);
+    view.setUint16(0, type, true);
+    view.setUint32(2, fdflags, true);
+    view.setBigUint64(8, rightsBase, true);
+    view.setBigUint64(16, rightsInheriting, true);
+
+    return Result.SUCCESS;
   }
 
   /**
@@ -502,12 +528,16 @@ export class WASI implements SnapshotPreview1 {
     for (const iov of iovs) {
       let data: Uint8Array;
 
-      const dataOrResult = this.drive.pread(fd, iov.byteLength, Number(offset));
-      if (typeof dataOrResult === "number") {
-        result = dataOrResult;
+      const [error, value] = this.drive.pread(
+        fd,
+        iov.byteLength,
+        Number(offset)
+      );
+      if (error !== Result.SUCCESS) {
+        result = error;
         break;
       } else {
-        data = dataOrResult;
+        data = value;
       }
 
       const bytes = Math.min(iov.byteLength, data.byteLength);
@@ -523,17 +553,35 @@ export class WASI implements SnapshotPreview1 {
   /**
    * Return a description of the given preopened file descriptor.
    */
-  fd_prestat_dir_name() {
-    // TODO: Implement
-    return Result.ENOSYS;
+  fd_prestat_dir_name(fd: number, path_ptr: number, path_len: number): number {
+    // Hardcode preopens
+    if (fd !== 3) {
+      return Result.EBADF;
+    }
+
+    const dirname = new TextEncoder().encode(".");
+    const dirBuffer = new Uint8Array(this.memory.buffer, path_ptr, path_len);
+    dirBuffer.set(dirname.subarray(0, path_len));
+
+    return Result.SUCCESS;
   }
 
   /**
    * Return a description of the given preopened file descriptor.
    */
-  fd_prestat_get() {
-    // TODO: Implement
-    return Result.ENOSYS;
+  fd_prestat_get(fd: number, retptr0: number): number {
+    // Hardcode preopen to be fd 3
+    if (fd !== 3) {
+      return Result.EBADF;
+    }
+
+    const dirname = new TextEncoder().encode(".");
+
+    const view = new DataView(this.memory.buffer, retptr0);
+    view.setUint8(0, PreopenType.DIR);
+    view.setUint32(4, dirname.byteLength, true);
+
+    return Result.SUCCESS;
   }
 
   /**
@@ -590,8 +638,15 @@ export class WASI implements SnapshotPreview1 {
    * case it's too small to fit a single large directory entry, or skip the
    * oversized directory entry.
    */
-  fd_readdir() {
+  fd_readdir(
+    fd: number,
+    buf: number,
+    buf_len: number,
+    cookie: bigint,
+    retptr0: number
+  ): number {
     // TODO: Implement
+    console.error("UNIMPLEMENTED", "fd_readdir");
     return Result.ENOSYS;
   }
 
@@ -607,6 +662,7 @@ export class WASI implements SnapshotPreview1 {
    */
   fd_renumber() {
     // TODO: Implement
+    console.error("UNIMPLEMENTED", "fd_renumber");
     return Result.ENOSYS;
   }
 
@@ -616,6 +672,9 @@ export class WASI implements SnapshotPreview1 {
    */
   fd_seek(fd: number, offset: bigint, whence: number, retptr0: number) {
     const [result, newOffset] = this.drive.seek(fd, offset, whence);
+    if (result !== Result.SUCCESS) {
+      return result;
+    }
     const view = new DataView(this.memory.buffer);
     view.setUint32(retptr0, newOffset, true);
     return result;
@@ -635,6 +694,9 @@ export class WASI implements SnapshotPreview1 {
    */
   fd_tell(fd: number, retptr0: number): number {
     const [result, offset] = this.drive.tell(fd);
+    if (result !== Result.SUCCESS) {
+      return result;
+    }
 
     const view = new DataView(this.memory.buffer);
     view.setUint32(retptr0, offset, true);
@@ -650,6 +712,8 @@ export class WASI implements SnapshotPreview1 {
    */
   path_create_directory() {
     // TODO: Implement
+
+    console.error("UNIMPLEMENTED", "path_create_directory");
     return Result.ENOSYS;
   }
 
@@ -659,6 +723,7 @@ export class WASI implements SnapshotPreview1 {
    */
   path_filestat_get() {
     // TODO: Implement
+    console.error("UNIMPLEMENTED", "path_filestat_get");
     return Result.ENOSYS;
   }
 
@@ -668,6 +733,7 @@ export class WASI implements SnapshotPreview1 {
    */
   path_filestat_set_times() {
     // TODO: Implement
+    console.error("UNIMPLEMENTED", "path_filestat_set_times");
     return Result.ENOSYS;
   }
 
@@ -675,6 +741,8 @@ export class WASI implements SnapshotPreview1 {
    * Create a hard link. Note: This is similar to linkat in POSIX.
    */
   path_link() {
+    // TODO: Implement
+    console.error("UNIMPLEMENTED", "path_filestat_set_times");
     return Result.ENOSYS;
   }
 
@@ -717,20 +785,19 @@ export class WASI implements SnapshotPreview1 {
   ): number {
     const view = new DataView(this.memory.buffer);
 
-    const pathBuffer = new Uint8Array(path_len);
-    const memory = new Uint8Array(this.memory.buffer);
-    pathBuffer.set(memory.subarray(path_ptr, path_len));
+    const pathBuffer = new Uint8Array(this.memory.buffer, path_ptr, path_len);
 
     const decoder = new TextDecoder();
     const path = decoder.decode(pathBuffer);
 
-    const newFd = this.drive.open(fd, path, oflags, fdflags);
+    const [result, newFd] = this.drive.open(fd, path, oflags, fdflags);
+    if (result) {
+      // Error
+      return result;
+    }
 
     view.setUint32(retptr0, newFd, true);
-
-    // TODO: Figure out how to do this my architecture isn't really shaped like this
-    // geee how do you even start with this
-    return Result.ENOSYS;
+    return result;
   }
 
   /**
@@ -823,6 +890,38 @@ export class WASI implements SnapshotPreview1 {
     return Result.ENOSYS;
   }
 }
+
+const ALL_RIGHTS: bigint =
+  RightsFlags.FD_DATASYNC |
+  RightsFlags.FD_READ |
+  RightsFlags.FD_SEEK |
+  RightsFlags.FD_FDSTAT_SET_FLAGS |
+  RightsFlags.FD_SYNC |
+  RightsFlags.FD_TELL |
+  RightsFlags.FD_WRITE |
+  RightsFlags.FD_ADVISE |
+  RightsFlags.FD_ALLOCATE |
+  RightsFlags.PATH_CREATE_DIRECTORY |
+  RightsFlags.PATH_CREATE_FILE |
+  RightsFlags.PATH_LINK_SOURCE |
+  RightsFlags.PATH_LINK_TARGET |
+  RightsFlags.PATH_OPEN |
+  RightsFlags.FD_READDIR |
+  RightsFlags.PATH_READLINK |
+  RightsFlags.PATH_RENAME_SOURCE |
+  RightsFlags.PATH_RENAME_TARGET |
+  RightsFlags.PATH_FILESTAT_GET |
+  RightsFlags.PATH_FILESTAT_SET_SIZE |
+  RightsFlags.PATH_FILESTAT_SET_TIMES |
+  RightsFlags.FD_FILESTAT_GET |
+  RightsFlags.FD_FILESTAT_SET_SIZE |
+  RightsFlags.FD_FILESTAT_SET_TIMES |
+  RightsFlags.PATH_SYMLINK |
+  RightsFlags.PATH_REMOVE_DIRECTORY |
+  RightsFlags.PATH_UNLINK_FILE |
+  RightsFlags.POLL_FD_READWRITE |
+  RightsFlags.SOCK_SHUTDOWN |
+  RightsFlags.SOCK_ACCEPT;
 
 class WASIExit extends Error {
   code: number;
