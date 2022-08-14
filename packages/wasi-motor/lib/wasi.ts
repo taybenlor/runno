@@ -471,6 +471,7 @@ export class WASI implements SnapshotPreview1 {
    */
   fd_fdstat_set_flags() {
     // TODO: Implement
+    console.error("UNIMPLEMENTED", "fd_fdstat_set_flags");
     return Result.ENOSYS;
   }
 
@@ -481,6 +482,7 @@ export class WASI implements SnapshotPreview1 {
    */
   fd_fdstat_set_rights() {
     // TODO: Implement
+    console.error("UNIMPLEMENTED", "fd_fdstat_set_rights");
     return Result.ENOSYS;
   }
 
@@ -489,6 +491,7 @@ export class WASI implements SnapshotPreview1 {
    */
   fd_filestat_get() {
     // TODO: Implement
+    console.error("UNIMPLEMENTED", "fd_filestat_get");
     return Result.ENOSYS;
   }
 
@@ -499,6 +502,7 @@ export class WASI implements SnapshotPreview1 {
    */
   fd_filestat_set_size() {
     // TODO: Implement
+    console.error("UNIMPLEMENTED", "fd_filestat_set_size");
     return Result.ENOSYS;
   }
 
@@ -508,6 +512,7 @@ export class WASI implements SnapshotPreview1 {
    */
   fd_filestat_set_times() {
     // TODO: Implement
+    console.error("UNIMPLEMENTED", "fd_filestat_set_times");
     return Result.ENOSYS;
   }
 
