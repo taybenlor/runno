@@ -4,8 +4,15 @@ export type WASIFS = {
   [path: WASIPath]: WASIFile;
 };
 
+export type WASITimestamps = {
+  access: Date;
+  modification: Date;
+  change: Date;
+};
+
 export type WASIFile = {
-  path: WASIPath;
+  path: WASIPath; // TODO: This duplication is annoying, lets remove it
+  timestamps: WASITimestamps;
 } & (
   | {
       mode: "string";

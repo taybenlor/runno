@@ -28,16 +28,31 @@ runButton.addEventListener("click", async () => {
       fs: {
         "foo/foo.txt": {
           path: "foo/foo.txt",
+          timestamps: {
+            access: new Date(),
+            change: new Date(),
+            modification: new Date(),
+          },
           mode: "string",
           content: "gday odin\nhow are you goen?\n",
         },
         "foo/gday.txt": {
           path: "foo/gday.txt",
+          timestamps: {
+            access: new Date(),
+            change: new Date(),
+            modification: new Date(),
+          },
           mode: "string",
           content: "gday odin\nhow are you goen?\n",
         },
         "foo/champ/hello.txt": {
           path: "foo/champ/hello.txt",
+          timestamps: {
+            access: new Date(),
+            change: new Date(),
+            modification: new Date(),
+          },
           mode: "string",
           content: "gday odin\nhow are you goen?\n",
         },
@@ -45,5 +60,4 @@ runButton.addEventListener("click", async () => {
     })
   );
   exitCode.textContent = result.exitCode.toString();
-  console.log("execution result", result);
 });

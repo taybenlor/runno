@@ -5,13 +5,20 @@ import {
   Result,
   Whence,
 } from "./snapshot-preview1";
-import { WASIFile, WASIFS, WASIPath } from "./types";
+import { WASIFile, WASIFS, WASIPath, WASITimestamps } from "./types";
 
 type FileDescriptor = number;
 
 type DriveResult<T> = [Exclude<Result, Result.SUCCESS>] | [Result.SUCCESS, T];
 
 type DirectoryEntry = { name: string; type: FileType };
+
+type Stat = {
+  path: string;
+  byteLength: number;
+  timestamps: WASITimestamps;
+  type: FileType;
+};
 
 export class WASIDrive {
   fs: WASIFS;
@@ -265,6 +272,15 @@ export class WASIDrive {
     return [Result.SUCCESS, fdDir.list()];
   }
 
+  stat(fd: FileDescriptor): DriveResult<Stat> {
+    const file = this.openMap.get(fd);
+    if (!(file instanceof OpenFile)) {
+      return [Result.EBADF];
+    }
+
+    return [Result.SUCCESS, file.stat()];
+  }
+
   //
   // Public Helpers
   //
@@ -432,6 +448,15 @@ class OpenFile {
 
   tell() {
     return this.offset;
+  }
+
+  stat(): Stat {
+    return {
+      path: this.file.path,
+      timestamps: this.file.timestamps,
+      type: FileType.REGULAR_FILE,
+      byteLength: this.buffer.byteLength,
+    };
   }
 }
 

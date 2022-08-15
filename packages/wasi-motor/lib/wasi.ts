@@ -223,7 +223,7 @@ export class WASI implements SnapshotPreview1 {
       case Clock.PROCESS_CPUTIME_ID:
       case Clock.THREAD_CPUTIME_ID: {
         const view = new DataView(this.memory.buffer);
-        view.setBigUint64(retptr0, BigInt(Date.now()) * BigInt(1e6), true);
+        view.setBigUint64(retptr0, dateToNanoseconds(new Date()), true);
         return Result.SUCCESS;
       }
     }
@@ -480,18 +480,47 @@ export class WASI implements SnapshotPreview1 {
    * would attempt to add rights
    */
   fd_fdstat_set_rights() {
-    // TODO: Implement
-    console.error("UNIMPLEMENTED", "fd_fdstat_set_rights");
-    return Result.ENOSYS;
+    // Runno doesn't implement a rights system
+    return Result.SUCCESS;
   }
 
   /**
    * Return the attributes of an open file.
    */
-  fd_filestat_get() {
-    // TODO: Implement
-    console.error("UNIMPLEMENTED", "fd_filestat_get");
-    return Result.ENOSYS;
+  fd_filestat_get(fd: number, retptr0: number): number {
+    /*
+    File attributes.
+    Size: 64
+    Alignment: 8
+    Record members
+        dev (offset: 0, size: 8): device Device ID of device containing the file.
+        ino (offset: 8, size: 8): inode File serial number.
+        filetype (offset: 16, size: 1): filetype File type.
+        nlink (offset: 24, size: 8): linkcount Number of hard links to the file.
+        size (offset: 32, size: 8): filesize For regular files, the file size in bytes. For symbolic links, the length in bytes of the pathname contained in the symbolic link.
+        atim (offset: 40, size: 8): timestamp Last data access timestamp.
+        mtim (offset: 48, size: 8): timestamp Last data modification timestamp.
+        ctim (offset: 56, size: 8): timestamp Last file status change timestamp.
+    */
+    const [result, stat] = this.drive.stat(fd);
+    if (result != Result.SUCCESS) {
+      return result;
+    }
+
+    const view = new DataView(this.memory.buffer, retptr0, 64);
+    view.setBigUint64(0, BigInt(0), true); // dev
+    view.setBigUint64(8, BigInt(cyrb53(stat.path)), true); // ino
+    view.setUint8(16, stat.type); // filetype
+    view.setBigUint64(24, BigInt(0), true); // nlink
+    view.setBigUint64(32, BigInt(stat.byteLength), true); // size
+    view.setBigUint64(40, BigInt(dateToNanoseconds(stat.timestamps.access))); // atim
+    view.setBigUint64(
+      48,
+      BigInt(dateToNanoseconds(stat.timestamps.modification))
+    ); // mtim
+    view.setBigUint64(56, BigInt(dateToNanoseconds(stat.timestamps.change))); // ctim
+
+    return Result.SUCCESS;
   }
 
   /**
@@ -1132,4 +1161,8 @@ function cyrb53(str: string, seed = 0) {
     Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^
     Math.imul(h1 ^ (h1 >>> 13), 3266489909);
   return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+}
+
+function dateToNanoseconds(date: Date) {
+  return BigInt(date.getTime()) * BigInt(1e6);
 }
