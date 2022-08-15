@@ -36,6 +36,11 @@ runButton.addEventListener("click", async () => {
           mode: "string",
           content: "gday odin\nhow are you goen?\n",
         },
+        "foo/champ/hello.txt": {
+          path: "foo/champ/hello.txt",
+          mode: "string",
+          content: "gday odin\nhow are you goen?\n",
+        },
       },
     })
   );

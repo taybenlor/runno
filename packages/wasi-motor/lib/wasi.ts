@@ -74,7 +74,6 @@ export class WASI implements SnapshotPreview1 {
     try {
       entrypoint();
     } catch (e) {
-      console.error("Execution error", e);
       if (e instanceof WASIExit) {
         return {
           exitCode: e.code,
@@ -668,28 +667,30 @@ export class WASI implements SnapshotPreview1 {
       return result;
     }
 
-    const entries: Array<Uint8Array> = [];
-    let offset = 0;
+    let entries: Array<Uint8Array> = [];
+    let index = 0;
     for (const { name, type } of list) {
-      const entry = createDirectoryEntry(name, type, offset);
+      const entry = createDirectoryEntry(name, type, index);
       entries.push(entry);
-      offset += entry.byteLength;
+      index++;
     }
+    entries = entries.slice(Number(cookie));
 
-    const allEntries = new Uint8Array(offset);
-    offset = 0;
+    const byteSize = entries.reduce((p, c) => p + c.byteLength, 0);
+
+    const allEntries = new Uint8Array(byteSize);
+    let offset = 0;
     for (const entry of entries) {
       allEntries.set(entry, offset);
       offset += entry.byteLength;
     }
 
     const buffer = new Uint8Array(this.memory.buffer, buf, buf_len);
-    offset = Number(cookie);
-    const bytesToWrite = allEntries.subarray(offset, buf_len + offset);
+    const bytesToWrite = allEntries.subarray(0, buf_len);
     buffer.set(bytesToWrite);
 
-    const view = new DataView(this.memory.buffer, retptr0);
-    view.setUint32(0, bytesToWrite.byteLength, true);
+    const view = new DataView(this.memory.buffer);
+    view.setUint32(retptr0, bytesToWrite.byteLength, true);
 
     return Result.SUCCESS;
   }
@@ -1088,24 +1089,24 @@ function createIOVectors(
 function createDirectoryEntry(
   name: string,
   type: FileType,
-  currentOffset: number
+  currentIndex: number
 ): Uint8Array {
   // Each entry is made up of:
   // 0 - d_next = dircookie (size: 8) the offset of the next directory entry
   // 8 - d_ino = inode (size: 8) - the serial number of the file
   // 16 - d_namlen = dirnamlen (size: 4) - the length of the name of the entry
   // 20 - d_type = filetype (size: 1) - the type of the file returned by this entry
-  // [21:21+dnamlen] = string (size: dnamlen) - the name of the directory
+  // [24:24+d_namlen] = string (size: dnamlen) - the name of the directory
 
   const nameBytes = new TextEncoder().encode(name);
-  const entryLength = 21 + nameBytes.byteLength;
+  const entryLength = 24 + nameBytes.byteLength;
   const buffer = new Uint8Array(entryLength);
   const view = new DataView(buffer.buffer);
-  view.setBigUint64(0, BigInt(currentOffset + entryLength), true);
+  view.setBigUint64(0, BigInt(currentIndex + 1), true);
   view.setBigUint64(8, BigInt(cyrb53(name)), true);
   view.setUint32(16, nameBytes.length, true);
   view.setUint8(20, type);
-  buffer.set(nameBytes, 21);
+  buffer.set(nameBytes, 24);
   return buffer;
 }
 

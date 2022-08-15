@@ -456,16 +456,17 @@ class OpenDirectory {
     const entries: Array<DirectoryEntry> = [];
     const seenFolders = new Set<string>();
     for (const path of Object.keys(this.dir)) {
-      if (path.includes("/")) {
-        const name = path.split("/")[0];
-        if (seenFolders.has(name)) {
+      const name = path.replace(this.prefix, "");
+      if (name.includes("/")) {
+        const dirName = name.split("/")[0];
+        if (seenFolders.has(dirName)) {
           continue;
         }
-        seenFolders.add(name);
-        entries.push({ name, type: FileType.DIRECTORY });
+        seenFolders.add(dirName);
+        entries.push({ name: dirName, type: FileType.DIRECTORY });
       } else {
         entries.push({
-          name: path,
+          name,
           type: FileType.REGULAR_FILE,
         });
       }
