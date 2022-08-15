@@ -4,6 +4,7 @@ import {
   SnapshotPreview1,
   RightsFlags,
   PreopenType,
+  FileType,
 } from "./snapshot-preview1";
 import { WASIFS } from "./types";
 import { WASIContext } from "./wasi-context";
@@ -655,10 +656,42 @@ export class WASI implements SnapshotPreview1 {
    * case it's too small to fit a single large directory entry, or skip the
    * oversized directory entry.
    */
-  fd_readdir(): number {
-    // TODO: Implement
-    console.error("UNIMPLEMENTED", "fd_readdir");
-    return Result.ENOSYS;
+  fd_readdir(
+    fd: number,
+    buf: number,
+    buf_len: number,
+    cookie: bigint,
+    retptr0: number
+  ): number {
+    const [result, list] = this.drive.list(fd);
+    if (result != Result.SUCCESS) {
+      return result;
+    }
+
+    const entries: Array<Uint8Array> = [];
+    let offset = 0;
+    for (const { name, type } of list) {
+      const entry = createDirectoryEntry(name, type, offset);
+      entries.push(entry);
+      offset += entry.byteLength;
+    }
+
+    const allEntries = new Uint8Array(offset);
+    offset = 0;
+    for (const entry of entries) {
+      allEntries.set(entry, offset);
+      offset += entry.byteLength;
+    }
+
+    const buffer = new Uint8Array(this.memory.buffer, buf, buf_len);
+    offset = Number(cookie);
+    const bytesToWrite = allEntries.subarray(offset, buf_len + offset);
+    buffer.set(bytesToWrite);
+
+    const view = new DataView(this.memory.buffer, retptr0);
+    view.setUint32(0, bytesToWrite.byteLength, true);
+
+    return Result.SUCCESS;
   }
 
   /**
@@ -1036,4 +1069,66 @@ function createIOVectors(
     result[i] = new Uint8Array(view.buffer, bufferPtr, bufferLen);
   }
   return result;
+}
+
+/**
+ * Creates a dirent (directory entry) Record as bytes
+ * Size: 24
+ * Alignment: 8
+ * Record members
+ * d_next (offset: 0, size: 8): <dircookie> The offset of the next directory entry stored
+ *                     in this directory.
+ * d_ino (offset: 8, size: 8): <inode> The serial number of the file referred to by this
+ *                    directory entry.
+ * d_namlen (offset: 16, size: 4): <dirnamlen> The length of the name of the directory
+ *                        entry.
+ * d_type (offset: 20, size: 1): <filetype> The type of the file referred to by this
+ *                      directory entry.
+ */
+function createDirectoryEntry(
+  name: string,
+  type: FileType,
+  currentOffset: number
+): Uint8Array {
+  // Each entry is made up of:
+  // 0 - d_next = dircookie (size: 8) the offset of the next directory entry
+  // 8 - d_ino = inode (size: 8) - the serial number of the file
+  // 16 - d_namlen = dirnamlen (size: 4) - the length of the name of the entry
+  // 20 - d_type = filetype (size: 1) - the type of the file returned by this entry
+  // [21:21+dnamlen] = string (size: dnamlen) - the name of the directory
+
+  const nameBytes = new TextEncoder().encode(name);
+  const entryLength = 21 + nameBytes.byteLength;
+  const buffer = new Uint8Array(entryLength);
+  const view = new DataView(buffer.buffer);
+  view.setBigUint64(0, BigInt(currentOffset + entryLength), true);
+  view.setBigUint64(8, BigInt(cyrb53(name)), true);
+  view.setUint32(16, nameBytes.length, true);
+  view.setUint8(20, type);
+  buffer.set(nameBytes, 21);
+  return buffer;
+}
+
+/**
+ * Hash function from stack overflow lol
+ * https://stackoverflow.com/questions/7616461/generate-a-hash-from-string-in-javascript
+ * @param str
+ * @param seed
+ * @returns
+ */
+function cyrb53(str: string, seed = 0) {
+  let h1 = 0xdeadbeef ^ seed,
+    h2 = 0x41c6ce57 ^ seed;
+  for (let i = 0, ch; i < str.length; i++) {
+    ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 =
+    Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^
+    Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 =
+    Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^
+    Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return 4294967296 * (2097151 & h2) + (h1 >>> 0);
 }

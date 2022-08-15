@@ -26,8 +26,13 @@ runButton.addEventListener("click", async () => {
       stderr: (err) => (stderrPre.textContent += err),
       stdin: () => prompt("stdin (cancel to end stdin):"),
       fs: {
-        "foo.txt": {
-          path: "foo.txt",
+        "foo/foo.txt": {
+          path: "foo/foo.txt",
+          mode: "string",
+          content: "gday odin\nhow are you goen?\n",
+        },
+        "foo/gday.txt": {
+          path: "foo/gday.txt",
           mode: "string",
           content: "gday odin\nhow are you goen?\n",
         },

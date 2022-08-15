@@ -11,6 +11,8 @@ type FileDescriptor = number;
 
 type DriveResult<T> = [Exclude<Result, Result.SUCCESS>] | [Result.SUCCESS, T];
 
+type DirectoryEntry = { name: string; type: FileType };
+
 export class WASIDrive {
   fs: WASIFS;
   nextFD: FileDescriptor = 10;
@@ -254,6 +256,15 @@ export class WASIDrive {
     return Result.SUCCESS;
   }
 
+  list(fd: FileDescriptor): DriveResult<Array<DirectoryEntry>> {
+    const fdDir = this.openMap.get(fd);
+    if (!(fdDir instanceof OpenDirectory)) {
+      return [Result.EBADF];
+    }
+
+    return [Result.SUCCESS, fdDir.list()];
+  }
+
   //
   // Public Helpers
   //
@@ -439,5 +450,27 @@ class OpenDirectory {
 
   fullPath(relativePath: string) {
     return `${this.prefix}${relativePath}`;
+  }
+
+  list(): Array<DirectoryEntry> {
+    const entries: Array<DirectoryEntry> = [];
+    const seenFolders = new Set<string>();
+    for (const path of Object.keys(this.dir)) {
+      if (path.includes("/")) {
+        const name = path.split("/")[0];
+        if (seenFolders.has(name)) {
+          continue;
+        }
+        seenFolders.add(name);
+        entries.push({ name, type: FileType.DIRECTORY });
+      } else {
+        entries.push({
+          name: path,
+          type: FileType.REGULAR_FILE,
+        });
+      }
+    }
+
+    return entries;
   }
 }
