@@ -163,10 +163,6 @@ export class WASI implements SnapshotPreview1 {
   // WASI Implementation
   //
 
-  // TODO: Investigate importing types from AssemblyScript
-  //
-  // https://github.com/AssemblyScript/assemblyscript/blob/main/std/assembly/bindings/wasi_snapshot_preview1.ts
-
   /**
    * Read command-line argument data. The size of the array should match that
    * returned by args_sizes_get. Each argument is expected to be \0 terminated.
@@ -408,7 +404,6 @@ export class WASI implements SnapshotPreview1 {
    * Note: This is similar to posix_fallocate in POSIX.
    */
   fd_allocate(fd: number, offset: bigint, length: bigint): number {
-    // TODO: These bigints are being truncated
     return this.drive.pwrite(
       fd,
       new Uint8Array(Number(length)),
@@ -469,10 +464,8 @@ export class WASI implements SnapshotPreview1 {
    * Adjust the flags associated with a file descriptor.
    * Note: This is similar to fcntl(fd, F_SETFL, flags) in POSIX.
    */
-  fd_fdstat_set_flags() {
-    // TODO: Implement
-    console.error("UNIMPLEMENTED", "fd_fdstat_set_flags");
-    return Result.ENOSYS;
+  fd_fdstat_set_flags(fd: number, flags: number): number {
+    return this.drive.setFlags(fd, flags);
   }
 
   /**
@@ -584,7 +577,7 @@ export class WASI implements SnapshotPreview1 {
     fd: number,
     iovs_ptr: number,
     iovs_len: number,
-    offset: bigint, // TODO: I just discard the precision from the bigint
+    offset: bigint,
     retptr0: number
   ): number {
     // Read not supported on stdout and stderr
@@ -593,7 +586,6 @@ export class WASI implements SnapshotPreview1 {
     }
 
     if (fd === 0) {
-      // TODO: What is the meaning of offset if we're reading from stdin?
       return this.fd_read(fd, iovs_ptr, iovs_len, retptr0);
     }
 
@@ -679,7 +671,6 @@ export class WASI implements SnapshotPreview1 {
     }
 
     if (fd === 1 || fd === 2) {
-      // TODO: Not sure what pwrite means for STDOUT or STDERR
       return this.fd_write(fd, ciovs_ptr, ciovs_len, retptr0);
     }
 

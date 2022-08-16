@@ -286,6 +286,16 @@ export class WASIDrive {
     return [Result.SUCCESS, file.stat()];
   }
 
+  setFlags(fd: FileDescriptor, flags: number): Result {
+    const file = this.openMap.get(fd);
+    if (file instanceof OpenFile) {
+      file.setFlags(flags);
+      return Result.SUCCESS;
+    } else {
+      return Result.EBADF;
+    }
+  }
+
   setSize(fd: FileDescriptor, size: bigint): Result {
     const file = this.openMap.get(fd);
     if (file instanceof OpenFile) {
@@ -492,6 +502,10 @@ class OpenFile {
       type: FileType.REGULAR_FILE,
       byteLength: this.buffer.byteLength,
     };
+  }
+
+  setFlags(flags: number) {
+    this.fdflags = flags;
   }
 
   setSize(size: number) {
