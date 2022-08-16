@@ -5,6 +5,7 @@ import {
   RightsFlags,
   PreopenType,
   FileType,
+  FileStatTimestampFlags,
 } from "./snapshot-preview1";
 import { WASIFS } from "./types";
 import { WASIContext } from "./wasi-context";
@@ -488,25 +489,25 @@ export class WASI implements SnapshotPreview1 {
    * Return the attributes of an open file.
    */
   fd_filestat_get(fd: number, retptr0: number): number {
-    /*
-    File attributes.
-    Size: 64
-    Alignment: 8
-    Record members
-        dev (offset: 0, size: 8): device Device ID of device containing the file.
-        ino (offset: 8, size: 8): inode File serial number.
-        filetype (offset: 16, size: 1): filetype File type.
-        nlink (offset: 24, size: 8): linkcount Number of hard links to the file.
-        size (offset: 32, size: 8): filesize For regular files, the file size in bytes. For symbolic links, the length in bytes of the pathname contained in the symbolic link.
-        atim (offset: 40, size: 8): timestamp Last data access timestamp.
-        mtim (offset: 48, size: 8): timestamp Last data modification timestamp.
-        ctim (offset: 56, size: 8): timestamp Last file status change timestamp.
-    */
     const [result, stat] = this.drive.stat(fd);
     if (result != Result.SUCCESS) {
       return result;
     }
 
+    /*
+    File attributes.
+    Size: 64
+    Alignment: 8
+    Record members
+      dev (offset: 0, size: 8): device Device ID of device containing the file.
+      ino (offset: 8, size: 8): inode File serial number.
+      filetype (offset: 16, size: 1): filetype File type.
+      nlink (offset: 24, size: 8): linkcount Number of hard links to the file.
+      size (offset: 32, size: 8): filesize For regular files, the file size in bytes. For symbolic links, the length in bytes of the pathname contained in the symbolic link.
+      atim (offset: 40, size: 8): timestamp Last data access timestamp.
+      mtim (offset: 48, size: 8): timestamp Last data modification timestamp.
+      ctim (offset: 56, size: 8): timestamp Last file status change timestamp.
+    */
     const view = new DataView(this.memory.buffer, retptr0, 64);
     view.setBigUint64(0, BigInt(0), true); // dev
     view.setBigUint64(8, BigInt(cyrb53(stat.path)), true); // ino
@@ -528,20 +529,51 @@ export class WASI implements SnapshotPreview1 {
    * extra bytes are filled with zeros. Note: This is similar to ftruncate in
    * POSIX.
    */
-  fd_filestat_set_size() {
-    // TODO: Implement
-    console.error("UNIMPLEMENTED", "fd_filestat_set_size");
-    return Result.ENOSYS;
+  fd_filestat_set_size(fd: number, size: bigint): number {
+    return this.drive.setSize(fd, size);
   }
 
   /**
    * Adjust the timestamps of an open file or directory.
    * Note: This is similar to futimens in POSIX.
    */
-  fd_filestat_set_times() {
-    // TODO: Implement
-    console.error("UNIMPLEMENTED", "fd_filestat_set_times");
-    return Result.ENOSYS;
+  fd_filestat_set_times(
+    fd: number,
+    atim: bigint,
+    mtim: bigint,
+    fst_flags: number
+  ): number {
+    let accessTime: Date | null = null;
+    if (fst_flags & FileStatTimestampFlags.ATIM) {
+      accessTime = nanosecondsToDate(atim);
+    }
+    if (fst_flags & FileStatTimestampFlags.ATIM_NOW) {
+      accessTime = new Date();
+    }
+
+    let modificationTime: Date | null = null;
+    if (fst_flags & FileStatTimestampFlags.MTIM) {
+      modificationTime = nanosecondsToDate(mtim);
+    }
+    if (fst_flags & FileStatTimestampFlags.MTIM_NOW) {
+      modificationTime = new Date();
+    }
+
+    if (accessTime) {
+      const result = this.drive.setAccessTime(fd, accessTime);
+      if (result != Result.SUCCESS) {
+        return result;
+      }
+    }
+
+    if (modificationTime) {
+      const result = this.drive.setModificationTime(fd, modificationTime);
+      if (result != Result.SUCCESS) {
+        return result;
+      }
+    }
+
+    return Result.SUCCESS;
   }
 
   /**
@@ -1165,4 +1197,8 @@ function cyrb53(str: string, seed = 0) {
 
 function dateToNanoseconds(date: Date) {
   return BigInt(date.getTime()) * BigInt(1e6);
+}
+
+function nanosecondsToDate(nanos: bigint) {
+  return new Date(Number(nanos / BigInt(1e6)));
 }

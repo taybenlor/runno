@@ -103,6 +103,11 @@ export class WASIDrive {
           path: path,
           mode: "binary",
           content: new Uint8Array(),
+          timestamps: {
+            access: new Date(),
+            modification: new Date(),
+            change: new Date(),
+          },
         };
         return this.openFile(this.fs[path], truncateFile, fdflags);
       }
@@ -281,6 +286,36 @@ export class WASIDrive {
     return [Result.SUCCESS, file.stat()];
   }
 
+  setSize(fd: FileDescriptor, size: bigint): Result {
+    const file = this.openMap.get(fd);
+    if (file instanceof OpenFile) {
+      file.setSize(Number(size));
+      return Result.SUCCESS;
+    } else {
+      return Result.EBADF;
+    }
+  }
+
+  setAccessTime(fd: FileDescriptor, date: Date): Result {
+    const file = this.openMap.get(fd);
+    if (file instanceof OpenFile) {
+      file.setAccessTime(date);
+      return Result.SUCCESS;
+    } else {
+      return Result.EBADF;
+    }
+  }
+
+  setModificationTime(fd: FileDescriptor, date: Date): Result {
+    const file = this.openMap.get(fd);
+    if (file instanceof OpenFile) {
+      file.setModificationTime(date);
+      return Result.SUCCESS;
+    } else {
+      return Result.EBADF;
+    }
+  }
+
   //
   // Public Helpers
   //
@@ -457,6 +492,20 @@ class OpenFile {
       type: FileType.REGULAR_FILE,
       byteLength: this.buffer.byteLength,
     };
+  }
+
+  setSize(size: number) {
+    const newBuffer = new Uint8Array(size);
+    newBuffer.set(this.buffer);
+    this.buffer = newBuffer;
+  }
+
+  setAccessTime(date: Date) {
+    this.file.timestamps.access = date;
+  }
+
+  setModificationTime(date: Date) {
+    this.file.timestamps.modification = date;
   }
 }
 

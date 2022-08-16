@@ -364,3 +364,10 @@ export const RightsFlags = {
   SOCK_SHUTDOWN: BigInt(1) << BigInt(28),
   SOCK_ACCEPT: BigInt(1) << BigInt(29),
 };
+
+export const FileStatTimestampFlags = {
+  ATIM: 1 << 0, // Adjust the last data access timestamp to the value stored in filestat::atim.
+  ATIM_NOW: 1 << 1, // Adjust the last data access timestamp to the time of clock clockid::realtime.
+  MTIM: 1 << 2, // Adjust the last data modification timestamp to the value stored in filestat::mtim.
+  MTIM_NOW: 1 << 3, // Adjust the last data modification timestamp to the time of clock clockid::realtime.
+};
