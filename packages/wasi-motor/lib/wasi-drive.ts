@@ -389,14 +389,6 @@ class OpenFile {
     const ret = new Uint8Array(
       this.buffer.subarray(this.offset, this.offset + bytes)
     );
-    console.log(
-      "read buffer",
-      this.offset,
-      bytes,
-      new TextDecoder().decode(new Uint8Array(ret)),
-      "original file",
-      new TextDecoder().decode(new Uint8Array(this.buffer))
-    );
     this.offset += bytes;
     return ret;
   }
