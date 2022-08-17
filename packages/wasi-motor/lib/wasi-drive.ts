@@ -13,7 +13,7 @@ type DriveResult<T> = [Exclude<Result, Result.SUCCESS>] | [Result.SUCCESS, T];
 
 type DirectoryEntry = { name: string; type: FileType };
 
-type Stat = {
+export type DriveStat = {
   path: string;
   byteLength: number;
   timestamps: WASITimestamps;
@@ -277,12 +277,23 @@ export class WASIDrive {
     return [Result.SUCCESS, fdDir.list()];
   }
 
-  stat(fd: FileDescriptor): DriveResult<Stat> {
+  stat(fd: FileDescriptor): DriveResult<DriveStat> {
     const file = this.openMap.get(fd);
     if (!(file instanceof OpenFile)) {
       return [Result.EBADF];
     }
 
+    return [Result.SUCCESS, file.stat()];
+  }
+
+  pathStat(fdDir: FileDescriptor, path: string): DriveResult<DriveStat> {
+    const dir = this.openMap.get(fdDir);
+    if (!(dir instanceof OpenDirectory)) {
+      return [Result.EBADF];
+    }
+
+    const f = dir.get(path);
+    const file = new OpenFile(f, 0);
     return [Result.SUCCESS, file.stat()];
   }
 
@@ -324,6 +335,36 @@ export class WASIDrive {
     } else {
       return Result.EBADF;
     }
+  }
+
+  pathSetAccessTime(fdDir: FileDescriptor, path: string, date: Date): Result {
+    const dir = this.openMap.get(fdDir);
+    if (!(dir instanceof OpenDirectory)) {
+      return Result.EBADF;
+    }
+
+    const f = dir.get(path);
+    const file = new OpenFile(f, 0);
+    file.setAccessTime(date);
+    file.sync();
+    return Result.SUCCESS;
+  }
+
+  pathSetModificationTime(
+    fdDir: FileDescriptor,
+    path: string,
+    date: Date
+  ): Result {
+    const dir = this.openMap.get(fdDir);
+    if (!(dir instanceof OpenDirectory)) {
+      return Result.EBADF;
+    }
+
+    const f = dir.get(path);
+    const file = new OpenFile(f, 0);
+    file.setModificationTime(date);
+    file.sync();
+    return Result.SUCCESS;
   }
 
   //
@@ -487,7 +528,7 @@ class OpenFile {
     return this.offset;
   }
 
-  stat(): Stat {
+  stat(): DriveStat {
     return {
       path: this.file.path,
       timestamps: this.file.timestamps,
@@ -526,6 +567,10 @@ class OpenDirectory {
 
   contains(relativePath: string) {
     return this.fullPath(relativePath) in this.dir;
+  }
+
+  get(relativePath: string) {
+    return this.dir[this.fullPath(relativePath)];
   }
 
   fullPath(relativePath: string) {

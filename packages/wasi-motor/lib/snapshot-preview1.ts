@@ -112,7 +112,7 @@ export interface SnapshotPreview1 {
     path_len: number,
     atim: bigint,
     mtime: bigint,
-    fstFlags: number
+    fst_flags: number
   ): number;
 
   path_link(
@@ -371,3 +371,5 @@ export const FileStatTimestampFlags = {
   MTIM: 1 << 2, // Adjust the last data modification timestamp to the value stored in filestat::mtim.
   MTIM_NOW: 1 << 3, // Adjust the last data modification timestamp to the time of clock clockid::realtime.
 };
+
+export const FILESTAT_SIZE = 64;

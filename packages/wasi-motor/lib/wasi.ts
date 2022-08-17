@@ -6,10 +6,11 @@ import {
   PreopenType,
   FileType,
   FileStatTimestampFlags,
+  FILESTAT_SIZE,
 } from "./snapshot-preview1";
 import { WASIFS } from "./types";
 import { WASIContext } from "./wasi-context";
-import { WASIDrive } from "./wasi-drive";
+import { DriveStat, WASIDrive } from "./wasi-drive";
 
 type WASIExecutionResult = {
   exitCode: number;
@@ -487,32 +488,13 @@ export class WASI implements SnapshotPreview1 {
       return result;
     }
 
-    /*
-    File attributes.
-    Size: 64
-    Alignment: 8
-    Record members
-      dev (offset: 0, size: 8): device Device ID of device containing the file.
-      ino (offset: 8, size: 8): inode File serial number.
-      filetype (offset: 16, size: 1): filetype File type.
-      nlink (offset: 24, size: 8): linkcount Number of hard links to the file.
-      size (offset: 32, size: 8): filesize For regular files, the file size in bytes. For symbolic links, the length in bytes of the pathname contained in the symbolic link.
-      atim (offset: 40, size: 8): timestamp Last data access timestamp.
-      mtim (offset: 48, size: 8): timestamp Last data modification timestamp.
-      ctim (offset: 56, size: 8): timestamp Last file status change timestamp.
-    */
-    const view = new DataView(this.memory.buffer, retptr0, 64);
-    view.setBigUint64(0, BigInt(0), true); // dev
-    view.setBigUint64(8, BigInt(cyrb53(stat.path)), true); // ino
-    view.setUint8(16, stat.type); // filetype
-    view.setBigUint64(24, BigInt(0), true); // nlink
-    view.setBigUint64(32, BigInt(stat.byteLength), true); // size
-    view.setBigUint64(40, BigInt(dateToNanoseconds(stat.timestamps.access))); // atim
-    view.setBigUint64(
-      48,
-      BigInt(dateToNanoseconds(stat.timestamps.modification))
-    ); // mtim
-    view.setBigUint64(56, BigInt(dateToNanoseconds(stat.timestamps.change))); // ctim
+    const data = createFilestat(stat);
+    const returnBuffer = new Uint8Array(
+      this.memory.buffer,
+      retptr0,
+      data.byteLength
+    );
+    returnBuffer.set(data);
 
     return Result.SUCCESS;
   }
@@ -806,20 +788,85 @@ export class WASI implements SnapshotPreview1 {
    * Return the attributes of a file or directory.
    * Note: This is similar to stat in POSIX.
    */
-  path_filestat_get() {
-    // TODO: Implement
-    console.error("UNIMPLEMENTED", "path_filestat_get");
-    return Result.ENOSYS;
+  path_filestat_get(
+    fd: number,
+    _: number,
+    path_ptr: number,
+    path_len: number,
+    retptr0: number
+  ): number {
+    const path = new TextDecoder().decode(
+      new Uint8Array(this.memory.buffer, path_ptr, path_len)
+    );
+
+    const [result, stat] = this.drive.pathStat(fd, path);
+    if (result != Result.SUCCESS) {
+      return result;
+    }
+
+    const statBuffer = createFilestat(stat);
+    const returnBuffer = new Uint8Array(
+      this.memory.buffer,
+      retptr0,
+      statBuffer.byteLength
+    );
+    returnBuffer.set(statBuffer);
+
+    return result;
   }
 
   /**
    * Adjust the timestamps of a file or directory.
    * Note: This is similar to utimensat in POSIX.
    */
-  path_filestat_set_times() {
-    // TODO: Implement
-    console.error("UNIMPLEMENTED", "path_filestat_set_times");
-    return Result.ENOSYS;
+  path_filestat_set_times(
+    fd: number,
+    _: number, // Runno doesn't support links
+    path_ptr: number,
+    path_len: number,
+    atim: bigint,
+    mtim: bigint,
+    fst_flags: number
+  ): number {
+    let accessTime: Date | null = null;
+    if (fst_flags & FileStatTimestampFlags.ATIM) {
+      accessTime = nanosecondsToDate(atim);
+    }
+    if (fst_flags & FileStatTimestampFlags.ATIM_NOW) {
+      accessTime = new Date();
+    }
+
+    let modificationTime: Date | null = null;
+    if (fst_flags & FileStatTimestampFlags.MTIM) {
+      modificationTime = nanosecondsToDate(mtim);
+    }
+    if (fst_flags & FileStatTimestampFlags.MTIM_NOW) {
+      modificationTime = new Date();
+    }
+
+    const path = new TextDecoder().decode(
+      new Uint8Array(this.memory.buffer, path_ptr, path_len)
+    );
+
+    if (accessTime) {
+      const result = this.drive.pathSetAccessTime(fd, path, accessTime);
+      if (result != Result.SUCCESS) {
+        return result;
+      }
+    }
+
+    if (modificationTime) {
+      const result = this.drive.pathSetModificationTime(
+        fd,
+        path,
+        modificationTime
+      );
+      if (result != Result.SUCCESS) {
+        return result;
+      }
+    }
+
+    return Result.SUCCESS;
   }
 
   /**
@@ -1122,6 +1169,38 @@ function createIOVectors(
     result[i] = new Uint8Array(view.buffer, bufferPtr, bufferLen);
   }
   return result;
+}
+
+/**
+ * Creates a filestat record as bytes
+ * File attributes.
+ *  Size: 64
+ *  Alignment: 8
+ *  Record members
+ *    dev (offset: 0, size: 8): device Device ID of device containing the file.
+ *    ino (offset: 8, size: 8): inode File serial number.
+ *    filetype (offset: 16, size: 1): filetype File type.
+ *    nlink (offset: 24, size: 8): linkcount Number of hard links to the file.
+ *    size (offset: 32, size: 8): filesize For regular files, the file size in bytes. For symbolic links, the length in bytes of the pathname contained in the symbolic link.
+ *    atim (offset: 40, size: 8): timestamp Last data access timestamp.
+ *    mtim (offset: 48, size: 8): timestamp Last data modification timestamp.
+ *    ctim (offset: 56, size: 8): timestamp Last file status change timestamp.
+ */
+function createFilestat(stat: DriveStat): Uint8Array {
+  const buffer = new Uint8Array(FILESTAT_SIZE);
+  const view = new DataView(buffer.buffer);
+  view.setBigUint64(0, BigInt(0), true); // dev
+  view.setBigUint64(8, BigInt(cyrb53(stat.path)), true); // ino
+  view.setUint8(16, stat.type); // filetype
+  view.setBigUint64(24, BigInt(0), true); // nlink
+  view.setBigUint64(32, BigInt(stat.byteLength), true); // size
+  view.setBigUint64(40, BigInt(dateToNanoseconds(stat.timestamps.access))); // atim
+  view.setBigUint64(
+    48,
+    BigInt(dateToNanoseconds(stat.timestamps.modification))
+  ); // mtim
+  view.setBigUint64(56, BigInt(dateToNanoseconds(stat.timestamps.change))); // ctim
+  return buffer;
 }
 
 /**
