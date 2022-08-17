@@ -129,18 +129,18 @@ export class WASI implements SnapshotPreview1 {
       fd_write: this.fd_write.bind(this),
 
       // Paths
-      path_create_directory: this.path_create_directory.bind(this),
       path_filestat_get: this.path_filestat_get.bind(this),
       path_filestat_set_times: this.path_filestat_set_times.bind(this),
-      path_link: this.path_link.bind(this),
       path_open: this.path_open.bind(this),
-      path_readlink: this.path_readlink.bind(this),
-      path_remove_directory: this.path_remove_directory.bind(this),
       path_rename: this.path_rename.bind(this),
-      path_symlink: this.path_symlink.bind(this),
       path_unlink_file: this.path_unlink_file.bind(this),
 
       // Unimplemented
+      path_create_directory: this.path_create_directory.bind(this),
+      path_link: this.path_link.bind(this),
+      path_readlink: this.path_readlink.bind(this),
+      path_remove_directory: this.path_remove_directory.bind(this),
+      path_symlink: this.path_symlink.bind(this),
       poll_oneoff: this.poll_oneoff.bind(this),
       proc_raise: this.proc_raise.bind(this),
       sock_accept: this.sock_accept.bind(this),
