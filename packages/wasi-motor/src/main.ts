@@ -26,7 +26,7 @@ runButton.addEventListener("click", async () => {
       stderr: (err) => (stderrPre.textContent += err),
       stdin: () => prompt("stdin (cancel to end stdin):"),
       fs: {
-        "foo/foo.txt": {
+        "foo.txt": {
           path: "foo/foo.txt",
           timestamps: {
             access: new Date(),

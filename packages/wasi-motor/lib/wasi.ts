@@ -7,6 +7,10 @@ import {
   FileType,
   FileStatTimestampFlags,
   FILESTAT_SIZE,
+  SUBSCRIPTION_SIZE,
+  EventType,
+  SubscriptionClockFlags,
+  EVENT_SIZE,
 } from "./snapshot-preview1";
 import { WASIFS } from "./types";
 import { WASIContext } from "./wasi-context";
@@ -44,6 +48,7 @@ export class WASI implements SnapshotPreview1 {
     const wasi = new WASI(context);
     const wasm = await WebAssembly.instantiateStreaming(wasmSource, {
       wasi_snapshot_preview1: wasi.getImports(),
+      wasi_unstable: wasi.getImports(),
     });
     wasi.init(wasm);
     return wasi.start();
@@ -94,7 +99,7 @@ export class WASI implements SnapshotPreview1 {
   }
 
   getImports(): WebAssembly.ModuleImports & SnapshotPreview1 {
-    return {
+    const imports = {
       args_get: this.args_get.bind(this),
       args_sizes_get: this.args_sizes_get.bind(this),
       clock_res_get: this.clock_res_get.bind(this),
@@ -148,6 +153,15 @@ export class WASI implements SnapshotPreview1 {
       sock_send: this.sock_send.bind(this),
       sock_shutdown: this.sock_shutdown.bind(this),
     };
+
+    for (const [name, fn] of Object.entries(imports)) {
+      (imports as any)[name] = function () {
+        const ret = (fn as any).apply(this, arguments);
+        console.log(name, arguments, " => ", ret);
+        return ret;
+      };
+    }
+    return imports;
   }
 
   //
@@ -169,12 +183,20 @@ export class WASI implements SnapshotPreview1 {
    * returned by args_sizes_get. Each argument is expected to be \0 terminated.
    */
   args_get(argv_ptr_ptr: number, argv_buf_ptr: number): number {
-    writeStringArrayToMemory(
-      this.memory,
-      this.context.args,
-      argv_ptr_ptr,
-      argv_buf_ptr
-    );
+    const view = new DataView(this.memory.buffer);
+    for (const value of this.context.args) {
+      view.setUint32(argv_ptr_ptr, argv_buf_ptr, true);
+      argv_ptr_ptr += 4;
+
+      const data = new TextEncoder().encode(`${value}\0`);
+      const buffer = new Uint8Array(
+        this.memory.buffer,
+        argv_buf_ptr,
+        data.byteLength
+      );
+      buffer.set(data);
+      argv_buf_ptr += data.byteLength;
+    }
     return Result.SUCCESS;
   }
 
@@ -182,12 +204,15 @@ export class WASI implements SnapshotPreview1 {
    * Return command-line argument data sizes.
    */
   args_sizes_get(argc_ptr: number, argv_buf_size_ptr: number): number {
-    writeStringArraySizesToMemory(
-      this.memory,
-      this.context.args,
-      argc_ptr,
-      argv_buf_size_ptr
-    );
+    const args = this.context.args;
+    const totalByteLength = args.reduce((acc, value) => {
+      return acc + new TextEncoder().encode(`${value}\0`).byteLength;
+    }, 0);
+
+    const view = new DataView(this.memory.buffer);
+    view.setUint32(argc_ptr, args.length, true);
+    view.setUint32(argv_buf_size_ptr, totalByteLength, true);
+
     return Result.SUCCESS;
   }
 
@@ -234,12 +259,21 @@ export class WASI implements SnapshotPreview1 {
    * with =s, and terminated with \0s.
    */
   environ_get(env_ptr_ptr: number, env_buf_ptr: number): number {
-    writeStringArrayToMemory(
-      this.memory,
-      this.envArray,
-      env_ptr_ptr,
-      env_buf_ptr
-    );
+    const view = new DataView(this.memory.buffer);
+    for (const value of this.context.args) {
+      view.setUint32(env_ptr_ptr, env_buf_ptr, true);
+      env_ptr_ptr += 4;
+
+      const data = new TextEncoder().encode(`${value}\0`);
+      const buffer = new Uint8Array(
+        this.memory.buffer,
+        env_buf_ptr,
+        data.byteLength
+      );
+      buffer.set(data);
+      env_buf_ptr += data.byteLength;
+    }
+
     return Result.SUCCESS;
   }
 
@@ -247,12 +281,14 @@ export class WASI implements SnapshotPreview1 {
    * Return environment variable data sizes.
    */
   environ_sizes_get(env_ptr: number, env_buf_size_ptr: number): number {
-    writeStringArraySizesToMemory(
-      this.memory,
-      this.envArray,
-      env_ptr,
-      env_buf_size_ptr
-    );
+    const totalByteLength = this.envArray.reduce((acc, value) => {
+      return acc + new TextEncoder().encode(`${value}\0`).byteLength;
+    }, 0);
+
+    const view = new DataView(this.memory.buffer);
+    view.setUint32(env_ptr, this.envArray.length, true);
+    view.setUint32(env_buf_size_ptr, totalByteLength, true);
+
     return Result.SUCCESS;
   }
 
@@ -306,7 +342,7 @@ export class WASI implements SnapshotPreview1 {
     }
 
     const view = new DataView(this.memory.buffer);
-    const iovs = createIOVectors(view, iovs_ptr, iovs_len);
+    const iovs = readIOVectors(view, iovs_ptr, iovs_len);
     const encoder = new TextEncoder();
 
     let bytesRead = 0;
@@ -359,7 +395,7 @@ export class WASI implements SnapshotPreview1 {
     }
 
     const view = new DataView(this.memory.buffer);
-    const iovs = createIOVectors(view, ciovs_ptr, ciovs_len);
+    const iovs = readIOVectors(view, ciovs_ptr, ciovs_len);
     const decoder = new TextDecoder();
 
     let bytesWritten = 0;
@@ -572,7 +608,7 @@ export class WASI implements SnapshotPreview1 {
     }
 
     const view = new DataView(this.memory.buffer);
-    const iovs = createIOVectors(view, iovs_ptr, iovs_len);
+    const iovs = readIOVectors(view, iovs_ptr, iovs_len);
 
     let bytesRead = 0;
     let result: Result = Result.SUCCESS;
@@ -657,7 +693,7 @@ export class WASI implements SnapshotPreview1 {
     }
 
     const view = new DataView(this.memory.buffer);
-    const iovs = createIOVectors(view, ciovs_ptr, ciovs_len);
+    const iovs = readIOVectors(view, ciovs_ptr, ciovs_len);
 
     let bytesWritten = 0;
 
@@ -945,6 +981,100 @@ export class WASI implements SnapshotPreview1 {
     return this.drive.unlink(fd, path);
   }
 
+  /**
+   * Concurrently poll for the occurrence of a set of events.
+   */
+  poll_oneoff(
+    in_ptr: number,
+    out_ptr: number,
+    nsubscriptions: number,
+    retptr0: number
+  ): number {
+    for (let i = 0; i < nsubscriptions; i++) {
+      const subscriptionBuffer = new Uint8Array(
+        this.memory.buffer,
+        in_ptr + i * SUBSCRIPTION_SIZE,
+        SUBSCRIPTION_SIZE
+      );
+      const subscription = readSubscription(subscriptionBuffer);
+
+      const eventBuffer = new Uint8Array(
+        this.memory.buffer,
+        out_ptr + i * EVENT_SIZE,
+        EVENT_SIZE
+      );
+      let byteLength = 0;
+      let result: Result = Result.SUCCESS;
+      switch (subscription.type) {
+        case EventType.CLOCK:
+          while (new Date() < subscription.timeout) {
+            // Wait until we hit the event time
+          }
+          eventBuffer.set(
+            createClockEvent(subscription.userdata, Result.SUCCESS)
+          );
+          break;
+        case EventType.FD_READ:
+          if (subscription.fd < 3) {
+            // We can only read from STDIN
+            if (subscription.fd === 0) {
+              // TODO: Should this ping the Runno context to ask for stdin bytes?
+              result = Result.SUCCESS;
+              byteLength = 32;
+            } else {
+              result = Result.EBADF;
+            }
+          } else {
+            const [r, stat] = this.drive.stat(subscription.fd);
+            result = r;
+            byteLength = stat ? stat.byteLength : 0;
+          }
+
+          eventBuffer.set(
+            createFDReadWriteEvent(
+              subscription.userdata,
+              result,
+              EventType.FD_READ,
+              BigInt(byteLength)
+            )
+          );
+          break;
+        case EventType.FD_WRITE:
+          byteLength = 0;
+          result = Result.SUCCESS;
+          if (subscription.fd < 3) {
+            // We can't write to STDIN
+            if (subscription.fd === 0) {
+              result = Result.EBADF;
+            } else {
+              // assume STDOUT has capacity
+              result = Result.SUCCESS;
+              byteLength = 1024;
+            }
+          } else {
+            const [r, stat] = this.drive.stat(subscription.fd);
+            result = r;
+            byteLength = stat ? stat.byteLength : 0;
+          }
+
+          eventBuffer.set(
+            createFDReadWriteEvent(
+              subscription.userdata,
+              result,
+              EventType.FD_READ,
+              BigInt(byteLength)
+            )
+          );
+          break;
+      }
+    }
+
+    const returnView = new DataView(this.memory.buffer, retptr0, 4);
+    returnView.setUint32(0, nsubscriptions, true);
+
+    return Result.SUCCESS;
+  }
+
   //
   // Unimplemented - these operations are not supported by Runno
   //
@@ -983,13 +1113,6 @@ export class WASI implements SnapshotPreview1 {
    * Create a symbolic link. Note: This is similar to symlinkat in POSIX.
    */
   path_symlink() {
-    return Result.ENOSYS;
-  }
-
-  /**
-   * Concurrently poll for the occurrence of a set of events.
-   */
-  poll_oneoff(): number {
     return Result.ENOSYS;
   }
 
@@ -1089,61 +1212,6 @@ function readString(memory: WebAssembly.Memory, ptr: number, len: number) {
 }
 
 /**
- * Writes an array of strings to memory, used for args and env.
- *
- * @param memory WebAssembly Memory
- * @param values The values to write
- * @param iter_ptr_ptr Pointer to an array of pointers that can be iterated through
- * @param buf_ptr The buffer to write to
- */
-function writeStringArrayToMemory(
-  memory: WebAssembly.Memory,
-  values: Array<string>,
-  iter_ptr_ptr: number,
-  buf_ptr: number
-): void {
-  const encoder = new TextEncoder();
-  const buffer = new Uint8Array(memory.buffer);
-
-  const view = new DataView(memory.buffer);
-  for (const value of values) {
-    view.setUint32(iter_ptr_ptr, buf_ptr, true);
-    iter_ptr_ptr += 4;
-
-    // TODO: Do we need a null terminator on the string?
-    const data = encoder.encode(`${value}\0`);
-    buffer.set(data, buf_ptr);
-    buf_ptr += data.length;
-  }
-}
-
-/**
- * Writes the size of data needed to take an array of strings. Used for args and
- * env.
- *
- * @param memory Web Assembly memory
- * @param values The values to be written
- * @param count_ptr Pointer of where to store the number of values
- * @param buffer_size_ptr Pointer of where to store the size of buffer needed
- */
-function writeStringArraySizesToMemory(
-  memory: WebAssembly.Memory,
-  values: Array<string>,
-  count_ptr: number,
-  buffer_size_ptr: number
-): void {
-  const view = new DataView(memory.buffer);
-  const encoder = new TextEncoder();
-  const len = values.reduce((acc, value) => {
-    // TODO: Do we need a null terminator on the string?
-    return acc + encoder.encode(`${value}\0`).length;
-  }, 0);
-
-  view.setUint32(count_ptr, values.length, true);
-  view.setUint32(buffer_size_ptr, len, true);
-}
-
-/**
  * Turns an IO Vectors pointer and length and converts these into Uint8Arrays
  * for convenient read/write.
  *
@@ -1152,7 +1220,7 @@ function writeStringArraySizesToMemory(
  * @param iovs_len
  * @returns
  */
-function createIOVectors(
+function readIOVectors(
   view: DataView,
   iovs_ptr: number,
   iovs_len: number
@@ -1169,6 +1237,82 @@ function createIOVectors(
     result[i] = new Uint8Array(view.buffer, bufferPtr, bufferLen);
   }
   return result;
+}
+
+type Subscription = {
+  userdata: Uint8Array;
+} & (ClockSubscription | FDReadWriteSubscription);
+
+type ClockSubscription = {
+  type: EventType.CLOCK;
+  id: number; // Clock ID
+  timeout: Date;
+  precision: Date;
+};
+
+type FDReadWriteSubscription = {
+  type: EventType.FD_READ | EventType.FD_WRITE;
+  fd: number;
+};
+
+/**
+ * Subscription to an event.
+ *
+ * subscription: Record (size: 48, alignment: 8)
+ * - userdata (offset: 0, size: 8) - User-provided value that is attached to the subscription in the implementation and returned through event::userdata
+ * - subscription_u (offset: 8, size: 40) - The type of the event to which to subscribe, and its contents
+ *
+ * subscription_u: Variant (size: 40, alignment: 8, tag_size: 1)
+ * - tag (offset: 0, size: 1) - Which EventType this subscription is
+ * - data - subscription_clock | subscription_fd_readwrite
+ *
+ * subscription_clock: Record (size: 32, alignment: 8)
+ * - id (offset: 0, size: 4) - The clock against which to compare the timestamp.
+ * - timeout (offset: 8, size: 8) - The absolute or relative timestamp
+ * - precision (offset: 16, size: 8) - The amount of time that the implementation may wait additionally to coalesce with other events.
+ * - flags (offset: 24, size: 2) - Flags specifying whether the timeout is absolute or relative
+ *
+ * subscription_fd_readwrite: Record (size: 4, alignment: 4)
+ * - fd (offset: 0, size: 4) - The file descriptor on which to wait for it to
+ *                             become ready for reading or writing.
+ *
+ * @param buffer
+ */
+function readSubscription(buffer: Uint8Array): Subscription {
+  const userdata = new Uint8Array(8);
+  userdata.set(buffer.subarray(0, 8));
+
+  const type: EventType = buffer[8];
+
+  // View at SubscriptionU offset
+  const view = new DataView(buffer.buffer, buffer.byteOffset + 9);
+  switch (type) {
+    case EventType.FD_READ:
+    case EventType.FD_WRITE:
+      return {
+        userdata,
+        type,
+        fd: view.getUint32(0, true),
+      };
+    case EventType.CLOCK:
+      const flags = view.getUint16(24, true);
+      const currentTimeNanos = dateToNanoseconds(new Date());
+      const timeoutRawNanos = view.getBigUint64(8, true);
+      const precisionNanos = view.getBigUint64(16, true);
+
+      const timeoutNanos =
+        flags & SubscriptionClockFlags.SUBSCRIPTION_CLOCK_ABSTIME
+          ? timeoutRawNanos
+          : currentTimeNanos + timeoutRawNanos;
+
+      return {
+        userdata,
+        type,
+        id: view.getUint32(0, true),
+        timeout: nanosecondsToDate(timeoutNanos),
+        precision: nanosecondsToDate(timeoutNanos + precisionNanos),
+      };
+  }
 }
 
 /**
@@ -1239,6 +1383,56 @@ function createDirectoryEntry(
   view.setUint8(20, type);
   buffer.set(nameBytes, 24);
   return buffer;
+}
+
+/**
+ * event: Record (size: 32, alignment: 8)
+ *
+ * - userdata: userdata (offset: 0, size: 8) - User-provided value that got attached to subscription::userdata
+ * - error: errno (offset: 8, size: 2) - If non-zero, an error that occurred while processing the subscription request
+ * - eventtype: eventtype (offset: 10, size: 2) - The type of event that occured
+ * - fd_readwrite: event_fd_readwrite  (offset: 16, size: 16) - The contents of an event when type is eventtype::fd_read or eventtype::fd_write
+ *
+ */
+function createClockEvent(userdata: Uint8Array, error: Result): Uint8Array {
+  const eventBuffer = new Uint8Array(32);
+  eventBuffer.set(userdata, 0);
+
+  const view = new DataView(eventBuffer.buffer);
+  view.setUint16(8, error, true);
+  view.setUint16(10, EventType.CLOCK, true);
+
+  return eventBuffer;
+}
+
+/**
+ * event: Record (size: 32, alignment: 8)
+ *
+ * - userdata: userdata (offset: 0, size: 8) - User-provided value that got attached to subscription::userdata
+ * - error: errno (offset: 8, size: 2) - If non-zero, an error that occurred while processing the subscription request
+ * - eventtype: eventtype (offset: 10, size: 2) - The type of event that occured
+ * - fd_readwrite: event_fd_readwrite  (offset: 16, size: 16) - The contents of an event when type is eventtype::fd_read or eventtype::fd_write
+ *
+ * event_fd_readwrite: Record (size: 16, alignment: 8)
+ * - nbytes: filesize (offset: 0, size: 8) - The number of bytes available for reading or writing.
+ * - flags: eventrwflags (offset: 8, ) - The state of the file descriptor.
+ */
+function createFDReadWriteEvent(
+  userdata: Uint8Array,
+  error: Result,
+  type: EventType.FD_READ | EventType.FD_WRITE,
+  nbytes: bigint
+): Uint8Array {
+  const eventBuffer = new Uint8Array(32);
+  eventBuffer.set(userdata, 0);
+
+  const view = new DataView(eventBuffer.buffer);
+  view.setUint16(8, error, true);
+  view.setUint16(10, type, true);
+
+  view.setBigUint64(16, nbytes, true);
+
+  return eventBuffer;
 }
 
 /**

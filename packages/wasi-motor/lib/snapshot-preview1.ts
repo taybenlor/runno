@@ -312,6 +312,12 @@ export enum PreopenType {
   DIR = 0,
 }
 
+export enum EventType {
+  CLOCK = 0, // The time value of clock subscription_clock::id has reached timestamp subscription_clock::timeout.
+  FD_READ = 1, // File descriptor subscription_fd_readwrite::file_descriptor has data available for reading. This event always triggers for regular files.
+  FD_WRITE = 2, // File descriptor subscription_fd_readwrite::file_descriptor has capacity available for writing. This event always triggers for regular files.
+}
+
 export const LookupFlags = {
   SYMLINK_FOLLOW: 1 << 0, // As long as the resolved path corresponds to a symbolic
   // link, it is expanded.
@@ -372,4 +378,14 @@ export const FileStatTimestampFlags = {
   MTIM_NOW: 1 << 3, // Adjust the last data modification timestamp to the time of clock clockid::realtime.
 };
 
+export const SubscriptionClockFlags = {
+  SUBSCRIPTION_CLOCK_ABSTIME: 1 << 0, // If set, treat the timestamp provided in subscription_clock::timeout as an absolute timestamp of clock subscription_clock::id. If clear, treat the timestamp provided in subscription_clock::timeout relative to the current time value of clock subscription_clock::id.
+};
+
+export const EventReadWriteFlags = {
+  FD_READWRITE_HANGUP: 1 << 0, // The peer of this socket has closed or disconnected.
+};
+
 export const FILESTAT_SIZE = 64;
+export const SUBSCRIPTION_SIZE = 48;
+export const EVENT_SIZE = 32;
