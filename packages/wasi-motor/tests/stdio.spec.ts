@@ -12,7 +12,7 @@ test.describe("hello-world", () => {
   test.beforeEach(async ({ page }) => {
     await page
       .locator("select")
-      .selectOption("/programs/hello-world.wasi.wasm");
+      .selectOption("/bin/tests/hello-world.wasi.wasm");
   });
 
   test("displays hello world and gives zero exit code", async ({ page }) => {
@@ -27,7 +27,7 @@ test.describe("hello-world-stderr", () => {
   test.beforeEach(async ({ page }) => {
     await page
       .locator("select")
-      .selectOption("/programs/hello-world-stderr.wasi.wasm");
+      .selectOption("/bin/tests/hello-world-stderr.wasi.wasm");
   });
 
   test("displays hello world and gives zero exit code", async ({ page }) => {

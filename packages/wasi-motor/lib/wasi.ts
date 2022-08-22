@@ -479,20 +479,32 @@ export class WASI implements SnapshotPreview1 {
    * @returns Result<fdstat, errno>
    */
   fd_fdstat_get(fd: number, retptr0: number): number {
+    // STDIN / STDOUT / STDERR
+    if (fd < 3) {
+      const buffer = createFdStat(FileType.REGULAR_FILE, 0);
+      const retBuffer = new Uint8Array(
+        this.memory.buffer,
+        retptr0,
+        buffer.byteLength
+      );
+      retBuffer.set(buffer);
+
+      return Result.SUCCESS;
+    }
+
     if (!this.drive.exists(fd)) {
       return Result.EBADF;
     }
 
     const type = this.drive.fileType(fd);
     const fdflags = this.drive.fileFdflags(fd);
-    const rightsBase = ALL_RIGHTS;
-    const rightsInheriting = ALL_RIGHTS;
-
-    const view = new DataView(this.memory.buffer, retptr0, 24);
-    view.setUint16(0, type, true);
-    view.setUint32(2, fdflags, true);
-    view.setBigUint64(8, rightsBase, true);
-    view.setBigUint64(16, rightsInheriting, true);
+    const buffer = createFdStat(type, fdflags);
+    const retBuffer = new Uint8Array(
+      this.memory.buffer,
+      retptr0,
+      buffer.byteLength
+    );
+    retBuffer.set(buffer);
 
     return Result.SUCCESS;
   }
@@ -1344,6 +1356,28 @@ function createFilestat(stat: DriveStat): Uint8Array {
     BigInt(dateToNanoseconds(stat.timestamps.modification))
   ); // mtim
   view.setBigUint64(56, BigInt(dateToNanoseconds(stat.timestamps.change))); // ctim
+  return buffer;
+}
+
+/**
+ * fdstat: Record (size: 24, alignment: 8)
+ * File descriptor attributes.
+ * Record members:
+ * - fs_filetype (offset: 0, size: 1) filetype File type.
+ * - fs_flags (offset: 2, size: 2): fdflags File descriptor flags.
+ * - fs_rights_base (offset: 8, size: 8): rights Rights that apply to this file descriptor.
+ * - fs_rights_inheriting (offset: 16, size: 8): rights Maximum set of rights that may be installed on new file descriptors that are created through this file descriptor, e.g., through path_open.
+ */
+function createFdStat(type: FileType, fdflags: number): Uint8Array {
+  const rightsBase = ALL_RIGHTS;
+  const rightsInheriting = ALL_RIGHTS;
+
+  const buffer = new Uint8Array(24);
+  const view = new DataView(buffer.buffer, 0, 24);
+  view.setUint8(0, type);
+  view.setUint32(2, fdflags, true);
+  view.setBigUint64(8, rightsBase, true);
+  view.setBigUint64(16, rightsInheriting, true);
   return buffer;
 }
 

@@ -12,7 +12,7 @@ test.describe("return-arg-count", () => {
   test.beforeEach(async ({ page }) => {
     await page
       .locator("select")
-      .selectOption("/programs/return-arg-count.wasi.wasm");
+      .selectOption("/bin/tests/return-arg-count.wasi.wasm");
   });
 
   test("gives zero exit code when run with no args", async ({ page }) => {
@@ -47,7 +47,7 @@ test.describe("single-arg-is-hello", () => {
   test.beforeEach(async ({ page }) => {
     await page
       .locator("select")
-      .selectOption("/programs/single-arg-is-hello.wasi.wasm");
+      .selectOption("/bin/tests/single-arg-is-hello.wasi.wasm");
   });
 
   test("gives non-zero exit code when run with no args", async ({ page }) => {
@@ -69,7 +69,7 @@ test.describe("three-args-foo-bar-baz", () => {
   test.beforeEach(async ({ page }) => {
     await page
       .locator("select")
-      .selectOption("/programs/three-args-foo-bar-baz.wasi.wasm");
+      .selectOption("/bin/tests/three-args-foo-bar-baz.wasi.wasm");
   });
 
   test("gives non-zero exit code when run with no args", async ({ page }) => {

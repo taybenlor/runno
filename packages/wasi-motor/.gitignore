@@ -24,7 +24,7 @@ dist-ssr
 *.sw?
 
 # These are built with npm run build:programs
-public/programs
+public/bin
 
 # Playwright
 playwright-report

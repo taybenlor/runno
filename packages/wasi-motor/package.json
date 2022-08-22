@@ -15,13 +15,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 5173",
-    "build:programs": "cd programs && cargo wasi build -r && cd .. && cp programs/target/wasm32-wasi/release/*.wasi.wasm public/programs/",
+    "build:tests": "cd programs && cargo wasi build -r && cd .. && cp programs/target/wasm32-wasi/release/*.wasi.wasm public/bin/tests/",
     "build": "tsc && vite build",
+    "test:mkdir": "mkdir -p public/bin/languages public/bin/tests",
+    "test:download": "wget --directory-prefix=public/bin/ https://github.com/caspervonb/wasi-test-suite/archive/refs/heads/main.zip && unzip -u public/bin/main.zip -d public/bin/ && rm public/bin/main.zip",
+    "test:prepare": "npm run test:mkdir && npm run test:download && npm run build:tests",
     "test": "playwright test",
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@playwright/test": "^1.24.2",
+    "@playwright/test": "^1.25.0",
     "typescript": "^4.6.4",
     "vite": "^3.0.0"
   }
