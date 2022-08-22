@@ -55,3 +55,13 @@ Then run the test suite:
 ```sh
 $ npm run test
 ```
+
+The test suite includes the following tests:
+
+- args - tests of program args (mine)
+- stdio - tests of stdio (mine)
+- wasi-test-suite https://github.com/caspervonb/wasi-test-suite
+  - core - the core WASI functionality called from assemblyscript
+  - libc - WASI functionality called from libc (C)
+  - [TODO] libstd - WASI functionality called from libstd (Rust)
+- [TODO] wasi-tests https://github.com/bytecodealliance/wasmtime/tree/main/crates/test-programs/wasi-tests
