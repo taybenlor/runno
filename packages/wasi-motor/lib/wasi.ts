@@ -86,6 +86,12 @@ export class WASI implements SnapshotPreview1 {
           exitCode: e.code,
           fs: this.drive.fs,
         };
+      } else if (e instanceof WebAssembly.RuntimeError) {
+        // Libc raises an unreachable error
+        return {
+          exitCode: 134,
+          fs: this.drive.fs,
+        };
       } else {
         throw e;
       }
@@ -169,9 +175,9 @@ export class WASI implements SnapshotPreview1 {
   //
 
   get envArray(): Array<string> {
-    return Object.keys(this.context.env).map((key) => {
-      return `${key}=${this.context.env[key]}`;
-    });
+    return Object.entries(this.context.env).map(
+      ([key, value]) => `${key}=${value}`
+    );
   }
 
   //
@@ -260,7 +266,7 @@ export class WASI implements SnapshotPreview1 {
    */
   environ_get(env_ptr_ptr: number, env_buf_ptr: number): number {
     const view = new DataView(this.memory.buffer);
-    for (const value of this.context.args) {
+    for (const value of this.envArray) {
       view.setUint32(env_ptr_ptr, env_buf_ptr, true);
       env_ptr_ptr += 4;
 
