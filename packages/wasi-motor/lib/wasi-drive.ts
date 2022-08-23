@@ -111,7 +111,7 @@ export class WASIDrive {
         };
         return this.openFile(this.fs[path], truncateFile, fdflags);
       }
-      return [Result.ENOENT];
+      return [Result.ENOTCAPABLE];
     }
   }
 
@@ -120,7 +120,7 @@ export class WASIDrive {
       return Result.EBADF;
     }
 
-    const file = this.openMap.get(fd)!;
+    const file = this.openMap.get(fd);
     if (file instanceof OpenFile) {
       file.sync();
     }
@@ -130,7 +130,7 @@ export class WASIDrive {
   }
 
   read(fd: FileDescriptor, bytes: number): DriveResult<Uint8Array> {
-    const file = this.openMap.get(fd)!;
+    const file = this.openMap.get(fd);
     if (!file || file instanceof OpenDirectory) {
       return [Result.EBADF];
     }
@@ -143,7 +143,7 @@ export class WASIDrive {
     bytes: number,
     offset: number
   ): DriveResult<Uint8Array> {
-    const file = this.openMap.get(fd!);
+    const file = this.openMap.get(fd);
     if (!file || file instanceof OpenDirectory) {
       return [Result.EBADF];
     }
@@ -152,7 +152,7 @@ export class WASIDrive {
   }
 
   write(fd: FileDescriptor, data: Uint8Array): Result {
-    const file = this.openMap.get(fd)!;
+    const file = this.openMap.get(fd);
     if (!file || file instanceof OpenDirectory) {
       return Result.EBADF;
     }
@@ -162,7 +162,7 @@ export class WASIDrive {
   }
 
   pwrite(fd: FileDescriptor, data: Uint8Array, offset: number): Result {
-    const file = this.openMap.get(fd)!;
+    const file = this.openMap.get(fd);
     if (!file || file instanceof OpenDirectory) {
       return Result.EBADF;
     }
@@ -172,7 +172,7 @@ export class WASIDrive {
   }
 
   sync(fd: FileDescriptor): Result {
-    const file = this.openMap.get(fd)!;
+    const file = this.openMap.get(fd);
     if (!file || file instanceof OpenDirectory) {
       return Result.EBADF;
     }
@@ -187,7 +187,7 @@ export class WASIDrive {
     offset: bigint,
     whence: Whence
   ): DriveResult<number> {
-    const file = this.openMap.get(fd)!;
+    const file = this.openMap.get(fd);
     if (!file || file instanceof OpenDirectory) {
       return [Result.EBADF];
     }
@@ -196,7 +196,7 @@ export class WASIDrive {
   }
 
   tell(fd: FileDescriptor): DriveResult<number> {
-    const file = this.openMap.get(fd)!;
+    const file = this.openMap.get(fd);
     if (!file || file instanceof OpenDirectory) {
       return [Result.EBADF];
     }
@@ -293,6 +293,9 @@ export class WASIDrive {
     }
 
     const f = dir.get(path);
+    if (!f) {
+      return [Result.ENOTCAPABLE];
+    }
     const file = new OpenFile(f, 0);
     return [Result.SUCCESS, file.stat()];
   }
@@ -344,6 +347,9 @@ export class WASIDrive {
     }
 
     const f = dir.get(path);
+    if (!f) {
+      return Result.ENOTCAPABLE;
+    }
     const file = new OpenFile(f, 0);
     file.setAccessTime(date);
     file.sync();
@@ -361,6 +367,9 @@ export class WASIDrive {
     }
 
     const f = dir.get(path);
+    if (!f) {
+      return Result.ENOTCAPABLE;
+    }
     const file = new OpenFile(f, 0);
     file.setModificationTime(date);
     file.sync();
@@ -543,7 +552,7 @@ class OpenFile {
 
   setSize(size: number) {
     const newBuffer = new Uint8Array(size);
-    newBuffer.set(this.buffer);
+    newBuffer.set(this.buffer.subarray(0, size));
     this.buffer = newBuffer;
   }
 
@@ -569,7 +578,7 @@ class OpenDirectory {
     return this.fullPath(relativePath) in this.dir;
   }
 
-  get(relativePath: string) {
+  get(relativePath: string): WASIFile | undefined {
     return this.dir[this.fullPath(relativePath)];
   }
 

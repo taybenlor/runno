@@ -3,6 +3,7 @@ import * as fs from "fs";
 import { test, expect } from "@playwright/test";
 
 import type { WASI, WASIContext } from "../lib/main";
+import { getStatus } from "./helpers.ts";
 
 const files = fs.readdirSync("public/bin/wasi-test-suite-main/core");
 const wasmFiles = files.filter((f) => f.endsWith(".wasm"));
@@ -13,16 +14,8 @@ test.beforeEach(async ({ page }) => {
 });
 
 for (const name of wasmFiles) {
-  let expectedStatus = 0;
+  const expectedStatus = getStatus("core", name);
 
-  try {
-    const statusData = fs.readFileSync(
-      `public/bin/wasi-test-suite-main/core/${name.replace("wasm", "status")}`
-    );
-    expectedStatus = parseInt(statusData.toString(), 10);
-  } catch {
-    // do nothing
-  }
   test.describe(name, () => {
     test(`Gives a ${expectedStatus} exit code`, async ({ page }) => {
       const result = await page.evaluate(async function (url) {

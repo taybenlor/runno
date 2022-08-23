@@ -7,6 +7,14 @@ import * as fs from "fs";
 import { test, expect } from "@playwright/test";
 
 import type { WASI, WASIContext } from "../lib/main";
+import {
+  getEnv,
+  getStatus,
+  getStdin,
+  getStderr,
+  getStdout,
+  getFS,
+} from "./helpers.ts";
 
 const files = fs.readdirSync("public/bin/wasi-test-suite-main/libc");
 const wasmFiles = files.filter((f) => f.endsWith(".wasm"));
@@ -17,39 +25,23 @@ test.beforeEach(async ({ page }) => {
 });
 
 for (const name of wasmFiles) {
-  let expectedStatus = 0;
-
-  try {
-    const statusData = fs.readFileSync(
-      `public/bin/wasi-test-suite-main/libc/${name.replace("wasm", "status")}`
-    );
-    expectedStatus = parseInt(statusData.toString(), 10);
-  } catch {
-    // do nothing
-  }
-
-  let env: {} | undefined = undefined;
-
-  try {
-    const envData = fs.readFileSync(
-      `public/bin/wasi-test-suite-main/libc/${name.replace("wasm", "env")}`
-    );
-    env = {};
-    for (const line of envData.toString().split("\n")) {
-      if (!line.trim()) continue;
-      const [key, value] = line.trim().split("=");
-      env[key] = value;
-    }
-  } catch {
-    // do nothing
-  }
+  const expectedStatus = getStatus("libc", name);
+  const env = getEnv("libc", name);
+  const stdin = getStdin("libc", name);
+  const stdout = getStdout("libc", name);
+  const stderr = getStderr("libc", name);
+  const fs = getFS("libc", name);
 
   test.describe(name, () => {
     test(`Gives a ${expectedStatus} exit code${
       env ? ` with env ${JSON.stringify(env)}` : ""
     }`, async ({ page }) => {
-      const result = await page.evaluate(
-        async function ({ url, env }) {
+      const {
+        exitCode,
+        stderr: stderrResult,
+        stdout: stdoutResult,
+      } = await page.evaluate(
+        async function ({ url, env, stdin, fs }) {
           while (window["WASI"] === undefined) {
             await new Promise((resolve) => setTimeout(resolve));
           }
@@ -57,22 +49,46 @@ for (const name of wasmFiles) {
           const W: typeof WASI = (window as any)["WASI"];
           const WC: typeof WASIContext = (window as any)["WASIContext"];
 
+          let stderr = "";
+          let stdout = "";
           return W.start(
             fetch(url),
             new WC({
               args: [],
               env,
-              stdout: () => {},
-              stderr: () => {},
-              stdin: () => null,
-              fs: {},
+              stdout: (s) => {
+                stdout += s;
+              },
+              stderr: (s) => {
+                stderr += s;
+              },
+              stdin: (maxByteLength: number) => {
+                const retvalue = stdin;
+                stdin = "";
+                return retvalue;
+              },
+              fs,
             })
-          );
+          ).then((result) => {
+            return {
+              ...result,
+              stderr,
+              stdout,
+            };
+          });
         },
-        { url: `/bin/wasi-test-suite-main/libc/${name}`, env }
+        { url: `/bin/wasi-test-suite-main/libc/${name}`, env, stdin, fs }
       );
 
-      expect(result.exitCode).toBe(expectedStatus);
+      expect(exitCode).toBe(expectedStatus);
+
+      if (stdout) {
+        expect(stdoutResult).toEqual(stdout);
+      }
+
+      if (stderr) {
+        expect(stderrResult).toEqual(stderr);
+      }
     });
   });
 }
