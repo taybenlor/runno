@@ -1,6 +1,6 @@
 import * as fs from "fs";
 
-export type Suite = "core" | "libc";
+export type Suite = "core" | "libc" | "libstd";
 
 export function getStatus(suite: Suite, binary: string) {
   let status = 0;
@@ -18,6 +18,28 @@ export function getStatus(suite: Suite, binary: string) {
   }
 
   return status;
+}
+
+export function getArgs(suite: Suite, binary: string) {
+  let args: string[] = [];
+
+  try {
+    const argsData = fs.readFileSync(
+      `public/bin/wasi-test-suite-main/${suite}/${binary.replace(
+        "wasm",
+        "arg"
+      )}`
+    );
+    args = [];
+    for (const line of argsData.toString().split("\n")) {
+      if (!line.trim()) continue;
+      args.push(line);
+    }
+  } catch {
+    // do nothing
+  }
+
+  return args;
 }
 
 export function getEnv(suite: Suite, binary: string) {
@@ -109,7 +131,7 @@ export function getFS(suite: Suite, binary: string) {
       const path = `${name}/.gitignore`;
       files = {
         ...files,
-        path: {
+        [path]: {
           path,
           timestamps: {
             access: new Date(),

@@ -14,9 +14,10 @@ import {
   getStderr,
   getStdout,
   getFS,
+  getArgs,
 } from "./helpers.js";
 
-const files = fs.readdirSync("public/bin/wasi-test-suite-main/libc");
+const files = fs.readdirSync("public/bin/wasi-test-suite-main/libstd");
 const wasmFiles = files.filter((f) => f.endsWith(".wasm"));
 
 test.beforeEach(async ({ page }) => {
@@ -25,23 +26,45 @@ test.beforeEach(async ({ page }) => {
 });
 
 for (const name of wasmFiles) {
-  const expectedStatus = getStatus("libc", name);
-  const env = getEnv("libc", name);
-  const stdin = getStdin("libc", name);
-  const stdout = getStdout("libc", name);
-  const stderr = getStderr("libc", name);
-  const fs = getFS("libc", name);
+  const expectedStatus = getStatus("libstd", name);
+  const env = getEnv("libstd", name);
+  const stdin = getStdin("libstd", name);
+  const stdout = getStdout("libstd", name);
+  const stderr = getStderr("libstd", name);
+  const wasifs = getFS("libstd", name);
+  const args = [name, ...getArgs("libstd", name)];
 
-  test.describe(`libc/${name}`, () => {
+  if (name === "io_stdin-beowulf.wasm") {
+    wasifs["io_stdin-beowulf.stdin"] = {
+      path: "io_stdin-beowulf.stdin",
+      timestamps: {
+        access: new Date(),
+        change: new Date(),
+        modification: new Date(),
+      },
+      mode: "string",
+      content: fs
+        .readFileSync(
+          "public/bin/wasi-test-suite-main/libstd/io_stdin-beowulf.stdin"
+        )
+        .toString(),
+    };
+  }
+
+  test.describe(`libstd/${name}`, () => {
     test(`Gives a ${expectedStatus} exit code${
       env ? ` with env ${JSON.stringify(env)}` : ""
+    }${args ? ` with args ${JSON.stringify(args)}` : ""}${
+      Object.keys(wasifs).length
+        ? ` with files ${JSON.stringify(Object.keys(wasifs))}`
+        : ""
     }`, async ({ page }) => {
       const {
         exitCode,
         stderr: stderrResult,
         stdout: stdoutResult,
       } = await page.evaluate(
-        async function ({ url, env, stdin, fs }) {
+        async function ({ url, env, args, stdin, fs }) {
           while (window["WASI"] === undefined) {
             await new Promise((resolve) => setTimeout(resolve));
           }
@@ -51,10 +74,11 @@ for (const name of wasmFiles) {
 
           let stderr = "";
           let stdout = "";
+
           return W.start(
             fetch(url),
             new WC({
-              args: [],
+              args,
               env,
               stdout: (s) => {
                 stdout += s;
@@ -63,8 +87,9 @@ for (const name of wasmFiles) {
                 stderr += s;
               },
               stdin: (maxByteLength: number) => {
-                const retvalue = stdin;
-                stdin = "";
+                const index = Math.floor(maxByteLength / 2);
+                const retvalue = stdin.slice(0, index);
+                stdin = stdin.slice(index);
                 return retvalue;
               },
               fs,
@@ -77,7 +102,13 @@ for (const name of wasmFiles) {
             };
           });
         },
-        { url: `/bin/wasi-test-suite-main/libc/${name}`, env, stdin, fs }
+        {
+          url: `/bin/wasi-test-suite-main/libstd/${name}`,
+          args,
+          env,
+          stdin,
+          fs: wasifs,
+        }
       );
 
       expect(exitCode).toBe(expectedStatus);

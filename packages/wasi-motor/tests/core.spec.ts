@@ -16,7 +16,7 @@ test.beforeEach(async ({ page }) => {
 for (const name of wasmFiles) {
   const expectedStatus = getStatus("core", name);
 
-  test.describe(name, () => {
+  test.describe(`core/${name}`, () => {
     test(`Gives a ${expectedStatus} exit code`, async ({ page }) => {
       const result = await page.evaluate(async function (url) {
         while (window["WASI"] === undefined) {
