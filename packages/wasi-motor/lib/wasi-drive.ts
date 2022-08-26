@@ -229,7 +229,15 @@ export class WASIDrive {
       return Result.ENOENT;
     }
 
-    delete this.fs[openDir.fullPath(path)];
+    for (const key of Object.keys(this.fs)) {
+      if (
+        key === openDir.fullPath(path) ||
+        key.startsWith(`${openDir.fullPath(path)}/`)
+      ) {
+        delete this.fs[key];
+      }
+    }
+
     return Result.SUCCESS;
   }
 
@@ -257,13 +265,15 @@ export class WASIDrive {
       return Result.EEXIST;
     }
 
-    const oldFullPath = oldDir.fullPath(oldPath);
-    const newFullPath = newDir.fullPath(newPath);
-
-    this.fs[newFullPath] = this.fs[oldFullPath];
-    delete this.fs[oldFullPath];
-
-    // TODO: Should this handle the case where oldPath is open?
+    for (const key of Object.keys(this.fs)) {
+      const oldFullPath = oldDir.fullPath(oldPath);
+      const newFullPath = newDir.fullPath(newPath);
+      if (key.startsWith(oldFullPath)) {
+        const newPath = key.replace(oldFullPath, newFullPath);
+        this.fs[newPath] = this.fs[key];
+        delete this.fs[key];
+      }
+    }
 
     return Result.SUCCESS;
   }
@@ -292,12 +302,19 @@ export class WASIDrive {
       return [Result.EBADF];
     }
 
-    const f = dir.get(path);
-    if (!f) {
+    if (path in this.fs) {
+      return [Result.SUCCESS, new OpenFile(this.fs[path], 0).stat()];
+    } else if (Object.keys(this.fs).find((s) => s.startsWith(`${path}/`))) {
+      const prefix = `${path}/`;
+      // This is a directory
+      const dir = Object.entries(this.fs).filter(([s]) => s.startsWith(prefix));
+      return [
+        Result.SUCCESS,
+        new OpenDirectory(Object.fromEntries(dir), prefix).stat(),
+      ];
+    } else {
       return [Result.ENOTCAPABLE];
     }
-    const file = new OpenFile(f, 0);
-    return [Result.SUCCESS, file.stat()];
   }
 
   setFlags(fd: FileDescriptor, flags: number): Result {
@@ -575,7 +592,14 @@ class OpenDirectory {
   }
 
   contains(relativePath: string) {
-    return this.fullPath(relativePath) in this.dir;
+    for (const path of Object.keys(this.dir)) {
+      const name = path.replace(this.prefix, "");
+      if (name === relativePath || name.startsWith(`${relativePath}/`)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   get(relativePath: string): WASIFile | undefined {
@@ -607,5 +631,18 @@ class OpenDirectory {
     }
 
     return entries;
+  }
+
+  stat(): DriveStat {
+    return {
+      path: this.prefix,
+      timestamps: {
+        access: new Date(),
+        modification: new Date(),
+        change: new Date(),
+      },
+      type: FileType.DIRECTORY,
+      byteLength: 0,
+    };
   }
 }

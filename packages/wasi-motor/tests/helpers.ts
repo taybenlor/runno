@@ -119,33 +119,58 @@ export function getStderr(suite: Suite, binary: string) {
   return stderr;
 }
 
+type File = {
+  path: string;
+  timestamps: {
+    access: Date;
+    change: Date;
+    modification: Date;
+  };
+  mode: string;
+  content: string | Uint8Array;
+};
 export function getFS(suite: Suite, binary: string) {
-  let files = {};
+  let files: { [key: string]: File } = {};
 
   try {
     const name = binary.replace("wasm", "dir");
-    const exists = fs.existsSync(
-      `public/bin/wasi-test-suite-main/${suite}/${name}`
+    addFilesFromPath(
+      files,
+      `public/bin/wasi-test-suite-main/${suite}/${name}`,
+      name
     );
-    if (exists) {
-      const path = `${name}/.gitignore`;
-      files = {
-        ...files,
-        [path]: {
-          path,
-          timestamps: {
-            access: new Date(),
-            change: new Date(),
-            modification: new Date(),
-          },
-          mode: "string",
-          content: "",
-        },
-      };
-    }
   } catch {
     // do nothing
   }
 
   return files;
+}
+
+function addFilesFromPath(
+  files: { [key: string]: File },
+  path: string,
+  rootPath: string
+) {
+  const stat = fs.statSync(path);
+  if (stat.isDirectory()) {
+    const list = fs.readdirSync(path);
+    for (const file of list) {
+      if (fs.statSync(`${path}/${file}`).isDirectory()) {
+        addFilesFromPath(files, `${path}/${file}`, `${rootPath}/${file}`);
+        continue;
+      }
+
+      const filePath = `${rootPath}/${file}`;
+      files[filePath] = {
+        path: filePath,
+        timestamps: {
+          access: new Date(),
+          change: new Date(),
+          modification: new Date(),
+        },
+        mode: "string",
+        content: fs.readFileSync(`${path}/${file}`).toString(),
+      };
+    }
+  }
 }
