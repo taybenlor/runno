@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import type { WASIFS } from "../lib/types";
 
 export type Suite = "core" | "libc" | "libstd";
 
@@ -119,18 +120,8 @@ export function getStderr(suite: Suite, binary: string) {
   return stderr;
 }
 
-type File = {
-  path: string;
-  timestamps: {
-    access: Date;
-    change: Date;
-    modification: Date;
-  };
-  mode: string;
-  content: string | Uint8Array;
-};
 export function getFS(suite: Suite, binary: string) {
-  let files: { [key: string]: File } = {};
+  let files: WASIFS = {};
 
   try {
     const name = binary.replace("wasm", "dir");
@@ -146,11 +137,7 @@ export function getFS(suite: Suite, binary: string) {
   return files;
 }
 
-function addFilesFromPath(
-  files: { [key: string]: File },
-  path: string,
-  rootPath: string
-) {
+function addFilesFromPath(files: WASIFS, path: string, rootPath: string) {
   const stat = fs.statSync(path);
   if (stat.isDirectory()) {
     const list = fs.readdirSync(path);
