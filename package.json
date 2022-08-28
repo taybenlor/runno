@@ -15,7 +15,7 @@
     "build:host": "cd packages/host && npm run build",
     "build:client": "cd packages/client && npm run build",
     "build:wasi": "cd packages/wasi && npm run build",
-    "build:wasi-motor": "cd packages/wasi && npm run build",
+    "build:wasi-motor": "cd packages/wasi-motor && npm run build",
     "build:terminal": "cd packages/terminal && npm run build",
     "build:runtime": "cd packages/runtime && npm run build",
     "build:website": "cd packages/website && npm run build",

@@ -8,12 +8,12 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: "16"
-      - name: Install Playwright
-        run: npx playwright install --with-deps
       - name: Install dependencies
         run: npm run bootstrap
       - name: Build Runno
         run: npm run build
+      - name: Install Playwright
+        run: npx playwright install --with-deps
       - name: Run your tests
         run: npm run test
       - name: Upload test results
