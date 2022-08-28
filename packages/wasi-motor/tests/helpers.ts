@@ -32,7 +32,7 @@ export function getArgs(suite: Suite, binary: string) {
       )}`
     );
     args = [];
-    for (const line of argsData.toString().split("\n")) {
+    for (const line of argsData.toString("utf8").split("\n")) {
       if (!line.trim()) continue;
       args.push(line);
     }
@@ -54,7 +54,7 @@ export function getEnv(suite: Suite, binary: string) {
       )}`
     );
     env = {};
-    for (const line of envData.toString().split("\n")) {
+    for (const line of envData.toString("utf8").split("\n")) {
       if (!line.trim()) continue;
       const [key, value] = line.trim().split("=");
       env[key] = value;
@@ -76,7 +76,7 @@ export function getStdin(suite: Suite, binary: string) {
         "stdin"
       )}`
     );
-    stdin = stdinData.toString();
+    stdin = stdinData.toString("utf8");
   } catch {
     // do nothing
   }
@@ -94,7 +94,7 @@ export function getStdout(suite: Suite, binary: string) {
         "stdout"
       )}`
     );
-    stdout = stdoutData.toString();
+    stdout = stdoutData.toString("utf8");
   } catch {
     // do nothing
   }
@@ -112,7 +112,7 @@ export function getStderr(suite: Suite, binary: string) {
         "stderr"
       )}`
     );
-    stderr = stderrData.toString();
+    stderr = stderrData.toString("utf8");
   } catch {
     // do nothing
   }
@@ -130,6 +130,27 @@ export function getFS(suite: Suite, binary: string) {
       `public/bin/wasi-test-suite-main/${suite}/${name}`,
       name
     );
+  } catch {
+    // do nothing
+  }
+
+  try {
+    // Some tests expect the stdin file to be in the cwd
+    const stdinFile = binary.replace("wasm", "stdin");
+    const stdinData = fs.readFileSync(
+      `public/bin/wasi-test-suite-main/${suite}/${stdinFile}`
+    );
+
+    files[stdinFile] = {
+      path: stdinFile,
+      timestamps: {
+        access: new Date(),
+        change: new Date(),
+        modification: new Date(),
+      },
+      mode: "string",
+      content: stdinData.toString("utf8"),
+    };
   } catch {
     // do nothing
   }
@@ -156,7 +177,7 @@ function addFilesFromPath(files: WASIFS, path: string, rootPath: string) {
           modification: new Date(),
         },
         mode: "string",
-        content: fs.readFileSync(`${path}/${file}`).toString(),
+        content: fs.readFileSync(`${path}/${file}`).toString("utf8"),
       };
     }
   }

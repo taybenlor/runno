@@ -34,23 +34,6 @@ for (const name of wasmFiles) {
   const wasifs = getFS("libstd", name);
   const args = [name, ...getArgs("libstd", name)];
 
-  if (name === "io_stdin-beowulf.wasm") {
-    wasifs["io_stdin-beowulf.stdin"] = {
-      path: "io_stdin-beowulf.stdin",
-      timestamps: {
-        access: new Date(),
-        change: new Date(),
-        modification: new Date(),
-      },
-      mode: "string",
-      content: fs
-        .readFileSync(
-          "public/bin/wasi-test-suite-main/libstd/io_stdin-beowulf.stdin"
-        )
-        .toString(),
-    };
-  }
-
   test.describe(`libstd/${name}`, () => {
     test(`Gives a ${expectedStatus} exit code${
       env ? ` with env ${JSON.stringify(env)}` : ""
@@ -87,7 +70,7 @@ for (const name of wasmFiles) {
                 stderr += s;
               },
               stdin: (maxByteLength: number) => {
-                const index = Math.floor(maxByteLength / 2);
+                const index = Math.floor(maxByteLength / 2) + 1;
                 const retvalue = stdin.slice(0, index);
                 stdin = stdin.slice(index);
                 return retvalue;

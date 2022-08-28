@@ -393,6 +393,33 @@ export class WASIDrive {
     return Result.SUCCESS;
   }
 
+  pathCreateDir(fdDir: FileDescriptor, path: string): Result {
+    const dir = this.openMap.get(fdDir);
+    if (!(dir instanceof OpenDirectory)) {
+      return Result.EBADF;
+    }
+
+    if (dir.contains(path)) {
+      return Result.ENOTCAPABLE;
+    }
+
+    // Since this FS doesn't really support directories,
+    // just put a dummy file in the directory.
+    // It'll be fine probably.
+    const filePath = `${dir.fullPath(path)}/.runno`;
+    this.fs[filePath] = {
+      path: filePath,
+      timestamps: {
+        access: new Date(),
+        modification: new Date(),
+        change: new Date(),
+      },
+      mode: "string",
+      content: "",
+    };
+    return Result.SUCCESS;
+  }
+
   //
   // Public Helpers
   //

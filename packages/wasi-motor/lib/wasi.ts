@@ -145,9 +145,9 @@ export class WASI implements SnapshotPreview1 {
       path_open: this.path_open.bind(this),
       path_rename: this.path_rename.bind(this),
       path_unlink_file: this.path_unlink_file.bind(this),
+      path_create_directory: this.path_create_directory.bind(this),
 
       // Unimplemented
-      path_create_directory: this.path_create_directory.bind(this),
       path_link: this.path_link.bind(this),
       path_readlink: this.path_readlink.bind(this),
       path_remove_directory: this.path_remove_directory.bind(this),
@@ -1093,16 +1093,21 @@ export class WASI implements SnapshotPreview1 {
     return Result.SUCCESS;
   }
 
-  //
-  // Unimplemented - these operations are not supported by Runno
-  //
-
   /**
    * Create a directory. Note: This is similar to mkdirat in POSIX.
    */
-  path_create_directory() {
-    return Result.ENOSYS;
+  path_create_directory(
+    fd: number,
+    path_ptr: number,
+    path_len: number
+  ): number {
+    const path = readString(this.memory, path_ptr, path_len);
+    return this.drive.pathCreateDir(fd, path);
   }
+
+  //
+  // Unimplemented - these operations are not supported by Runno
+  //
 
   /**
    * Create a hard link. Note: This is similar to linkat in POSIX.
