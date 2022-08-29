@@ -14,6 +14,7 @@
   },
   "type": "module",
   "scripts": {
+    "postinstall": "cargo install cargo-wasi || echo Please install cargo to run the tests",
     "dev": "vite --port 5173",
     "build:tests": "cd programs && cargo wasi build -r && cd .. && cp programs/target/wasm32-wasi/release/*.wasi.wasm public/bin/tests/",
     "build": "tsc && vite build",

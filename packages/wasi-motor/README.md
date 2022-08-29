@@ -46,6 +46,8 @@ You can see a more complete example in `src/main.ts`.
 If this is the first time running tests, please run the prepare script first.
 This will build the test programs and download existing test suites.
 
+_You'll need to have cargo installed to run the tests_
+
 ```sh
 $ npm run test:prepare
 ```
