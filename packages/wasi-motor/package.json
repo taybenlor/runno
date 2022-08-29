@@ -18,6 +18,7 @@
     "dev": "vite --port 5173",
     "build:tests": "cd programs && cargo wasi build -r && cd .. && cp programs/target/wasm32-wasi/release/*.wasi.wasm public/bin/tests/",
     "build": "tsc && vite build",
+    "test:server": "vite --port 5173",
     "test:mkdir": "mkdir -p public/bin/languages public/bin/tests",
     "test:download": "wget --directory-prefix=public/bin/ https://github.com/caspervonb/wasi-test-suite/archive/refs/heads/main.zip && unzip -u public/bin/main.zip -d public/bin/ && rm public/bin/main.zip",
     "test:prepare": "npm run test:mkdir && npm run test:download && npm run build:tests",
