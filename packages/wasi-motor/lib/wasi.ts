@@ -955,8 +955,10 @@ export class WASI implements SnapshotPreview1 {
     path_ptr: number,
     path_len: number,
     oflags: number,
-    rights_base: bigint, // Runno just gives everything full rights
-    rights_inheriting: bigint, // Runno just gives everything full rights
+    // @ts-expect-error - unused, Runno just gives everything full rights
+    rights_base: bigint,
+    // @ts-expect-error - same as above
+    rights_inheriting: bigint,
     fdflags: number,
     retptr0: number
   ): number {
