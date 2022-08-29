@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WASI Test Page</title>
+  </head>
+  <body>
+    <main>
+      <form id="form">
+        <p>
+          <label>
+            Program:
+            <select id="program">
+              <option value="/bin/tests/single-arg-is-hello.wasi.wasm">
+                Single Arg is Hello
+              </option>
+              <option value="/bin/tests/return-arg-count.wasi.wasm">
+                Return Arg Count
+              </option>
+              <option value="/bin/tests/three-args-foo-bar-baz.wasi.wasm">
+                Three Args: foo bar baz
+              </option>
+              <option value="/bin/tests/hello-world.wasi.wasm">
+                Hello, World!
+              </option>
+              <option value="/bin/tests/hello-world-stderr.wasi.wasm">
+                STDERR Hello, World!
+              </option>
+              <option value="/bin/tests/echo.wasi.wasm">
+                Echo STDIN to STDOUT
+              </option>
+              <option value="/bin/tests/read-file.wasi.wasm">
+                Read foo.txt to STDOUT
+              </option>
+              <option value="/bin/tests/write.wasi.wasm">
+                Write STDIN to arg1
+              </option>
+              <option value="/bin/tests/write-read.wasi.wasm">
+                Write STDIN to arg1 and read back to STDOUT
+              </option>
+              <option value="/bin/tests/ls.wasi.wasm">
+                List dir in arg1 and print on STDOUT
+              </option>
+              <option value="/bin/languages/qjs.wasm">QuickJS</option>
+            </select>
+          </label>
+        </p>
+        <p>
+          <label>
+            args:
+            <input id="args" type="text" />
+          </label>
+        </p>
+        <p>
+          <label>
+            env:
+            <input id="env" type="text" />
+          </label>
+        </p>
+      </form>
+      <button id="run">Run</button>
+
+      <p><strong>Exit code:</strong><code id="exit-code"></code></p>
+
+      <p><strong>STDOUT</strong></p>
+      <pre id="stdout"></pre>
+
+      <p><strong>STDERR</strong></p>
+      <pre id="stderr"></pre>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
