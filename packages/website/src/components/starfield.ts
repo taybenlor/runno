@@ -62,3 +62,5 @@ export class StarfieldElement extends HTMLElement {
     }
   }
 }
+
+customElements.define("website-starfield", StarfieldElement);

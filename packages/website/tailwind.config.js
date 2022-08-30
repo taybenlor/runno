@@ -1,9 +1,8 @@
 const plugin = require("tailwindcss/plugin");
 
+/** @type {import('tailwindcss').Config} */
 module.exports = {
-  mode: "jit",
-  purge: ["./index.html"],
-  darkMode: false, // or 'media' or 'class'
+  content: ["./src/**/*.ts", "./index.html"],
   theme: {
     colors: {
       navy: "#030052",
@@ -79,9 +78,6 @@ module.exports = {
         },
       },
     },
-  },
-  variants: {
-    extend: {},
   },
   plugins: [
     require("@tailwindcss/typography"),
