@@ -31,7 +31,8 @@
   },
   "dependencies": {
     "@runno/host": "^0.3.0",
-    "@runno/runtime": "^0.3.1"
+    "@runno/runtime": "^0.3.1",
+    "@runno/wasi-motor": "^0.3.0"
   },
   "gitHead": "812d21ec7c0c5d57c0274caaf7ff21c79ca79c1f"
 }
