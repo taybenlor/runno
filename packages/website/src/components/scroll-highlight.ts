@@ -9,6 +9,8 @@ function pageOffset(element: Element | HTMLElement): number {
   );
 }
 
+// TODO: Jumping to links by id doesn't work through the Shadow DOM boundary
+
 export class ScrollHighlightElement extends HTMLElement {
   highlighted?: HTMLAnchorElement = undefined;
 
@@ -24,7 +26,9 @@ export class ScrollHighlightElement extends HTMLElement {
     this.highlighted?.classList.remove("text-pink");
 
     const scrollOffset = window.scrollY;
-    const headings = document.querySelectorAll<HTMLHeadingElement>("h1,h2");
+    const headings = (
+      this.getRootNode() as HTMLElement
+    ).querySelectorAll<HTMLHeadingElement>("h1,h2");
     let topHeading: HTMLHeadingElement | undefined = undefined;
     for (const heading of Array.from(headings)) {
       const offset = pageOffset(heading);
@@ -49,4 +53,11 @@ export class ScrollHighlightElement extends HTMLElement {
     this.highlighted = newHighlight;
     this.highlighted.classList.add("text-pink");
   };
+}
+
+customElements.define("runno-scroll-highlight", ScrollHighlightElement);
+declare global {
+  interface HTMLElementTagNameMap {
+    "runno-scroll-highlight": ScrollHighlightElement;
+  }
 }

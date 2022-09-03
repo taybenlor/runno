@@ -2,10 +2,17 @@ import { LitElement, html } from "lit";
 import { customElement } from "lit/decorators.js";
 import { Tailwind } from "../mixins/tailwind";
 
+import "../components/scroll-highlight";
+import "../components/header";
+
 @customElement("page-docs")
 export class PageDocs extends Tailwind(LitElement) {
   render() {
     return html`
+      <website-header></website-header>
+      <div class="relative">
+        <img class="absolute top-0 right-0" src="images/sun-reflection.svg" />
+      </div>
       <div class="flex flex-wrap container mx-auto my-16 relative">
         <runno-scroll-highlight
           class="mb-8 p-4 text-sm w-[65ch] md:text-base lg:w-auto sm:p-0"
@@ -100,10 +107,23 @@ export class PageDocs extends Tailwind(LitElement) {
             <h1 id="know-runno">Getting to know Runno</h1>
             <h2 id="using-runno">Using Runno</h2>
             <p>
-              Paste some code into the textbox, set your runtime and then copy
-              the iframe into your website. Now you've got a snippet of code
-              that someone can run and edit!
+              Runno helps you make runnable code examples that can be embedded
+              in web pages. This is very handy for educational tools, it means:
             </p>
+
+            <ul>
+              <li>
+                You can make code examples that don't need users to install
+                complex tools.
+              </li>
+              <li>
+                No need to run a server, it all runs client-side in the browser.
+              </li>
+              <li>
+                Your users can edit and re-run any code examples you make.
+              </li>
+              <li>All examples are extremely customisable.</li>
+            </ul>
 
             <p>
               For advanced uses, the iframe can be controlled with the
