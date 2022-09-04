@@ -32,7 +32,12 @@ export class PlaygroundFile extends Tailwind(LitElement) {
           @input=${this.onInput}
           class="bg-transparent flex-grow"
         />
-        <a href="#" class="text-yellow">Download</a>
+        <a
+          href=${URL.createObjectURL(this.file)}
+          class="text-yellow"
+          download=${this.file.name}
+          >Download</a
+        >
       </div>
     `;
   }

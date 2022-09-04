@@ -77,6 +77,16 @@ export class PagePlayground extends Tailwind(LitElement) {
     );
 
     this.stdout += `\nReturn: ${result.exitCode}`;
+
+    const newFiles: File[] = [];
+    for (const [path, wasiFile] of Object.entries(result.fs)) {
+      newFiles.push(
+        new File([wasiFile.content], path, {
+          lastModified: wasiFile.timestamps.modification.getTime(),
+        })
+      );
+    }
+    this.files = newFiles;
   }
 
   onFilesystemInput(event: InputEvent) {
@@ -89,8 +99,6 @@ export class PagePlayground extends Tailwind(LitElement) {
     this.files = [...this.files, ...Array.from(files)];
     inputElement.files = null;
     inputElement.value = "";
-
-    console.log("files are", this.files);
   }
 
   onUpdateFile(i: number, event: CustomEvent) {
