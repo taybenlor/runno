@@ -1,12 +1,8 @@
-use std::io;
-use std::io::Read;
+use std::{env, fs};
 
 fn main() {
-    let stdin = io::stdin();
-    let mut buf = String::new();
-    stdin
-        .lock()
-        .read_to_string(&mut buf)
-        .expect("unable to read");
-    print!("{}", buf);
+    for filename in env::args().skip(1) {
+        let content = fs::read_to_string(filename).expect("unable to read file");
+        print!("{}", content);
+    }
 }
