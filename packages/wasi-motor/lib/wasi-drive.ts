@@ -63,6 +63,14 @@ export class WASIDrive {
     return [Result.SUCCESS, fd];
   }
 
+  private hasDir(path: string) {
+    if (path === ".") {
+      return true;
+    }
+
+    return !!Object.keys(this.fs).find((s) => s.startsWith(`${path}/`));
+  }
+
   //
   // Public Interface
   //
@@ -92,7 +100,11 @@ export class WASIDrive {
         return [Result.EEXIST];
       }
       return this.openFile(this.fs[path], truncateFile, fdflags);
-    } else if (Object.keys(this.fs).find((s) => s.startsWith(`${path}/`))) {
+    } else if (this.hasDir(path)) {
+      if (path === ".") {
+        return this.openDir(this.fs, "");
+      }
+
       const prefix = `${path}/`;
       // This is a directory
       const dir = Object.entries(this.fs).filter(([s]) => s.startsWith(prefix));

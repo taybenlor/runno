@@ -1,12 +1,7 @@
-use std::io;
-use std::io::Read;
+use std::env;
 
 fn main() {
-    let stdin = io::stdin();
-    let mut buf = String::new();
-    stdin
-        .lock()
-        .read_to_string(&mut buf)
-        .expect("unable to read");
-    print!("{}", buf);
+    for env in env::args().skip(1) {
+        print!("{} ", env);
+    }
 }

@@ -47,7 +47,7 @@ export class WebsiteHeader extends Tailwind(LitElement) {
             href="/wasi"
             class="inline-flex font-medium hover:text-yellow group"
           >
-            WASI
+            WASI Playground
           </a>
           <a
             href="/docs"

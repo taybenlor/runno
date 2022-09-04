@@ -5,6 +5,7 @@ module.exports = {
   content: ["./src/**/*.ts", "./index.html"],
   theme: {
     colors: {
+      transparent: "transparent",
       navy: "#030052",
       lightBlue: "#A09ED9",
       yellow: "#FFE234",
