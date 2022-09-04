@@ -1,9 +1,9 @@
 import { LitElement, html } from "lit";
 import { customElement } from "lit/decorators.js";
-import { Tailwind } from "../mixins/tailwind";
+import { TailwindElement } from "../mixins/tailwind";
 
 @customElement("website-header")
-export class WebsiteHeader extends Tailwind(LitElement) {
+export class WebsiteHeader extends TailwindElement {
   render() {
     return html`
       <header class="py-4">

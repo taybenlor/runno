@@ -1,12 +1,12 @@
 import { LitElement, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { Tailwind } from "../mixins/tailwind";
+import { TailwindElement } from "../mixins/tailwind";
 
 import { Runtime, generateEmbedURL, generateEmbedHTML } from "@runno/host";
 import { exampleForRuntime } from "../examples";
 
 @customElement("website-form")
-export class WebsiteForm extends Tailwind(LitElement) {
+export class WebsiteForm extends TailwindElement {
   @property({ type: String })
   runtime: Runtime = "python";
 

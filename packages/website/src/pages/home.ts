@@ -3,7 +3,7 @@ import { customElement, state, query } from "lit/decorators.js";
 
 import { generateEmbedURL } from "@runno/host";
 
-import { Tailwind } from "../mixins/tailwind";
+import { TailwindElement } from "../mixins/tailwind";
 
 import "../components/starfield";
 import "../components/form";
@@ -14,12 +14,15 @@ import { exampleForRuntime } from "../examples";
 import { WebsiteForm } from "../components/form";
 
 @customElement("page-home")
-export class PageHome extends Tailwind(LitElement) {
-  static styles = css`
-    .bg-sunset {
-      background: linear-gradient(0deg, #030052, #06004f 70%, #330b24);
-    }
-  `;
+export class PageHome extends TailwindElement {
+  static styles = [
+    TailwindElement.styles,
+    css`
+      .bg-sunset {
+        background: linear-gradient(0deg, #030052, #06004f 70%, #330b24);
+      }
+    `,
+  ];
 
   @state()
   embedURL: URL = generateEmbedURL(exampleForRuntime("python"), "python", {

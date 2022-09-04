@@ -8,20 +8,23 @@ import { FitAddon } from "xterm-addon-fit";
 
 import { WASI, WASIContext, WASIFS } from "@runno/wasi-motor";
 
-import { Tailwind } from "../mixins/tailwind";
+import { Tailwind, TailwindElement } from "../mixins/tailwind";
 
 @customElement("website-playground")
-export class WebsitePlayground extends Tailwind(LitElement) {
-  static style = css`
-    ${unsafeCSS(xtermcss)}
+export class WebsitePlayground extends TailwindElement {
+  static styles = [
+    TailwindElement.styles,
+    css`
+      ${unsafeCSS(xtermcss)}
 
-    .xterm,
-    .xterm-viewport,
-    .xterm-screen {
-      width: 100%;
-      height: 100%;
-    }
-  `;
+      .xterm,
+      .xterm-viewport,
+      .xterm-screen {
+        width: 100%;
+        height: 100%;
+      }
+    `,
+  ];
 
   @state()
   args: string[] = [];

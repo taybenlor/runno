@@ -1,9 +1,9 @@
 import { LitElement, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { Tailwind } from "../mixins/tailwind";
+import { TailwindElement } from "../mixins/tailwind";
 
 @customElement("playground-file")
-export class PlaygroundFile extends Tailwind(LitElement) {
+export class PlaygroundFile extends TailwindElement {
   @property()
   file!: File;
 

@@ -1,13 +1,13 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 
-import { Tailwind } from "../mixins/tailwind";
+import { TailwindElement } from "../mixins/tailwind";
 
 import "../components/file";
 import "../components/playground";
 
 @customElement("page-playground")
-export class PagePlayground extends Tailwind(LitElement) {
+export class PagePlayground extends TailwindElement {
   render() {
     return html`
       <div class="bg-navy pb-8 relative">

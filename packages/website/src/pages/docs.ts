@@ -1,12 +1,12 @@
 import { LitElement, html } from "lit";
 import { customElement } from "lit/decorators.js";
-import { Tailwind } from "../mixins/tailwind";
+import { TailwindElement } from "../mixins/tailwind";
 
 import "../components/scroll-highlight";
 import "../components/header";
 
 @customElement("page-docs")
-export class PageDocs extends Tailwind(LitElement) {
+export class PageDocs extends TailwindElement {
   render() {
     return html`
       <website-header></website-header>
