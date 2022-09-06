@@ -1,4 +1,4 @@
-import { LitElement, html, css, unsafeCSS } from "lit";
+import { html, css, unsafeCSS } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
 
 import xtermcss from "xterm/css/xterm.css";
@@ -8,7 +8,7 @@ import { FitAddon } from "xterm-addon-fit";
 
 import { WASI, WASIContext, WASIFS } from "@runno/wasi-motor";
 
-import { Tailwind, TailwindElement } from "../mixins/tailwind";
+import { TailwindElement } from "../mixins/tailwind";
 
 @customElement("website-playground")
 export class WebsitePlayground extends TailwindElement {
@@ -92,7 +92,7 @@ export class WebsitePlayground extends TailwindElement {
       })
     );
 
-    this.stdout += `\nReturn: ${result.exitCode}`;
+    this.terminal.write(`\r\n\nProgram ended: ${result.exitCode}`);
 
     const newFiles: File[] = [];
     for (const [path, wasiFile] of Object.entries(result.fs)) {
@@ -175,10 +175,9 @@ export class WebsitePlayground extends TailwindElement {
             </button>
           </div>
         </div>
-        <div
-          id="terminal"
-          class="border border-t-0 border-yellow h-64 p-3"
-        ></div>
+        <div class="border border-t-0 border-yellow h-64">
+          <div id="terminal" class="bg-black p-3 h-full"></div>
+        </div>
       </div>
       <div class="flex-grow flex flex-col items-stretch w-1/3 h-80 lg:h-auto">
         <div class="relative border border-yellow">
