@@ -23,3 +23,8 @@ export type WASIFile = {
       content: Uint8Array;
     }
 );
+
+export type WASIExecutionResult = {
+  exitCode: number;
+  fs: WASIFS;
+};

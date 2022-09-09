@@ -1,14 +1,15 @@
 import { html, css, unsafeCSS } from "lit";
-import { customElement, query, state } from "lit/decorators.js";
+import { customElement, eventOptions, query, state } from "lit/decorators.js";
 
 import xtermcss from "xterm/css/xterm.css";
 import { Terminal } from "xterm";
 import { WebLinksAddon } from "xterm-addon-web-links";
 import { FitAddon } from "xterm-addon-fit";
 
-import { WASI, WASIContext, WASIFS } from "@runno/wasi-motor";
+import { WASIContext, WASIFS } from "@runno/wasi-motor";
 
 import { TailwindElement } from "../mixins/tailwind";
+import { startWithSharedBuffer } from "../workers/wasi-host";
 
 @customElement("website-playground")
 export class WebsitePlayground extends TailwindElement {
@@ -33,18 +34,89 @@ export class WebsitePlayground extends TailwindElement {
   binary: File | null = null;
 
   @state()
-  stdout: string = "";
-
-  @state()
-  stderr: string = "";
-
-  @state()
   files: File[] = [];
+
+  @state()
+  stdinBuffer: SharedArrayBuffer = new SharedArrayBuffer(8 * 1024); // 8 kB should be enough
 
   @query("#terminal")
   _terminalElement!: HTMLDivElement;
 
-  terminal: Terminal = new Terminal();
+  terminal: Terminal = new Terminal({
+    convertEol: true,
+    altClickMovesCursor: false,
+  });
+
+  //
+  // Terminal Connection
+  //
+
+  constructor() {
+    super();
+
+    this.terminal.onData(this.onTerminalData);
+
+    this.terminal.onKey(this.onTerminalKey);
+  }
+
+  onTerminalData = async (data: string) => {
+    // Echo back out
+    this.terminal.write(data);
+
+    const view = new DataView(this.stdinBuffer);
+
+    // Wait until the stdinbuffer is consumed at the other end
+
+    // TODO: This isn't great, should probably use a lock instead
+    while (view.getInt32(0) !== 0) {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    const encodedText = new TextEncoder().encode(data);
+    const buffer = new Uint8Array(this.stdinBuffer, 4);
+    buffer.set(encodedText);
+
+    view.setInt32(0, encodedText.byteLength);
+    Atomics.notify(new Int32Array(this.stdinBuffer), 0);
+  };
+
+  onTerminalKey = ({
+    key,
+    domEvent,
+  }: {
+    key: string;
+    domEvent: KeyboardEvent;
+  }) => {
+    if (domEvent.key === "Enter") {
+      this.onTerminalData("\n");
+    }
+
+    if (domEvent.ctrlKey && domEvent.key === "d") {
+      domEvent.preventDefault();
+      domEvent.stopPropagation();
+
+      this.onTerminalEOF();
+    }
+  };
+
+  onTerminalEOF = async () => {
+    const view = new DataView(this.stdinBuffer);
+    // TODO: This isn't great, should probably use a lock instead
+    while (view.getInt32(0) !== 0) {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    view.setInt32(0, -1);
+    Atomics.notify(new Int32Array(this.stdinBuffer), 0);
+  };
+
+  //
+  // Keyboard Handlers
+  //
+
+  //
+  // Component Event Handlers
+  //
 
   onArgsInput(event: InputEvent) {
     this.args = (event.target as HTMLInputElement).value.split(" ");
@@ -64,8 +136,7 @@ export class WebsitePlayground extends TailwindElement {
       return;
     }
 
-    this.stderr = "";
-    this.stdout = "";
+    this.terminal.reset();
 
     const fs: WASIFS = {};
     for (const file of this.files) {
@@ -81,8 +152,9 @@ export class WebsitePlayground extends TailwindElement {
       };
     }
 
-    const result = await WASI.start(
-      fetch(URL.createObjectURL(this.binary)),
+    const result = await startWithSharedBuffer(
+      URL.createObjectURL(this.binary),
+      this.stdinBuffer,
       new WASIContext({
         args: [this.binary.name, ...this.args],
         stdout: (out) => this.terminal.write(out),
@@ -151,7 +223,7 @@ export class WebsitePlayground extends TailwindElement {
             Command
           </label>
           <div class="flex justify-between">
-            <div class="flex-grow flex items-center gap-2 pl-3">
+            <div class="flex-grow flex items-center gap-2 pl-3 py-1">
               $
               <input
                 id="binary"
@@ -175,8 +247,8 @@ export class WebsitePlayground extends TailwindElement {
             </button>
           </div>
         </div>
-        <div class="border border-t-0 border-yellow h-64">
-          <div id="terminal" class="bg-black p-3 h-full"></div>
+        <div class="border border-t-0 border-yellow h-64 bg-black p-3">
+          <div id="terminal" class="h-full" @keydown=${this.onKeyDown}></div>
         </div>
       </div>
       <div class="flex-grow flex flex-col items-stretch w-1/3 h-80 lg:h-auto">

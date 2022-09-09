@@ -12,14 +12,9 @@ import {
   SubscriptionClockFlags,
   EVENT_SIZE,
 } from "./snapshot-preview1";
-import { WASIFS } from "./types";
+import { WASIExecutionResult } from "./types";
 import { WASIContext } from "./wasi-context";
 import { DriveStat, WASIDrive } from "./wasi-drive";
-
-type WASIExecutionResult = {
-  exitCode: number;
-  fs: WASIFS;
-};
 
 /**
  * Implementation of a WASI runner for the browser.
@@ -487,7 +482,7 @@ export class WASI implements SnapshotPreview1 {
   fd_fdstat_get(fd: number, retptr0: number): number {
     // STDIN / STDOUT / STDERR
     if (fd < 3) {
-      const buffer = createFdStat(FileType.REGULAR_FILE, 0);
+      const buffer = createFdStat(FileType.CHARACTER_DEVICE, 0);
       const retBuffer = new Uint8Array(
         this.memory.buffer,
         retptr0,

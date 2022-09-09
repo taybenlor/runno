@@ -1,5 +1,5 @@
-import { LitElement, html, css } from "lit";
-import { customElement, state } from "lit/decorators.js";
+import { html } from "lit";
+import { customElement } from "lit/decorators.js";
 
 import { TailwindElement } from "../mixins/tailwind";
 
