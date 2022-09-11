@@ -25,9 +25,7 @@ export class PagePlayground extends TailwindElement {
           >
             Try out WASI, with the Playground
           </h1>
-          <website-playground
-            class="flex flex-wrap items-stretch pb-16 font-mono"
-          ></website-playground>
+          <website-playground class="pb-16 font-mono"></website-playground>
         </div>
       </div>
       <div class="relative">

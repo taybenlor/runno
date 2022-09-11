@@ -226,12 +226,13 @@ export class WebsitePlayground extends TailwindElement {
 
   render() {
     return html`
-      <div
-        class="flex flex-col flex-grow w-full mb-8 lg:w-auto lg:mr-8 lg:mb-0 border border-yellow"
-      >
-        <div class="relative border-b border-yellow h-14">
-          <label
-            class="
+      <div class="flex flex-wrap items-stretch gap-8">
+        <div
+          class="flex flex-col flex-grow w-full lg:w-auto border border-yellow"
+        >
+          <div class="relative border-b border-yellow h-14">
+            <label
+              class="
               absolute
               -top-3
               left-4
@@ -239,42 +240,42 @@ export class WebsitePlayground extends TailwindElement {
               bg-navy
               text-sm text-yellow
             "
-            for="binary"
-          >
-            Command
-          </label>
-          <div class="flex justify-between items-stretch h-full">
-            <div class="flex-grow flex items-center gap-2 pl-3">
-              $
-              <input
-                type="file"
-                placeholder="WASI Binary"
-                @input=${this.onBinaryInput}
-              />
-              <input
-                type="text"
-                placeholder="args"
-                @input=${this.onArgsInput}
-                class="bg-transparent flex-grow p-3 h-full"
-              />
-            </div>
-            <button
-              type="button"
-              @click=${this.onRunClick}
-              class="bg-yellow text-black px-4 font-medium"
+              for="binary"
             >
-              Run
-            </button>
+              Command
+            </label>
+            <div class="flex justify-between items-stretch h-full">
+              <div class="flex-grow flex items-center gap-2 pl-3">
+                $
+                <input
+                  type="file"
+                  placeholder="WASI Binary"
+                  @input=${this.onBinaryInput}
+                />
+                <input
+                  type="text"
+                  placeholder="args"
+                  @input=${this.onArgsInput}
+                  class="bg-transparent flex-grow p-3 h-full"
+                />
+              </div>
+              <button
+                type="button"
+                @click=${this.onRunClick}
+                class="bg-yellow text-black px-4 font-medium"
+              >
+                Run
+              </button>
+            </div>
+          </div>
+          <div class="h-64 bg-black p-3">
+            <div id="terminal" class="h-full"></div>
           </div>
         </div>
-        <div class="h-64 bg-black p-3">
-          <div id="terminal" class="h-full"></div>
-        </div>
-      </div>
-      <div class="flex-grow flex flex-col items-stretch w-1/3">
-        <div class="relative border border-yellow h-full">
-          <label
-            class="
+        <div class="flex-grow flex flex-col items-stretch w-1/3">
+          <div class="relative border border-yellow h-full">
+            <label
+              class="
               absolute
               -top-3
               left-4
@@ -282,28 +283,29 @@ export class WebsitePlayground extends TailwindElement {
               bg-navy
               text-sm text-yellow
             "
-            for="files"
-          >
-            Filesystem
-          </label>
-          <div class="flex flex-col">
-            <div class="border-b border-yellow px-3 h-14 flex items-center">
-              <input type="file" @input=${this.onFilesystemInput} />
-            </div>
-            <div class="h-64 overflow-auto p-3">
-              ${this.files.map(
-                (f, i) =>
-                  html`
-                    <playground-file
-                      .file=${f}
-                      @file-change=${(event: CustomEvent) =>
-                        this.onUpdateFile(i, event)}
-                      @file-delete=${(event: CustomEvent) =>
-                        this.onDeleteFile(i, event)}
-                      class="my-3"
-                    ></playground-file>
-                  `
-              )}
+              for="files"
+            >
+              Filesystem
+            </label>
+            <div class="flex flex-col">
+              <div class="border-b border-yellow px-3 h-14 flex items-center">
+                <input type="file" @input=${this.onFilesystemInput} />
+              </div>
+              <div class="h-64 overflow-auto p-3">
+                ${this.files.map(
+                  (f, i) =>
+                    html`
+                      <playground-file
+                        .file=${f}
+                        @file-change=${(event: CustomEvent) =>
+                          this.onUpdateFile(i, event)}
+                        @file-delete=${(event: CustomEvent) =>
+                          this.onDeleteFile(i, event)}
+                        class="my-3"
+                      ></playground-file>
+                    `
+                )}
+              </div>
             </div>
           </div>
         </div>
