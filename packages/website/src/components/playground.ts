@@ -40,8 +40,17 @@ export class WebsitePlayground extends TailwindElement {
   @state()
   stdinBuffer: SharedArrayBuffer = new SharedArrayBuffer(8 * 1024); // 8 kB should be enough
 
+  @state()
+  showSettings: boolean = false;
+
+  @state()
+  echoStdin: boolean = false;
+
   @query("#terminal")
   _terminalElement!: HTMLDivElement;
+
+  @query("#env")
+  _envElement!: HTMLTextAreaElement;
 
   terminal: Terminal = new Terminal({
     convertEol: true,
@@ -63,6 +72,11 @@ export class WebsitePlayground extends TailwindElement {
   onTerminalData = async (data: string) => {
     if (data === "\r") {
       data = "\n";
+    }
+
+    if (this.echoStdin) {
+      // TODO: Parse backspace etc
+      this.terminal.write(data);
     }
 
     const view = new DataView(this.stdinBuffer);
@@ -150,32 +164,37 @@ export class WebsitePlayground extends TailwindElement {
       };
     }
 
-    const result = await startWithSharedBuffer(
-      URL.createObjectURL(this.binary),
-      this.stdinBuffer,
-      new WASIContext({
-        args: [this.binary.name, ...this.args],
-        env: {
-          PYTHONHOME: "lib",
-        },
-        stdout: (out) => this.terminal.write(out),
-        stderr: (err) => this.terminal.write(err), // TODO: Different colour?
-        stdin: () => prompt("stdin (cancel to end stdin):"),
-        fs,
-      })
-    );
+    const vars = this._envElement.value.split("\n");
+    const env = Object.fromEntries(vars.map((v) => v.split("=")));
 
-    this.terminal.write(`\r\n\nProgram ended: ${result.exitCode}`);
-
-    const newFiles: File[] = [];
-    for (const [path, wasiFile] of Object.entries(result.fs)) {
-      newFiles.push(
-        new File([wasiFile.content], path, {
-          lastModified: wasiFile.timestamps.modification.getTime(),
+    try {
+      const result = await startWithSharedBuffer(
+        URL.createObjectURL(this.binary),
+        this.stdinBuffer,
+        new WASIContext({
+          args: [this.binary.name, ...this.args],
+          env,
+          stdout: (out) => this.terminal.write(out),
+          stderr: (err) => this.terminal.write(err), // TODO: Different colour?
+          stdin: () => prompt("stdin (cancel to end stdin):"),
+          fs,
         })
       );
+
+      this.terminal.write(`\nProgram ended: ${result.exitCode}`);
+
+      const newFiles: File[] = [];
+      for (const [path, wasiFile] of Object.entries(result.fs)) {
+        newFiles.push(
+          new File([wasiFile.content], path, {
+            lastModified: wasiFile.timestamps.modification.getTime(),
+          })
+        );
+      }
+      this.files = newFiles;
+    } catch (e) {
+      this.terminal.write(`\nError: ${e}`);
     }
-    this.files = newFiles;
   }
 
   async onFilesystemInput(event: InputEvent) {
@@ -227,9 +246,7 @@ export class WebsitePlayground extends TailwindElement {
   render() {
     return html`
       <div class="flex flex-wrap items-stretch gap-8">
-        <div
-          class="flex flex-col flex-grow w-full lg:w-auto border border-yellow"
-        >
+        <div class="flex flex-col flex-grow border border-yellow">
           <div class="relative border-b border-yellow h-14">
             <label
               class="
@@ -248,6 +265,7 @@ export class WebsitePlayground extends TailwindElement {
               <div class="flex-grow flex items-center gap-2 pl-3">
                 $
                 <input
+                  class="flex-shrink"
                   type="file"
                   placeholder="WASI Binary"
                   @input=${this.onBinaryInput}
@@ -256,8 +274,15 @@ export class WebsitePlayground extends TailwindElement {
                   type="text"
                   placeholder="args"
                   @input=${this.onArgsInput}
-                  class="bg-transparent flex-grow p-3 h-full"
+                  class="bg-transparent flex-grow p-3 h-full flex-shrink"
                 />
+                <button
+                  type="button"
+                  class="text-yellow px-3 flex-shrink-0"
+                  @click=${() => (this.showSettings = !this.showSettings)}
+                >
+                  Settings
+                </button>
               </div>
               <button
                 type="button"
@@ -268,11 +293,47 @@ export class WebsitePlayground extends TailwindElement {
               </button>
             </div>
           </div>
-          <div class="h-64 bg-black p-3">
-            <div id="terminal" class="h-full"></div>
+          <div
+            class=${this.showSettings
+              ? "h-64 p-3"
+              : "h-64 bg-black relative p-3"}
+          >
+            <div
+              id="terminal"
+              class=${this.showSettings
+                ? "hidden"
+                : "h-full absolute w-full top-0 left-0"}
+            ></div>
+            <div
+              class=${this.showSettings
+                ? "h-full flex align-items-stretch gap-3"
+                : "hidden"}
+            >
+              <label class="flex-grow relative flex flex-col">
+                <span class="text-yellow text-sm mb-1">Environment</span>
+                <textarea
+                  placeholder=${"SOME_KEY=somevalue\nANOTHER_KEY=anothervalue"}
+                  id="env"
+                  class="w-full flex-grow text-black p-3"
+                  }
+                ></textarea>
+              </label>
+              <div class="w-1/3">
+                <div class="mb-1">
+                  <label class="text-yellow text-sm">Terminal</label>
+                </div>
+                <label>
+                  <input
+                    type="checkbox"
+                    @click=${() => (this.echoStdin = !this.echoStdin)}
+                  />
+                  Echo STDIN
+                </label>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="flex-grow flex flex-col items-stretch w-1/3">
+        <div class="flex-grow flex flex-col items-stretch">
           <div class="relative border border-yellow h-full">
             <label
               class="
