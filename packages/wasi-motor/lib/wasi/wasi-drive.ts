@@ -5,7 +5,7 @@ import {
   Result,
   Whence,
 } from "./snapshot-preview1";
-import { WASIFile, WASIFS, WASIPath, WASITimestamps } from "./types";
+import { WASIFile, WASIFS, WASIPath, WASITimestamps } from "../types";
 
 type FileDescriptor = number;
 

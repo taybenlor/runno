@@ -1,4 +1,6 @@
-import { WASI, WASIContext, WASIExecutionResult } from "@runno/wasi-motor";
+import { WASI } from "../wasi/wasi";
+import { WASIContext } from "../wasi/wasi-context";
+import type { WASIExecutionResult } from "../types";
 
 type WorkerWASIContext = Pick<WASIContext, "args" | "env" | "fs">;
 

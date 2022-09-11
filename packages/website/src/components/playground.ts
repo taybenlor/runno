@@ -9,7 +9,7 @@ import { FitAddon } from "xterm-addon-fit";
 import { WASIContext, WASIFS } from "@runno/wasi-motor";
 
 import { TailwindElement } from "../mixins/tailwind";
-import { startWithSharedBuffer } from "../runtime/wasi-host";
+import { WASIWorkerHost } from "@runno/wasi-motor";
 import { extractTarGz } from "../runtime/tar";
 
 @customElement("website-playground")
@@ -45,6 +45,9 @@ export class WebsitePlayground extends TailwindElement {
 
   @state()
   echoStdin: boolean = false;
+
+  @state()
+  workerHost?: WASIWorkerHost;
 
   @query("#terminal")
   _terminalElement!: HTMLDivElement;
@@ -148,6 +151,10 @@ export class WebsitePlayground extends TailwindElement {
       return;
     }
 
+    if (this.workerHost) {
+      this.workerHost.kill();
+    }
+
     this.terminal.reset();
 
     const fs: WASIFS = {};
@@ -168,7 +175,7 @@ export class WebsitePlayground extends TailwindElement {
     const env = Object.fromEntries(vars.map((v) => v.split("=")));
 
     try {
-      const result = await startWithSharedBuffer(
+      this.workerHost = new WASIWorkerHost(
         URL.createObjectURL(this.binary),
         this.stdinBuffer,
         new WASIContext({
@@ -180,6 +187,7 @@ export class WebsitePlayground extends TailwindElement {
           fs,
         })
       );
+      const result = await this.workerHost.start();
 
       this.terminal.write(`\nProgram ended: ${result.exitCode}`);
 
@@ -293,17 +301,16 @@ export class WebsitePlayground extends TailwindElement {
               </button>
             </div>
           </div>
-          <div
-            class=${this.showSettings
-              ? "h-64 p-3"
-              : "h-64 bg-black relative p-3"}
-          >
-            <div
-              id="terminal"
-              class=${this.showSettings
-                ? "hidden"
-                : "h-full absolute w-full top-0 left-0"}
-            ></div>
+          <div class=${this.showSettings ? "h-64 p-3" : "h-64 bg-black p-3"}>
+            <div class="w-full h-full relative">
+              <div
+                id="terminal"
+                class=${this.showSettings
+                  ? "hidden"
+                  : "h-full absolute w-full top-0 left-0"}
+              ></div>
+            </div>
+
             <div
               class=${this.showSettings
                 ? "h-full flex align-items-stretch gap-3"

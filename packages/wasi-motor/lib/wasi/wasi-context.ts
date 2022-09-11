@@ -1,4 +1,4 @@
-import { WASIFS } from "./types";
+import { WASIFS } from "../types";
 
 type Options = {
   fs: WASIFS;

@@ -12,7 +12,7 @@ import {
   SubscriptionClockFlags,
   EVENT_SIZE,
 } from "./snapshot-preview1";
-import { WASIExecutionResult } from "./types";
+import { WASIExecutionResult } from "../types";
 import { WASIContext } from "./wasi-context";
 import { DriveStat, WASIDrive } from "./wasi-drive";
 
