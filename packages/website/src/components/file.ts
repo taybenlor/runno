@@ -23,9 +23,21 @@ export class PlaygroundFile extends TailwindElement {
     );
   }
 
+  onDelete() {
+    this.dispatchEvent(
+      new CustomEvent("file-delete", {
+        detail: {
+          file: this.file,
+        },
+        composed: true,
+        bubbles: true,
+      })
+    );
+  }
+
   render() {
     return html`
-      <div class="flex justify-between">
+      <div class="flex justify-between gap-2">
         <input
           type="text"
           .value=${this.file.name}
@@ -38,6 +50,7 @@ export class PlaygroundFile extends TailwindElement {
           download=${this.file.name}
           >Download</a
         >
+        <button @click=${this.onDelete} class="text-pink">Delete</button>
       </div>
     `;
   }

@@ -1,5 +1,5 @@
 import { html, css, unsafeCSS } from "lit";
-import { customElement, eventOptions, query, state } from "lit/decorators.js";
+import { customElement, query, state } from "lit/decorators.js";
 
 import xtermcss from "xterm/css/xterm.css";
 import { Terminal } from "xterm";
@@ -9,7 +9,8 @@ import { FitAddon } from "xterm-addon-fit";
 import { WASIContext, WASIFS } from "@runno/wasi-motor";
 
 import { TailwindElement } from "../mixins/tailwind";
-import { startWithSharedBuffer } from "../workers/wasi-host";
+import { startWithSharedBuffer } from "../runtime/wasi-host";
+import { extractTarGz } from "../runtime/tar";
 
 @customElement("website-playground")
 export class WebsitePlayground extends TailwindElement {
@@ -60,8 +61,9 @@ export class WebsitePlayground extends TailwindElement {
   }
 
   onTerminalData = async (data: string) => {
-    // Echo back out
-    this.terminal.write(data);
+    if (data === "\r") {
+      data = "\n";
+    }
 
     const view = new DataView(this.stdinBuffer);
 
@@ -87,10 +89,6 @@ export class WebsitePlayground extends TailwindElement {
     key: string;
     domEvent: KeyboardEvent;
   }) => {
-    if (domEvent.key === "Enter") {
-      this.onTerminalData("\n");
-    }
-
     if (domEvent.ctrlKey && domEvent.key === "d") {
       domEvent.preventDefault();
       domEvent.stopPropagation();
@@ -157,6 +155,9 @@ export class WebsitePlayground extends TailwindElement {
       this.stdinBuffer,
       new WASIContext({
         args: [this.binary.name, ...this.args],
+        env: {
+          PYTHONHOME: "lib",
+        },
         stdout: (out) => this.terminal.write(out),
         stderr: (err) => this.terminal.write(err), // TODO: Different colour?
         stdin: () => prompt("stdin (cancel to end stdin):"),
@@ -177,20 +178,40 @@ export class WebsitePlayground extends TailwindElement {
     this.files = newFiles;
   }
 
-  onFilesystemInput(event: InputEvent) {
+  async onFilesystemInput(event: InputEvent) {
     const inputElement = event.target as HTMLInputElement;
-    const files = inputElement.files;
-    if (!files) {
+    const inputFiles = inputElement.files;
+    if (!inputFiles) {
       return;
     }
 
-    this.files = [...this.files, ...Array.from(files)];
+    const newFiles: File[] = [];
+
+    for (const file of Array.from(inputFiles)) {
+      if (file.name.endsWith(".tar.gz")) {
+        const extractedFiles = await extractTarGz(
+          new Uint8Array(await file.arrayBuffer())
+        );
+        for (const extractedFile of extractedFiles) {
+          newFiles.push(extractedFile);
+        }
+      } else {
+        newFiles.push(file);
+      }
+    }
+
+    this.files = [...newFiles, ...this.files];
     inputElement.files = null;
     inputElement.value = "";
   }
 
   onUpdateFile(i: number, event: CustomEvent) {
     this.files[i] = event.detail.file;
+    this.files = [...this.files];
+  }
+
+  onDeleteFile(i: number, event: CustomEvent) {
+    this.files.splice(i, 1);
     this.files = [...this.files];
   }
 
@@ -206,9 +227,9 @@ export class WebsitePlayground extends TailwindElement {
   render() {
     return html`
       <div
-        class="flex flex-col flex-grow w-full mb-8 lg:w-auto lg:mr-8 lg:mb-0"
+        class="flex flex-col flex-grow w-full mb-8 lg:w-auto lg:mr-8 lg:mb-0 border border-yellow"
       >
-        <div class="relative border border-yellow">
+        <div class="relative border-b border-yellow h-14">
           <label
             class="
               absolute
@@ -222,11 +243,10 @@ export class WebsitePlayground extends TailwindElement {
           >
             Command
           </label>
-          <div class="flex justify-between">
-            <div class="flex-grow flex items-center gap-2 pl-3 py-1">
+          <div class="flex justify-between items-stretch h-full">
+            <div class="flex-grow flex items-center gap-2 pl-3">
               $
               <input
-                id="binary"
                 type="file"
                 placeholder="WASI Binary"
                 @input=${this.onBinaryInput}
@@ -247,12 +267,12 @@ export class WebsitePlayground extends TailwindElement {
             </button>
           </div>
         </div>
-        <div class="border border-t-0 border-yellow h-64 bg-black p-3">
-          <div id="terminal" class="h-full" @keydown=${this.onKeyDown}></div>
+        <div class="h-64 bg-black p-3">
+          <div id="terminal" class="h-full"></div>
         </div>
       </div>
-      <div class="flex-grow flex flex-col items-stretch w-1/3 h-80 lg:h-auto">
-        <div class="relative border border-yellow">
+      <div class="flex-grow flex flex-col items-stretch w-1/3">
+        <div class="relative border border-yellow h-full">
           <label
             class="
               absolute
@@ -266,19 +286,25 @@ export class WebsitePlayground extends TailwindElement {
           >
             Filesystem
           </label>
-          <div class="p-3 flex flex-col">
-            <input id="binary" type="file" @input=${this.onFilesystemInput} />
-            ${this.files.map(
-              (f, i) =>
-                html`
-                  <playground-file
-                    .file=${f}
-                    @file-change=${(event: CustomEvent) =>
-                      this.onUpdateFile(i, event)}
-                    class="my-3"
-                  ></playground-file>
-                `
-            )}
+          <div class="flex flex-col">
+            <div class="border-b border-yellow px-3 h-14 flex items-center">
+              <input type="file" @input=${this.onFilesystemInput} />
+            </div>
+            <div class="h-64 overflow-auto p-3">
+              ${this.files.map(
+                (f, i) =>
+                  html`
+                    <playground-file
+                      .file=${f}
+                      @file-change=${(event: CustomEvent) =>
+                        this.onUpdateFile(i, event)}
+                      @file-delete=${(event: CustomEvent) =>
+                        this.onDeleteFile(i, event)}
+                      class="my-3"
+                    ></playground-file>
+                  `
+              )}
+            </div>
           </div>
         </div>
       </div>

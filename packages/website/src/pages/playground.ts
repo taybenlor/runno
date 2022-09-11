@@ -93,8 +93,8 @@ export class PagePlayground extends TailwindElement {
               WebAssembly binary is not able to call out to the "host" system
               without being provided with an interface. WASI defines a set of
               functions, like <code>fd_read</code>, and <code>args_get</code>,
-              that are similar enough to POSIX standards that most system-level
-              programs can run.
+              that are similar enough to POSIX standards that many system-level
+              programs can be compiled without major changes.
             </p>
             <p>
               When a program is compiled to WASI the program becomes truly
