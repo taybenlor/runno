@@ -1,11 +1,11 @@
 const plugin = require("tailwindcss/plugin");
 
+/** @type {import('tailwindcss').Config} */
 module.exports = {
-  mode: "jit",
-  purge: ["./index.html"],
-  darkMode: false, // or 'media' or 'class'
+  content: ["./src/**/*.ts", "./index.html"],
   theme: {
     colors: {
+      transparent: "transparent",
       navy: "#030052",
       lightBlue: "#A09ED9",
       yellow: "#FFE234",
@@ -79,9 +79,6 @@ module.exports = {
         },
       },
     },
-  },
-  variants: {
-    extend: {},
   },
   plugins: [
     require("@tailwindcss/typography"),

@@ -40,11 +40,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-.h-48 {
-  height: 12rem;
-}
-
-.bg-sunset {
-  background: linear-gradient(0deg, #030052, #06004f 70%, #330b24);
-}

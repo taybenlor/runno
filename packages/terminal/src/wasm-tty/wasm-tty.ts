@@ -291,7 +291,7 @@ export default class WasmTTY {
    * Function to return the terminal buffer
    */
   getBuffer(): IBuffer {
-    return this.xterm.buffer;
+    return this.xterm.buffer as unknown as IBuffer;
   }
 
   /**

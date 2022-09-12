@@ -1,6 +1,6 @@
 {
   "name": "@runno/wasi-motor",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": "Ben Taylor <runno@taybenlor.com>",
   "description": "new WASI implementation for @runno",
   "website": "https://runno.dev",
@@ -13,15 +13,29 @@
     "access": "public"
   },
   "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/wasi-motor.umd.cjs",
+  "module": "./dist/wasi-motor.js",
+  "types": "./dist/lib/main.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/wasi-motor.js",
+      "require": "./dist/wasi-motor.umd.cjs"
+    }
+  },
   "scripts": {
-    "postinstall": "cargo install cargo-wasi || echo Please install cargo to run the tests",
     "dev": "vite --port 5173",
     "build:tests": "cd programs && cargo wasi build -r && cd .. && cp programs/target/wasm32-wasi/release/*.wasi.wasm public/bin/tests/",
-    "build": "tsc && vite build",
+    "build:types": "tsc",
+    "build:vite": "vite build",
+    "build": "npm run build:vite && npm run build:types",
     "test:server": "vite --port 5173",
+    "test:cargo": "cargo install cargo-wasi || echo Please install cargo to run the tests",
     "test:mkdir": "mkdir -p public/bin/languages public/bin/tests",
     "test:download": "wget --directory-prefix=public/bin/ https://github.com/caspervonb/wasi-test-suite/archive/refs/heads/main.zip && unzip -u public/bin/main.zip -d public/bin/ && rm public/bin/main.zip",
-    "test:prepare": "npm run test:mkdir && npm run test:download && npm run build:tests",
+    "test:prepare": "npm run test:mkdir && npm run test:download && npm run test:cargo && npm run build:tests",
     "test": "playwright test",
     "preview": "vite preview"
   },

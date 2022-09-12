@@ -11,5 +11,5 @@ fn main() {
         .read_to_string(&mut buf)
         .expect("unable to read from STDIN");
 
-    fs::write(filename, &buf).expect("unable to create file");
+    fs::write(&filename, &buf).expect("unable to create file");
 }
