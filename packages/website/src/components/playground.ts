@@ -10,7 +10,8 @@ import { WASIContext, WASIFS } from "@runno/wasi-motor";
 
 import { TailwindElement } from "../mixins/tailwind";
 import { WASIWorkerHost } from "@runno/wasi-motor";
-import { extractTarGz } from "../runtime/tar";
+import { extractTarGz } from "../demos/tar";
+import { WASIExample } from "../demos/wasi-examples";
 
 @customElement("website-playground")
 export class WebsitePlayground extends TailwindElement {
@@ -33,6 +34,9 @@ export class WebsitePlayground extends TailwindElement {
 
   @state()
   binary: File | null = null;
+
+  @state()
+  demoBinary: string | null = null;
 
   @state()
   files: File[] = [];
@@ -61,6 +65,18 @@ export class WebsitePlayground extends TailwindElement {
   });
 
   //
+  // Public API
+  //
+
+  loadDemo(demo: WASIExample) {
+    this.demoBinary = demo.binary;
+    this.args = demo.args;
+    this._envElement.value = demo.env;
+    this.files = demo.files;
+    this.echoStdin = !!demo.settings?.echoSTDIN;
+  }
+
+  //
   // Terminal Connection
   //
 
@@ -68,7 +84,6 @@ export class WebsitePlayground extends TailwindElement {
     super();
 
     this.terminal.onData(this.onTerminalData);
-
     this.terminal.onKey(this.onTerminalKey);
   }
 
@@ -147,9 +162,14 @@ export class WebsitePlayground extends TailwindElement {
   }
 
   async onRunClick() {
-    if (!this.binary) {
+    if (!this.binary && !this.demoBinary) {
       return;
     }
+
+    const binaryPath = this.demoBinary || URL.createObjectURL(this.binary!);
+    const binaryName = this.demoBinary?.split("/").pop() || this.binary!.name;
+
+    console.log("binary path", binaryPath, "binary name", binaryName);
 
     if (this.workerHost) {
       this.workerHost.kill();
@@ -176,10 +196,10 @@ export class WebsitePlayground extends TailwindElement {
 
     try {
       this.workerHost = new WASIWorkerHost(
-        URL.createObjectURL(this.binary),
+        binaryPath,
         this.stdinBuffer,
         new WASIContext({
-          args: [this.binary.name, ...this.args],
+          args: [binaryName, ...this.args],
           env,
           stdout: (out) => this.terminal.write(out),
           stderr: (err) => this.terminal.write(err), // TODO: Different colour?
@@ -273,12 +293,22 @@ export class WebsitePlayground extends TailwindElement {
               <div class="flex-grow flex items-center gap-2 pl-3">
                 $
                 <input
-                  class="flex-shrink"
+                  class=${this.demoBinary ? "hidden" : "flex-shrink"}
                   type="file"
                   placeholder="WASI Binary"
                   @input=${this.onBinaryInput}
                 />
+                <span class=${this.demoBinary ? "bg-black p-2" : "hidden"}>
+                  <span> ${this.demoBinary?.split("/").pop()} </span>
+                  <button
+                    class="text-pink ml-2"
+                    @click=${() => (this.demoBinary = null)}
+                  >
+                    clear
+                  </button>
+                </span>
                 <input
+                  value=${this.args.join(" ")}
                   type="text"
                   placeholder="args"
                   @input=${this.onArgsInput}
@@ -302,12 +332,12 @@ export class WebsitePlayground extends TailwindElement {
             </div>
           </div>
           <div class=${this.showSettings ? "h-64 p-3" : "h-64 bg-black p-3"}>
-            <div class="w-full h-full relative">
+            <div
+              class=${this.showSettings ? "hidden" : "w-full h-full relative"}
+            >
               <div
                 id="terminal"
-                class=${this.showSettings
-                  ? "hidden"
-                  : "h-full absolute w-full top-0 left-0"}
+                class="h-full absolute w-full top-0 left-0"
               ></div>
             </div>
 

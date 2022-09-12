@@ -43,12 +43,14 @@ export class WebsiteHeader extends TailwindElement {
           <a href="/" class="inline-flex font-medium hover:text-yellow group">
             Home
           </a>
-          <a
-            href="/wasi"
-            class="inline-flex font-medium hover:text-yellow group"
-          >
-            WASI Playground
-          </a>
+          ${import.meta.env.DEV
+            ? html`<a
+                href="/wasi"
+                class="inline-flex font-medium hover:text-yellow group"
+              >
+                WASI Playground
+              </a>`
+            : null}
           <a
             href="/docs"
             class="inline-flex font-medium hover:text-yellow group"

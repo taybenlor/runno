@@ -1,13 +1,23 @@
 import { html } from "lit";
-import { customElement } from "lit/decorators.js";
-
+import { customElement, query } from "lit/decorators.js";
 import { TailwindElement } from "../mixins/tailwind";
+
+import type { WebsitePlayground } from "../components/playground";
+
+import { DEMOS, WASIExample } from "../demos/wasi-examples";
 
 import "../components/file";
 import "../components/playground";
 
 @customElement("page-playground")
 export class PagePlayground extends TailwindElement {
+  @query("website-playground")
+  _playground!: WebsitePlayground;
+
+  loadDemo(demo: WASIExample) {
+    this._playground.loadDemo(demo);
+  }
+
   render() {
     return html`
       <div class="bg-navy pb-8 relative">
@@ -26,6 +36,31 @@ export class PagePlayground extends TailwindElement {
             Try out WASI, with the Playground
           </h1>
           <website-playground class="pb-16 font-mono"></website-playground>
+          
+          <h1 class="text-xl my-12 mb-4 pb-2 border-b border-white text-yellow">
+            Some demos you can try out!
+          </h2>
+          <div class="grid grid-cols-3 gap-8">
+            ${DEMOS.map(
+              (demo) => html`
+                <div class="flex flex-col justify-between">
+                  <pre class="whitespace-pre-wrap">${demo.instructions}</pre>
+                  <div class="flex gap-4 items-center">
+                    <button
+                      class="bg-yellow text-black px-4 py-1 my-4 font-medium"
+                      @click=${() => this.loadDemo(demo)}
+                    >
+                      Load
+                    </button>
+                    ${demo.source &&
+                    html`<a href=${demo.source} class="text-lightBlue"
+                      >View Source</a
+                    >`}
+                  </div>
+                </div>
+              `
+            )}
+          </div>
         </div>
       </div>
       <div class="relative">
