@@ -53,7 +53,10 @@ export class PagePlayground extends TailwindElement {
                       Load
                     </button>
                     ${demo.source &&
-                    html`<a href=${demo.source} class="text-lightBlue"
+                    html`<a
+                      target="_blank"
+                      href=${demo.source}
+                      class="text-lightBlue"
                       >View Source</a
                     >`}
                   </div>
