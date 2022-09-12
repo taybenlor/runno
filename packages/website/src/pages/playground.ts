@@ -124,8 +124,7 @@ export class PagePlayground extends TailwindElement {
             <p>
               The WebAssembly System Interface (WASI) is a standard (see:
               <a href="https://wasi.dev">wasi.dev</a>) for giving WebAssembly
-              binaries access to system resources. WebAssembly is a standard for
-              application binaries that can be executed on any platform. A
+              binaries access to system resources. A
               WebAssembly binary is not able to call out to the "host" system
               without being provided with an interface. WASI defines a set of
               functions, like <code>fd_read</code>, and <code>args_get</code>,

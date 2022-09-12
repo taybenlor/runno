@@ -12,7 +12,7 @@ export type WASIExample = {
 };
 
 export const WRITE: WASIExample = {
-  binary: `${import.meta.env.VITE_HOST}/wasi-demos/write.wasi.wasm`,
+  binary: `${import.meta.env.VITE_HOST}wasi-demos/write.wasi.wasm`,
   files: [],
   args: ["hello.txt"],
   env: ``,
@@ -30,7 +30,7 @@ To finish entering text press ctrl+d.`,
 };
 
 export const CAT: WASIExample = {
-  binary: `${import.meta.env.VITE_HOST}/wasi-demos/cat.wasi.wasm`,
+  binary: `${import.meta.env.VITE_HOST}wasi-demos/cat.wasi.wasm`,
   files: [new File(["G'day WASI!"], "gday.txt")],
   args: ["gday.txt"],
   env: ``,
@@ -42,7 +42,7 @@ This demo prints out whatever is in the files listed as arguments.`,
 };
 
 export const QUICKJS: WASIExample = {
-  binary: `${import.meta.env.VITE_HOST}/wasi-demos/quickjs.wasi.wasm`,
+  binary: `${import.meta.env.VITE_HOST}wasi-demos/quickjs.wasi.wasm`,
   files: [],
   args: [],
   env: ``,
