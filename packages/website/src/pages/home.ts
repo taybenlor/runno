@@ -1,4 +1,4 @@
-import { LitElement, html, css } from "lit";
+import { html, css } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 
 import { generateEmbedURL } from "@runno/host";

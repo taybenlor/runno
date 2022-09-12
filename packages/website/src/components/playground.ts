@@ -114,13 +114,7 @@ export class WebsitePlayground extends TailwindElement {
     Atomics.notify(new Int32Array(this.stdinBuffer), 0);
   };
 
-  onTerminalKey = ({
-    key,
-    domEvent,
-  }: {
-    key: string;
-    domEvent: KeyboardEvent;
-  }) => {
+  onTerminalKey = ({ domEvent }: { key: string; domEvent: KeyboardEvent }) => {
     if (domEvent.ctrlKey && domEvent.key === "d") {
       domEvent.preventDefault();
       domEvent.stopPropagation();
@@ -257,7 +251,7 @@ export class WebsitePlayground extends TailwindElement {
     this.files = [...this.files];
   }
 
-  onDeleteFile(i: number, event: CustomEvent) {
+  onDeleteFile(i: number, _: CustomEvent) {
     this.files.splice(i, 1);
     this.files = [...this.files];
   }
