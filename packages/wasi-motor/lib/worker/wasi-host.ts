@@ -1,4 +1,4 @@
-import type { WASIContext } from "../wasi/wasi-context";
+import type { WASIContextOptions } from "../wasi/wasi-context";
 import type { WASIExecutionResult } from "../types";
 import type { HostMessage, WorkerMessage } from "./wasi-worker";
 
@@ -8,10 +8,12 @@ function sendMessage(worker: Worker, message: WorkerMessage) {
   worker.postMessage(message);
 }
 
+type WASIWorkerHostContext = Omit<WASIContextOptions, "stdin">;
+
 export class WASIWorkerHost {
   binaryURL: string;
   stdinBuffer: SharedArrayBuffer;
-  context: WASIContext;
+  context: WASIWorkerHostContext;
 
   result?: Promise<WASIExecutionResult>;
   worker?: Worker;
@@ -19,7 +21,7 @@ export class WASIWorkerHost {
   constructor(
     binaryURL: string,
     stdinBuffer: SharedArrayBuffer,
-    context: WASIContext
+    context: Omit<WASIWorkerHostContext, "stdin">
   ) {
     this.binaryURL = binaryURL;
     this.stdinBuffer = stdinBuffer;

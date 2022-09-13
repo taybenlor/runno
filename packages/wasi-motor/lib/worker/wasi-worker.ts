@@ -1,8 +1,8 @@
 import { WASI } from "../wasi/wasi";
-import { WASIContext } from "../wasi/wasi-context";
+import { WASIContextOptions, WASIContext } from "../wasi/wasi-context";
 import type { WASIExecutionResult } from "../types";
 
-type WorkerWASIContext = Pick<WASIContext, "args" | "env" | "fs">;
+type WorkerWASIContext = Pick<WASIContextOptions, "args" | "env" | "fs">;
 
 type StartWorkerMessage = {
   target: "client";

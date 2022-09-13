@@ -13,6 +13,7 @@ module.exports = {
       white: "#fff",
       pink: "#ff34b1",
       darkPink: "#330B24",
+      red: "#eb4950",
     },
     fontFamily: {
       sans: [
