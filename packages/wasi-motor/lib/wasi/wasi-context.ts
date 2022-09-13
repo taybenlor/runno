@@ -1,6 +1,6 @@
 import { WASIFS } from "../types";
 
-type Options = {
+export type WASIContextOptions = {
   fs: WASIFS;
   args: string[];
   env: Record<string, string>;
@@ -27,11 +27,11 @@ export class WASIContext {
   fs: WASIFS;
   args: string[]; // Program args (like from a terminal program)
   env: Record<string, string>; // Environment (like a .env file)
-  stdin: Options["stdin"];
-  stdout: Options["stdout"];
-  stderr: Options["stderr"];
+  stdin: WASIContextOptions["stdin"];
+  stdout: WASIContextOptions["stdout"];
+  stderr: WASIContextOptions["stderr"];
 
-  constructor(options?: Partial<Options>) {
+  constructor(options?: Partial<WASIContextOptions>) {
     this.fs = options?.fs ?? {};
     this.args = options?.args ?? [];
     this.env = options?.env ?? {};

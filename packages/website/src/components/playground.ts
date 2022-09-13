@@ -6,10 +6,9 @@ import { Terminal } from "xterm";
 import { WebLinksAddon } from "xterm-addon-web-links";
 import { FitAddon } from "xterm-addon-fit";
 
-import { WASIContext, WASIFS } from "@runno/wasi-motor";
+import { WASIFS, WASIWorkerHost } from "@runno/wasi-motor";
 
 import { TailwindElement } from "../mixins/tailwind";
-import { WASIWorkerHost } from "@runno/wasi-motor";
 import { extractTarGz } from "../demos/tar";
 import { WASIExample } from "../demos/wasi-examples";
 
@@ -63,6 +62,17 @@ export class WebsitePlayground extends TailwindElement {
     convertEol: true,
     altClickMovesCursor: false,
   });
+  fitAddon: FitAddon = new FitAddon();
+
+  get binaryName() {
+    if (this.demoBinary) {
+      return this.demoBinary.split("/").pop()!;
+    } else if (this.binary) {
+      return this.binary.name;
+    } else {
+      return null;
+    }
+  }
 
   //
   // Public API
@@ -86,6 +96,20 @@ export class WebsitePlayground extends TailwindElement {
     this.terminal.onData(this.onTerminalData);
     this.terminal.onKey(this.onTerminalKey);
   }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    window.addEventListener("resize", this.onResize);
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    window.removeEventListener("resize", this.onResize);
+  }
+
+  onResize = () => {
+    this.fitAddon.fit();
+  };
 
   onTerminalData = async (data: string) => {
     if (data === "\r") {
@@ -155,21 +179,25 @@ export class WebsitePlayground extends TailwindElement {
     this.binary = target.files.item(0);
   }
 
+  onKillClick() {
+    this.workerHost?.kill();
+    this.workerHost = undefined;
+  }
+
   async onRunClick() {
     if (!this.binary && !this.demoBinary) {
       return;
     }
 
     const binaryPath = this.demoBinary || URL.createObjectURL(this.binary!);
-    const binaryName = this.demoBinary?.split("/").pop() || this.binary!.name;
-
-    console.log("binary path", binaryPath, "binary name", binaryName);
+    const binaryName = this.binaryName!;
 
     if (this.workerHost) {
       this.workerHost.kill();
     }
 
     this.terminal.reset();
+    this.terminal.focus();
 
     const fs: WASIFS = {};
     for (const file of this.files) {
@@ -189,18 +217,13 @@ export class WebsitePlayground extends TailwindElement {
     const env = Object.fromEntries(vars.map((v) => v.split("=")));
 
     try {
-      this.workerHost = new WASIWorkerHost(
-        binaryPath,
-        this.stdinBuffer,
-        new WASIContext({
-          args: [binaryName, ...this.args],
-          env,
-          stdout: (out) => this.terminal.write(out),
-          stderr: (err) => this.terminal.write(err), // TODO: Different colour?
-          stdin: () => prompt("stdin (cancel to end stdin):"),
-          fs,
-        })
-      );
+      this.workerHost = new WASIWorkerHost(binaryPath, this.stdinBuffer, {
+        args: [binaryName, ...this.args],
+        env,
+        stdout: (out) => this.terminal.write(out),
+        stderr: (err) => this.terminal.write(err), // TODO: Different colour?
+        fs,
+      });
       const result = await this.workerHost.start();
 
       this.terminal.write(`\nProgram ended: ${result.exitCode}`);
@@ -217,6 +240,8 @@ export class WebsitePlayground extends TailwindElement {
     } catch (e) {
       this.terminal.write(`\nError: ${e}`);
     }
+
+    this.workerHost = undefined;
   }
 
   async onFilesystemInput(event: InputEvent) {
@@ -258,17 +283,18 @@ export class WebsitePlayground extends TailwindElement {
 
   firstUpdated() {
     const weblinksAddon = new WebLinksAddon();
-    const fitAddon = new FitAddon();
     this.terminal.loadAddon(weblinksAddon);
-    this.terminal.loadAddon(fitAddon);
+    this.terminal.loadAddon(this.fitAddon);
     this.terminal.open(this._terminalElement);
-    fitAddon.fit();
+    this.fitAddon.fit();
   }
 
   render() {
     return html`
-      <div class="flex flex-wrap items-stretch gap-8">
-        <div class="flex flex-col flex-grow border border-yellow">
+      <div class="grid grid-cols-1 lg:grid-cols-5 xl:grid-cols-3 gap-8">
+        <div
+          class="lg:col-span-3 xl:col-span-2 flex flex-col flex-grow border border-yellow"
+        >
           <div class="relative border-b border-yellow h-14">
             <label
               class="
@@ -286,27 +312,25 @@ export class WebsitePlayground extends TailwindElement {
             <div class="flex justify-between items-stretch h-full">
               <div class="flex-grow flex items-center gap-2 pl-3">
                 $
+                <label
+                  for="binary"
+                  class="bg-white rounded py-1 px-2 text-black cursor-pointer text-sm"
+                >
+                  ${this.binaryName || html`<em>No&nbsp;binary&hellip;</em>`}
+                </label>
                 <input
-                  class=${this.demoBinary ? "hidden" : "flex-shrink"}
+                  id="binary"
+                  class="hidden"
                   type="file"
                   placeholder="WASI Binary"
                   @input=${this.onBinaryInput}
                 />
-                <span class=${this.demoBinary ? "bg-black p-2" : "hidden"}>
-                  <span> ${this.demoBinary?.split("/").pop()} </span>
-                  <button
-                    class="text-pink ml-2"
-                    @click=${() => (this.demoBinary = null)}
-                  >
-                    clear
-                  </button>
-                </span>
                 <input
                   value=${this.args.join(" ")}
                   type="text"
                   placeholder="args"
                   @input=${this.onArgsInput}
-                  class="bg-transparent flex-grow p-3 h-full flex-shrink"
+                  class="bg-transparent flex-grow p-3 h-full min-w-0"
                 />
                 <button
                   type="button"
@@ -316,13 +340,21 @@ export class WebsitePlayground extends TailwindElement {
                   Settings
                 </button>
               </div>
-              <button
-                type="button"
-                @click=${this.onRunClick}
-                class="bg-yellow text-black px-4 font-medium"
-              >
-                Run
-              </button>
+              ${this.workerHost
+                ? html`<button
+                    type="button"
+                    @click=${this.onKillClick}
+                    class="bg-red text-white px-4 font-medium"
+                  >
+                    Stop
+                  </button>`
+                : html`<button
+                    type="button"
+                    @click=${this.onRunClick}
+                    class="bg-yellow text-black px-4 font-medium"
+                  >
+                    Run
+                  </button>`}
             </div>
           </div>
           <div class=${this.showSettings ? "h-64 p-3" : "h-64 bg-black p-3"}>
@@ -364,7 +396,9 @@ export class WebsitePlayground extends TailwindElement {
             </div>
           </div>
         </div>
-        <div class="flex-grow flex flex-col items-stretch">
+        <div
+          class="lg:col-span-2 xl:col-span-1 flex-grow flex flex-col items-stretch"
+        >
           <div class="relative border border-yellow h-full">
             <label
               class="
@@ -381,7 +415,18 @@ export class WebsitePlayground extends TailwindElement {
             </label>
             <div class="flex flex-col">
               <div class="border-b border-yellow px-3 h-14 flex items-center">
-                <input type="file" @input=${this.onFilesystemInput} />
+                <label for="filesystem" class="cursor-pointer text-sm">
+                  <em class="bg-white rounded py-1 px-2 text-black "
+                    >Add files&hellip;</em
+                  >
+                  <span>Use tar.gz for folders</span>
+                </label>
+                <input
+                  id="filesystem"
+                  class="hidden"
+                  type="file"
+                  @input=${this.onFilesystemInput}
+                />
               </div>
               <div class="h-64 overflow-auto p-3">
                 ${this.files.map(
