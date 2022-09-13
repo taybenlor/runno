@@ -82,7 +82,7 @@ export class WebsitePlayground extends TailwindElement {
     this.demoBinary = demo.binary;
     this.args = demo.args;
     this._envElement.value = demo.env;
-    this.files = demo.files;
+    this.files = [...demo.files, ...this.files];
     this.echoStdin = !!demo.settings?.echoSTDIN;
   }
 
