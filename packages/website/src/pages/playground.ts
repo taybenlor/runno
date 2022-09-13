@@ -117,10 +117,10 @@ export class PagePlayground extends TailwindElement {
             <h1 id="playground">Runno WASI Playground</h1>
             <h2 id="intro">Introduction</h2>
             <p>
-              The Runno WASI playground is an interactive UI and terminal
-              connected up to a Runno WASI runtime. You can select a WASI
-              binary, attach files for that binary to run against and then run
-              it, to get an interactive terminal.
+              This playground lets you run system programs that have been
+              compiled for the WebAssembly System Interface (WASI). You can
+              interact with them from the terminal, and easily control the files
+              they have access to. Try one of the demos above to get an idea!
             </p>
 
             <h2 id="running-wasi">Running WASI</h2>
