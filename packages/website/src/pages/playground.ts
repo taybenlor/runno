@@ -37,7 +37,7 @@ export class PagePlayground extends TailwindElement {
           </h1>
           <website-playground class="pb-16 font-mono"></website-playground>
           
-          <h1 class="text-xl my-12 mb-4 pb-2 border-b border-white text-yellow">
+          <h1 class="text-xl my-12 mb-4 pb-2 border-b border-lightBlue text-yellow">
             Some demos you can try out!
           </h2>
           <div class="grid grid-cols-3 gap-8">
@@ -47,7 +47,7 @@ export class PagePlayground extends TailwindElement {
                   <pre class="whitespace-pre-wrap">${demo.instructions}</pre>
                   <div class="flex gap-4 items-center">
                     <button
-                      class="bg-yellow text-black px-4 py-1 my-4 font-medium"
+                      class="bg-yellow text-black px-4 py-1 my-4 font-medium font-mono"
                       @click=${() => this.loadDemo(demo)}
                     >
                       Load

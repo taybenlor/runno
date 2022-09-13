@@ -197,6 +197,7 @@ export class WebsitePlayground extends TailwindElement {
     }
 
     this.terminal.reset();
+    this.terminal.focus();
 
     const fs: WASIFS = {};
     for (const file of this.files) {
@@ -239,6 +240,8 @@ export class WebsitePlayground extends TailwindElement {
     } catch (e) {
       this.terminal.write(`\nError: ${e}`);
     }
+
+    this.workerHost = undefined;
   }
 
   async onFilesystemInput(event: InputEvent) {
