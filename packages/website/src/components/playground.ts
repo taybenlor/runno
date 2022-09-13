@@ -322,7 +322,6 @@ export class WebsitePlayground extends TailwindElement {
                   placeholder="WASI Binary"
                   @input=${this.onBinaryInput}
                 />
-
                 <input
                   value=${this.args.join(" ")}
                   type="text"

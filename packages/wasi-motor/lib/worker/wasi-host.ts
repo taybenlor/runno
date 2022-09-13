@@ -21,7 +21,7 @@ export class WASIWorkerHost {
   constructor(
     binaryURL: string,
     stdinBuffer: SharedArrayBuffer,
-    context: Omit<WASIWorkerHostContext, "stdin">
+    context: WASIWorkerHostContext
   ) {
     this.binaryURL = binaryURL;
     this.stdinBuffer = stdinBuffer;
