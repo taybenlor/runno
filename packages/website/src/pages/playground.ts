@@ -94,6 +94,9 @@ export class PagePlayground extends TailwindElement {
               <a href="#intro">Introduction</a>
             </li>
             <li class="pl-4">
+              <a href="#running-wasi">Running WASI</a>
+            </li>
+            <li class="pl-4">
               <a href="#wasi">Understanding WASI</a>
             </li>
             <li class="pl-4">
@@ -119,6 +122,21 @@ export class PagePlayground extends TailwindElement {
               binary, attach files for that binary to run against and then run
               it, to get an interactive terminal.
             </p>
+
+            <h2 id="running-wasi">Running WASI</h2>
+            <p>
+              This playground runs WASI binaries, basically executable files
+              made of WebAssembly that use the Web Assembly System Interface.
+              These binaries can be compiled from system languages like C,
+              C++, and Rust.
+            </p>
+            <p>
+              Some of the demos above were written in Rust. To compile to WASI
+              in Rust it's as easy as:
+            </p>
+
+            <pre>$ rustup target install wasm32-wasi
+$ cargo build --target=wasm32-wasi</pre>
 
             <h2 id="wasi">Understanding WASI</h2>
             <p>
