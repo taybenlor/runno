@@ -1,6 +1,6 @@
 import { html } from "lit";
 import { customElement } from "lit/decorators.js";
-import { TailwindElement } from "../mixins/tailwind";
+import { TailwindElement } from "../lib/tailwind";
 
 import "../components/scroll-highlight";
 import "../components/header";
@@ -11,7 +11,7 @@ export class PageDocs extends TailwindElement {
     return html`
       <website-header></website-header>
       <div class="relative">
-        <img class="absolute top-0 right-0" src="images/sun-reflection.svg" />
+        <img class="absolute top-0 right-0" src="/images/sun-reflection.svg" />
       </div>
       <div class="flex flex-wrap container mx-auto my-16 relative">
         <runno-scroll-highlight

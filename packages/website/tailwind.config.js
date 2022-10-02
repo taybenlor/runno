@@ -2,7 +2,7 @@ const plugin = require("tailwindcss/plugin");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./src/**/*.ts", "./index.html"],
+  content: ["./src/**/*.ts", "./src/**/*.md", "./index.html"],
   theme: {
     colors: {
       transparent: "transparent",
@@ -67,6 +67,9 @@ module.exports = {
               fontFamily:
                 '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"',
             },
+            "li::marker": {
+              color: "#FFE234",
+            },
             code: {
               color: "#ff2ea8",
             },
@@ -75,6 +78,17 @@ module.exports = {
             },
             "code::after": {
               content: "",
+            },
+            blockquote: {
+              color: "#FFFFFF",
+            },
+            aside: {
+              borderLeft: "4px solid #FFE234",
+              paddingLeft: "2rem",
+              fontSize: "0.95em",
+              "h1, h2, h3": {
+                color: "#FFE234",
+              },
             },
           },
         },

@@ -1,6 +1,6 @@
 import { html } from "lit";
 import { customElement, query } from "lit/decorators.js";
-import { TailwindElement } from "../mixins/tailwind";
+import { TailwindElement } from "../lib/tailwind";
 
 import type { WebsitePlayground } from "../components/playground";
 
@@ -67,7 +67,7 @@ export class PagePlayground extends TailwindElement {
         </div>
       </div>
       <div class="relative">
-        <img class="absolute top-0 right-0" src="images/sun-reflection.svg" />
+        <img class="absolute top-0 right-0" src="/images/sun-reflection.svg" />
       </div>
       <div class="flex flex-wrap container mx-auto my-16 relative">
         <runno-scroll-highlight

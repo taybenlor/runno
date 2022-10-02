@@ -11,19 +11,23 @@ type TarFile = {
 };
 
 export const extractTarGz = async (binary: Uint8Array): Promise<File[]> => {
-  const files: File[] = [];
+  let files: File[] = [];
 
   // We receive a tar.gz, we first need to uncompress it.
-  const inflatedBinary = inflate(binary);
-  await untar(inflatedBinary.buffer).progress(function (file: TarFile) {
-    if (file.type === "file" || file.type === "0" || file.type == 0) {
-      files.push(
-        new File([file.blob], file.name, {
+  const inflatedBinary: Uint8Array = inflate(binary);
+  try {
+    files = (await untar(inflatedBinary.buffer))
+      .filter((file: TarFile) => {
+        return file.type === "file" || file.type === "0" || file.type == 0;
+      })
+      .map((file: TarFile) => {
+        return new File([file.blob], file.name, {
           lastModified: Date.now(),
-        })
-      );
-    }
-  });
+        });
+      });
+  } catch (e) {
+    console.log("failed untar", e);
+  }
 
   return files;
 };

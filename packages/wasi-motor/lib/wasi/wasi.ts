@@ -183,13 +183,13 @@ export class WASI implements SnapshotPreview1 {
    * Read command-line argument data. The size of the array should match that
    * returned by args_sizes_get. Each argument is expected to be \0 terminated.
    */
-  args_get(argv_ptr_ptr: number, argv_buf_ptr: number): number {
+  args_get(argv_ptr: number, argv_buf_ptr: number): number {
     const view = new DataView(this.memory.buffer);
-    for (const value of this.context.args) {
-      view.setUint32(argv_ptr_ptr, argv_buf_ptr, true);
-      argv_ptr_ptr += 4;
+    for (const argument of this.context.args) {
+      view.setUint32(argv_ptr, argv_buf_ptr, true);
+      argv_ptr += 4;
 
-      const data = new TextEncoder().encode(`${value}\0`);
+      const data = new TextEncoder().encode(`${argument}\0`);
       const buffer = new Uint8Array(
         this.memory.buffer,
         argv_buf_ptr,
