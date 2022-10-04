@@ -26,15 +26,25 @@ export class PagePlayground extends TailwindElement {
         <div class="container mx-auto relative p-4 sm:p-0">
           <h1
             class="
+              text-yellow
               text-center
               text-3xl
               font-bold
               mt-14
-              mb-10
+              mb-4
             "
           >
-            Try out WASI, with the Playground
+            WASI Playground
           </h1>
+          <h2 class="
+              text-center
+              text-2xl
+              font-bold
+              mt-4
+              mb-10
+            ">
+            Run WebAssembly made for outside the browser, inside your browser.
+          </h2>
           <website-playground class="pb-16 font-mono"></website-playground>
           
           <h1 class="text-xl my-12 mb-4 pb-2 border-b border-lightBlue text-yellow">
@@ -120,7 +130,12 @@ export class PagePlayground extends TailwindElement {
               This playground lets you run system programs that have been
               compiled for the WebAssembly System Interface (WASI). You can
               interact with them from the terminal, and easily control the files
-              they have access to. Try one of the demos above to get an idea!
+              they have access to. Try one of the demos above, or select your
+              own <code>.wasi.wasm</code> binary.
+            </p>
+            <p>
+              If you'd like to try something a bit more complex, I've written an
+              article about running FFMPEG inside the Runno WASI playground.
             </p>
 
             <h2 id="running-wasi">Running WASI</h2>
@@ -138,14 +153,25 @@ export class PagePlayground extends TailwindElement {
             <pre>$ rustup target install wasm32-wasi
 $ cargo build --target=wasm32-wasi</pre>
 
+            <p>
+              Once you've built a <code>.wasi.wasm</code> file you can upload it
+              here and run it. Click the "Choose binary file&hellip;" button
+              from the playground.. 
+            </p>
+
+            <p>
+              You can also use LLVM to compile C, and C++ to WASI with the
+              <a href="https://github.com/WebAssembly/wasi-sdk">wasi-sdk</a>.
+            </p>
+
             <h2 id="wasi">Understanding WASI</h2>
             <p>
               The WebAssembly System Interface (WASI) is a standard (see:
               <a href="https://wasi.dev">wasi.dev</a>) for giving WebAssembly
-              binaries access to system resources. A
-              WebAssembly binary is not able to call out to the "host" system
-              without being provided with an interface. WASI defines a set of
-              functions, like <code>fd_read</code>, and <code>args_get</code>,
+              binaries access to system resources. A WebAssembly binary is not
+              able to call out to the "host" system without being provided with
+              an interface. WASI defines a set of functions, like
+              <code>fd_read</code>, and <code>args_get</code>,
               that are similar enough to POSIX standards that many system-level
               programs can be compiled without major changes.
             </p>
@@ -169,13 +195,14 @@ $ cargo build --target=wasm32-wasi</pre>
               <code>STDOUT</code>. These all have to be emulated (or ignored).
             </p>
             <p>
-              The Runno WASI runtime is available as an NPM package
-              (<code>@runno/wasi-motor</code>) and the source is available on
-              Github. There are many other WASI runtimes, but Runno's is
-              specifically designed for the Web. If you're trying to run WASI
-              outside of a Web Browser, you won't get far with Runno. But if you
-              have some system-level binaries you want to interact with then
-              Runno is a great choice.
+              The Runno WASI runtime is not yet available as an NPM package
+              but the source is available
+              [on Github](https://github.com/taybenlor/runno/tree/main/packages/wasi-motor).
+              <!-- There are many other WASI runtimes, but Runno's is specifically
+              designed for the Web. If you're trying to run WASI outside of a
+              Web Browser, you won't get far with Runno. But if you have some
+              system-level binaries you want to interact with then Runno is a
+              great choice. -->
             </p>
           </section>
         </article>

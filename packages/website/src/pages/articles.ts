@@ -4,15 +4,23 @@ import { customElement } from "lit/decorators.js";
 import { TailwindElement } from "../lib/tailwind";
 
 import wasiArticleMarkdown from "./articles/wasi.md?raw";
+import ffmpegArticleMarkdown from "./articles/ffmpeg.md?raw";
 
 import "../components/article";
 
 const articles = [
   {
+    slug: "ffmpeg",
+    title: "Running FFMPEG in your browser using the Runno WASI Playground",
+    markdown: ffmpegArticleMarkdown,
+    published: new Date("2022-10-05"),
+    draft: true,
+  },
+  {
     slug: "implementing-wasi",
     title: "Just implementing the whole WASI standard",
     markdown: wasiArticleMarkdown,
-    published: new Date("2022-10-01"),
+    published: new Date("3022-10-01"),
     draft: true,
   },
 ];
@@ -41,7 +49,7 @@ export class PageArticles extends TailwindElement {
       ${articles.map(
         (article) => html`
           <website-article
-            slug="implementing-wasi"
+            slug="${article.slug}"
             .markdown=${article.markdown}
             .draft=${article.draft}
           ></website-article>

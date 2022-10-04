@@ -1,5 +1,7 @@
 # Just implementing the whole WASI standard
 
+_Disclaimer: I have not finished this article_
+
 So I spent the last two months writing real low level JavaScript like:
 
 ```js
@@ -38,7 +40,7 @@ operating systems and what the heck a "syscall" is.
 
 And then at the end, let's run `ffmpeg`, `ruby`, and some Rust in the browser.
 
-# Finding out what WASI is
+## Finding out what WASI is
 
 Okay so WASI stands for WebAssembly System Interface which is&hellip; wait okay
 ummm
@@ -520,3 +522,7 @@ Let's compile that to wasi:
 $ rustup target install wasm32-wasi
 $ cargo build --target=wasm32-wasi
 ```
+
+## I haven't finished this, sorry
+
+I will in the future, maybe
