@@ -65,19 +65,24 @@ filesystem. Like so:
 ![Screenshot of playground with result in filesystem](/images/playground-ffmpeg-3.png)
 
 To get the frame from the video, you can click the "download" link next to the
-`out.png` file in the filesystem. You can see that this frame is not very
-exciting:
+`out.png` file in the filesystem. You've just got a frame out of a video, all
+from your browser, all running locally!
 
 ![Motion picture approval frame from serenity.mp4](/images/playground-ffmpeg-4.png)
 
-You can adjust the `ss` argument to get a different part of the video. At 38
-seconds in there's a good shot of the crew so let's use `-ss 38`.
+Unfortunately the frame is not very exciting, it's just the motion picture
+approval. Great colour though.
+
+Let's adjust the `ss` argument to get a different part of the video. At 38
+seconds in there's a good shot of the crew so let's use `-ss 38` and click run
+again.
 
 When you click run this time, you'll get a prompt asking you to confirm
 overwriting the existing `out.png` file. When you press `y` you won't see
 anything on the screen, that's because `ffmpeg` is expecting the shell to handle
-echoing your input back to you. To emulate that, click "settings" and tick
-"Echo STDIN":
+echoing your input back to you. The playground doesn't do that by default.
+
+To emulate it, click "settings" and tick "Echo STDIN":
 
 ![Display of Echo STDIN setting in playground](/images/playground-ffmpeg-5.png)
 
@@ -90,8 +95,8 @@ More importantly, you'll now get a much better frame of the video back as your
 
 ![A frame including the ship crew of Serenity](/images/playground-ffmpeg-7.png)
 
-And there you have it, you've used a WASM compiled WASI file to manipulate a
-video file, all in the browser.
+And there you have it, you've taken FFMPEG compiled to WASM/WASI and then used
+that binary to manipulate a video file, all in the browser.
 
 ## WASI vs Emscripten
 

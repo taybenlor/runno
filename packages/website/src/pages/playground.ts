@@ -135,8 +135,12 @@ export class PagePlayground extends TailwindElement {
             </p>
             <p>
               If you'd like to try something a bit more complex, I've written an
-              article about running FFMPEG inside the Runno WASI playground.
+              article about running FFMPEG inside the Runno WASI playground:
+              <a href="/articles/ffmpeg">
+                Running FFMPEG in your browser using the Runno WASI Playground.
+              </a>
             </p>
+
 
             <h2 id="running-wasi">Running WASI</h2>
             <p>
@@ -197,7 +201,9 @@ $ cargo build --target=wasm32-wasi</pre>
             <p>
               The Runno WASI runtime is not yet available as an NPM package
               but the source is available
-              [on Github](https://github.com/taybenlor/runno/tree/main/packages/wasi-motor).
+              <a href="https://github.com/taybenlor/runno/tree/main/packages/wasi-motor">
+                on Github
+              </a>.
               <!-- There are many other WASI runtimes, but Runno's is specifically
               designed for the Web. If you're trying to run WASI outside of a
               Web Browser, you won't get far with Runno. But if you have some
