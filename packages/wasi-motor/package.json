@@ -40,7 +40,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@playwright/test": "^1.25.0",
+    "@playwright/test": "^1.26.1",
     "typescript": "^4.6.4",
     "vite": "^3.0.0"
   }

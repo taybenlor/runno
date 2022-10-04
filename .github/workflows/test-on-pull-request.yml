@@ -8,15 +8,13 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: "16"
-      - name: Bootstrap packages
+      - name: Install dependencies
         run: npm run bootstrap
-      - name: Install node packages
-        run: npm install
       - name: Build Runno
         run: npm run build
       - name: Install Playwright
         run: npx playwright install --with-deps
-      - name: Run your tests
+      - name: Run your tests - this might fail if playwright version is outdated
         run: npm run test
       - name: Upload test results
         if: always()
