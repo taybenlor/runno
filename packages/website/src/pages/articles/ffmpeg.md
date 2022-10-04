@@ -1,11 +1,14 @@
 # Running FFMPEG in your browser using the Runno WASI Playground
 
 `ffmpeg` is a program used in commandlines everywhere for converting video and
-audio files to different formats. It's a great candidate for compiling to WASI
-because it relies only on the local file system to do its work. It also makes
-for a great demo, being non-trivial and using many different features of the
-WASI environment. Let's use the [Runno WASI Playground](https://runno.dev/wasi)
-to run a binary version of ffmpeg.
+audio files to different formats. It's a great candidate for compiling to WASM
+because it's very difficult to re-write in JavaScript. It also makes for a great
+demo, being non-trivial and doing neat stuff with videos. In this article I'll
+show you how you can use the [Runno WASI Playground](https://runno.dev/wasi) to
+run a WASI binary version of ffmpeg.
+
+Once we've done that I'll talk a bit about what WASI is, and why it's so
+interesting.
 
 ## Background: What is WASI?
 
