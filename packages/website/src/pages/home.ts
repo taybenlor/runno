@@ -3,7 +3,7 @@ import { customElement, state, query } from "lit/decorators.js";
 
 import { generateEmbedURL } from "@runno/host";
 
-import { TailwindElement } from "../mixins/tailwind";
+import { TailwindElement } from "../lib/tailwind";
 
 import "../components/starfield";
 import "../components/form";
@@ -55,11 +55,11 @@ export class PageHome extends TailwindElement {
     return html`
       <div class="bg-sunset pb-8 relative">
         <website-starfield class="pointer-events-none">
-          <img src="images/star.svg" />
+          <img src="/images/star.svg" />
         </website-starfield>
         <website-header></website-header>
 
-        <img class="absolute bottom-0 right-0" src="images/sun.svg" />
+        <img class="absolute bottom-0 right-0" src="/images/sun.svg" />
         <div class="container mx-auto relative p-4 sm:p-0">
           <h1
             class="
@@ -114,7 +114,7 @@ export class PageHome extends TailwindElement {
       </div>
 
       <div class="relative">
-        <img class="absolute top-0 right-0" src="images/sun-reflection.svg" />
+        <img class="absolute top-0 right-0" src="/images/sun-reflection.svg" />
       </div>
       <div class="flex flex-wrap container mx-auto my-16 relative">
         <runno-scroll-highlight

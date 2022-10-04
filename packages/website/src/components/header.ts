@@ -1,6 +1,6 @@
 import { html } from "lit";
 import { customElement } from "lit/decorators.js";
-import { TailwindElement } from "../mixins/tailwind";
+import { TailwindElement } from "../lib/tailwind";
 
 @customElement("website-header")
 export class WebsiteHeader extends TailwindElement {
@@ -9,7 +9,7 @@ export class WebsiteHeader extends TailwindElement {
       <header class="py-4">
         <a href="/" title="Runno" class="absolute">
           <h1 class="text-lg">
-            <img src="images/logo.svg" alt="Runno" class="sm:inline-block" />
+            <img src="/images/logo.svg" alt="Runno" class="sm:inline-block" />
             <span
               class="
         inline-block
@@ -45,11 +45,17 @@ export class WebsiteHeader extends TailwindElement {
           </a>
           ${import.meta.env.DEV
             ? html`<a
-                href="/wasi"
-                class="inline-flex font-medium hover:text-yellow group"
-              >
-                WASI Playground
-              </a>`
+                  href="/wasi"
+                  class="inline-flex font-medium hover:text-yellow group"
+                >
+                  WASI Playground
+                </a>
+                <a
+                  href="/articles"
+                  class="inline-flex font-medium hover:text-yellow group"
+                >
+                  Articles
+                </a> `
             : null}
           <a
             href="/docs"
@@ -63,11 +69,11 @@ export class WebsiteHeader extends TailwindElement {
             class="inline-flex font-medium hover:text-yellow group"
           >
             <img
-              src="images/github-light.png"
+              src="/images/github-light.png"
               class="w-6 h-6 mr-2 block group-hover:hidden"
             />
             <img
-              src="images/github-yellow.png"
+              src="/images/github-yellow.png"
               class="w-6 h-6 mr-2 hidden group-hover:block"
             />
             GitHub

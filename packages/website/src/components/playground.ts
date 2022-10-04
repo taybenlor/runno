@@ -8,7 +8,7 @@ import { FitAddon } from "xterm-addon-fit";
 
 import { WASIFS, WASIWorkerHost } from "@runno/wasi-motor";
 
-import { TailwindElement } from "../mixins/tailwind";
+import { TailwindElement } from "../lib/tailwind";
 import { extractTarGz } from "../demos/tar";
 import { WASIExample } from "../demos/wasi-examples";
 
@@ -316,7 +316,8 @@ export class WebsitePlayground extends TailwindElement {
                   for="binary"
                   class="bg-white rounded py-1 px-2 text-black cursor-pointer text-sm"
                 >
-                  ${this.binaryName || html`<em>No&nbsp;binary&hellip;</em>`}
+                  ${this.binaryName ||
+                  html`<em>Choose&nbsp;binary&nbsp;file&hellip;</em>`}
                 </label>
                 <input
                   id="binary"
@@ -419,7 +420,7 @@ export class WebsitePlayground extends TailwindElement {
                   <em class="bg-white rounded py-1 px-2 text-black "
                     >Add files&hellip;</em
                   >
-                  <span>Use tar.gz for folders</span>
+                  <span>Use tar.gz for bulk</span>
                 </label>
                 <input
                   id="filesystem"

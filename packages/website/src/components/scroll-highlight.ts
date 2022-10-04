@@ -28,7 +28,7 @@ export class ScrollHighlightElement extends HTMLElement {
     const scrollOffset = window.scrollY;
     const headings = (
       this.getRootNode() as HTMLElement
-    ).querySelectorAll<HTMLHeadingElement>("h1,h2");
+    ).querySelectorAll<HTMLHeadingElement>("h1,h2,h3,h4");
     let topHeading: HTMLHeadingElement | undefined = undefined;
     for (const heading of Array.from(headings)) {
       const offset = pageOffset(heading);

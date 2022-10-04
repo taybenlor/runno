@@ -9,6 +9,10 @@ export class WebsiteRoute extends LitElement {
   @state()
   location: Location = window.location;
 
+  get routeRegex() {
+    return new RegExp(this.route);
+  }
+
   onPopState = (_: PopStateEvent) => {
     this.location = window.location;
   };
@@ -24,7 +28,7 @@ export class WebsiteRoute extends LitElement {
   }
 
   render() {
-    if (this.location.pathname === this.route) {
+    if (this.routeRegex.test(this.location.pathname)) {
       return html`<slot></slot>`;
     }
     return html``;

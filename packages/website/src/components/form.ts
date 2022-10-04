@@ -1,6 +1,6 @@
 import { html } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { TailwindElement } from "../mixins/tailwind";
+import { TailwindElement } from "../lib/tailwind";
 
 import { Runtime, generateEmbedURL, generateEmbedHTML } from "@runno/host";
 import { exampleForRuntime } from "../examples";

@@ -14,7 +14,7 @@ jobs:
         run: npm run build
       - name: Install Playwright
         run: npx playwright install --with-deps
-      - name: Run your tests
+      - name: Run your tests - this might fail if playwright version is outdated
         run: npm run test
       - name: Upload test results
         if: always()

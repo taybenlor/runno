@@ -23,7 +23,7 @@
 
     <title>Runno</title>
 
-    <link rel="preload" as="image" href="images/github-yellow.png" />
+    <link rel="preload" as="image" href="/images/github-yellow.png" />
   </head>
   <body
     class="
@@ -36,14 +36,17 @@
     "
   >
     <main class="bg-black">
-      <website-route route="/">
+      <website-route route="^/$">
         <page-home></page-home>
       </website-route>
-      <website-route route="/docs">
+      <website-route route="^/docs$">
         <page-docs></page-docs>
       </website-route>
-      <website-route route="/wasi">
+      <website-route route="^/wasi$">
         <page-playground></page-playground>
+      </website-route>
+      <website-route route="^/articles">
+        <page-articles></page-articles>
       </website-route>
     </main>
     <footer class="bg-white text-black">
