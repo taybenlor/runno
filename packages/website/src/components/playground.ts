@@ -176,7 +176,14 @@ export class WebsitePlayground extends TailwindElement {
       return;
     }
 
-    this.binary = target.files.item(0);
+    const file = target.files.item(0);
+    if (!file) {
+      return;
+    }
+
+    this.binary = new File([file], file.name, {
+      type: "application/wasm",
+    });
   }
 
   onKillClick() {
