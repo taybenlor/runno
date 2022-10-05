@@ -135,9 +135,10 @@ export class PagePlayground extends TailwindElement {
             </p>
             <p>
               If you'd like to try something a bit more complex, I've written an
-              article about running FFMPEG inside the Runno WASI playground:
+              article about running FFmpeg inside the Runno WASI playground:
               <a href="/articles/ffmpeg">
-                Running FFMPEG in your browser using the Runno WASI Playground.
+                I built a WASI playground and you can run FFmpeg in it,
+                which is cool
               </a>
             </p>
 

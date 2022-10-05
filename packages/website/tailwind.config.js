@@ -53,12 +53,14 @@ module.exports = {
       typography: {
         DEFAULT: {
           css: {
+            lineHeight: "1.6",
             color: "#FFFFFF",
             a: {
               color: "#FFE234",
             },
             h1: {
               color: "#FFE234",
+              lineHeight: "1.35",
             },
             "h2, h3, h4": {
               color: "#FFFFFF",

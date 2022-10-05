@@ -21,8 +21,14 @@ export class WebsiteArticle extends TailwindElement {
   @property({ type: String })
   slug: string = "";
 
+  @property({ type: Date })
+  published: Date = new Date();
+
   @property({ type: Boolean })
   draft: boolean = false;
+
+  @property({ type: String })
+  author: string = "";
 
   onPopState = (_: PopStateEvent) => {
     const hash = window.location.hash;
@@ -57,11 +63,13 @@ export class WebsiteArticle extends TailwindElement {
           : null}
         <div class="relative">
           <img
-            class="absolute top-0 right-0"
+            class="absolute top-0 right-0 hidden xl:block"
             src="/images/sun-reflection.svg"
           />
         </div>
-        <div class="flex flex-wrap container mx-auto my-16 relative">
+        <div
+          class="container mx-auto my-16 flex-wrap relative px-8 md:p-0 lg:flex"
+        >
           <runno-scroll-highlight
             class="mb-8 p-4 text-sm w-[65ch] md:text-base lg:w-[28ch] sm:p-0"
           >
@@ -71,7 +79,7 @@ export class WebsiteArticle extends TailwindElement {
           mr-8
           p-2
           list-none
-          sticky
+          lg:sticky
           top-4
           columns-2
           w-full
@@ -81,6 +89,9 @@ export class WebsiteArticle extends TailwindElement {
             >
               ${marked.lexer(this.markdown).map((token) => {
                 if (token.type !== "heading") {
+                  return null;
+                }
+                if (token.depth > 2) {
                   return null;
                 }
                 return html`
@@ -98,6 +109,13 @@ export class WebsiteArticle extends TailwindElement {
             </nav>
           </runno-scroll-highlight>
           <article class="prose">
+            <p class="text-right">
+              <time datetime="${this.published.toISOString()}"
+                >${this.published.toDateString()}</time
+              >
+              by ${this.author}
+            </p>
+
             ${unsafeHTML(marked.parse(this.markdown))}
           </article>
         </div>
