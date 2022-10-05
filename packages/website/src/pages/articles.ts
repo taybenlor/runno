@@ -11,10 +11,12 @@ import "../components/article";
 const articles = [
   {
     slug: "ffmpeg",
-    title: "Running FFMPEG in your browser using the Runno WASI Playground",
+    title:
+      "I built a WASI playground and you can run FFmpeg in it, which is cool",
     markdown: ffmpegArticleMarkdown,
     published: new Date("2022-10-05"),
-    draft: true,
+    draft: false,
+    author: "Ben Taylor",
   },
   {
     slug: "implementing-wasi",
@@ -22,6 +24,7 @@ const articles = [
     markdown: wasiArticleMarkdown,
     published: new Date("3022-10-01"),
     draft: true,
+    author: "Ben Taylor",
   },
 ];
 
@@ -52,6 +55,8 @@ export class PageArticles extends TailwindElement {
             slug="${article.slug}"
             .markdown=${article.markdown}
             .draft=${article.draft}
+            .published=${article.published}
+            .author=${article.author}
           ></website-article>
         `
       )}

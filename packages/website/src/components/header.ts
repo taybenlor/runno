@@ -9,7 +9,7 @@ export class WebsiteHeader extends TailwindElement {
       <header class="py-4">
         <a href="/" title="Runno" class="absolute">
           <h1 class="text-lg">
-            <img src="/images/logo.svg" alt="Runno" class="sm:inline-block" />
+            <img src="/images/logo.svg" alt="Runno" class="lg:inline-block" />
             <span
               class="
         inline-block
@@ -20,7 +20,7 @@ export class WebsiteHeader extends TailwindElement {
         p-2
         mt-4
         ml-4
-        sm:mt-0
+        lg:mt-0
       "
             >
               v<runno-version>0.0.0</runno-version> - beta as heck
@@ -31,32 +31,33 @@ export class WebsiteHeader extends TailwindElement {
           class="
     font-sans
     container
-    mx-auto
+    ml-auto
+    mr-4
     flex
+    flex-wrap
     justify-end
     z-10
+    gap-8
     pr-4
     sm:pr-0
-    gap-8
+    max-w-[50%]
   "
         >
           <a href="/" class="inline-flex font-medium hover:text-yellow group">
             Home
           </a>
-          ${import.meta.env.DEV
-            ? html`<a
-                  href="/wasi"
-                  class="inline-flex font-medium hover:text-yellow group"
-                >
-                  WASI Playground
-                </a>
-                <a
-                  href="/articles"
-                  class="inline-flex font-medium hover:text-yellow group"
-                >
-                  Articles
-                </a> `
-            : null}
+          <a
+            href="/wasi"
+            class="inline-flex font-medium hover:text-yellow group"
+          >
+            WASI Playground
+          </a>
+          <a
+            href="/articles"
+            class="inline-flex font-medium hover:text-yellow group"
+          >
+            Articles
+          </a>
           <a
             href="/docs"
             class="inline-flex font-medium hover:text-yellow group"
