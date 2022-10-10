@@ -82,7 +82,12 @@ export class WebsitePlayground extends TailwindElement {
     this.demoBinary = demo.binary;
     this.args = demo.args;
     this._envElement.value = demo.env;
+
+    // Overwrite duplicate names
+    const demoFileNames = demo.files.map((f) => f.name);
+    this.files = this.files.filter((f) => !demoFileNames.includes(f.name));
     this.files = [...demo.files, ...this.files];
+
     this.echoStdin = !!demo.settings?.echoSTDIN;
   }
 
@@ -167,7 +172,9 @@ export class WebsitePlayground extends TailwindElement {
   //
 
   onArgsInput(event: InputEvent) {
-    this.args = (event.target as HTMLInputElement).value.split(" ");
+    this.args = (event.target as HTMLInputElement).value
+      .split(" ")
+      .filter((v) => !!v);
   }
 
   onBinaryInput(event: InputEvent) {
