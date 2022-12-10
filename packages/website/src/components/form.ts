@@ -117,6 +117,7 @@ export class WebsiteForm extends TailwindElement {
             <option value="sqlite">SQL (SQLite)</option>
             <option value="clang">C (clang)</option>
             <option value="clangpp">C++ (clang)</option>
+            <option value="trealla">Prolog (Trealla)</option>
           </select>
         </label>
 

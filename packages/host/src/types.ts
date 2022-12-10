@@ -4,8 +4,17 @@ export type Runtime =
   | "sqlite"
   | "clang"
   | "clangpp"
-  | "ruby";
-export type Syntax = "python" | "js" | "sql" | "cpp" | "ruby" | undefined;
+  | "ruby"
+  | "trealla";
+
+export type Syntax =
+  | "python"
+  | "js"
+  | "sql"
+  | "cpp"
+  | "ruby"
+  | "prolog"
+  | undefined;
 
 export type CommandResult = {
   stdin: string;

@@ -59,6 +59,11 @@ SELECT "Hello, World!";
 SELECT "G'day, welcome to Runno.";
 `.trimStart();
 
+const trealla = `
+main :-
+    write('hello world').
+`.trimStart();
+
 export function exampleForRuntime(name: Runtime): string {
   if (name == "sqlite") {
     return sqlite;
@@ -82,6 +87,10 @@ export function exampleForRuntime(name: Runtime): string {
 
   if (name == "ruby") {
     return ruby;
+  }
+
+  if (name == "trealla") {
+    return trealla;
   }
 
   return "";

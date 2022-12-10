@@ -56,6 +56,9 @@ export function runtimeToSyntax(runtime: string | undefined | null): Syntax {
   if (runtime == "ruby") {
     return "ruby";
   }
+  if (runtime == "trealla") {
+    return "prolog";
+  }
   return undefined;
 }
 

@@ -34,6 +34,12 @@ function commandsForRuntime(name: string, entryPath: string): RuntimeCommands {
     return { run: `cat ${entryPath} | sqlite` };
   }
 
+  if (name === "trealla") {
+    return {
+      run: `tpl --library / --trace -g main,halt -f ${entryPath}`,
+    };
+  }
+
   if (name === "clang") {
     return {
       prepare: [
@@ -110,7 +116,12 @@ export class RunnoProvider implements RuntimeMethods {
     return Promise.resolve(this.editor.program);
   }
 
-  interactiveRunCode(runtime: Runtime, code: string): Promise<RunResult> {
+  async interactiveRunCode(runtime: Runtime, code: string): Promise<RunResult> {
+    if (runtime === "trealla") {
+      return await this.interactiveRunFS(runtime, "program.pl", {
+        "program.pl": { name: "program.pl", content: code },
+      });
+    }
     return this.interactiveRunFS(runtime, "program", {
       program: { name: "program", content: code },
     });

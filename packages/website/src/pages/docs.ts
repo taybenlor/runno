@@ -538,6 +538,14 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
                 <code>clangpp</code> - Compiles and runs C++ code using the same
                 llvm fork.
               </li>
+              <li>
+                <code>trealla</code> - Runs Prolog using the
+                <a
+                  target="_blank"
+                  href="https://github.com/trealla-prolog/trealla"
+                  >Trealla implementation</a
+                >.
+              </li>
             </ul>
 
             <p>
