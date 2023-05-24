@@ -16,6 +16,13 @@ import { WASIExecutionResult } from "../types";
 import { WASIContext } from "./wasi-context";
 import { DriveStat, WASIDrive } from "./wasi-drive";
 
+/** Injects a function between implementation and return for debugging */
+export type DebugFn = (
+  name: string,
+  args: string[],
+  ret: number
+) => number | undefined;
+
 /**
  * Implementation of a WASI runner for the browser.
  * Explicitly designed for the browser context, where system resources
@@ -42,8 +49,8 @@ export class WASI implements SnapshotPreview1 {
   ) {
     const wasi = new WASI(context);
     const wasm = await WebAssembly.instantiateStreaming(wasmSource, {
-      wasi_snapshot_preview1: wasi.getImports(),
-      wasi_unstable: wasi.getImports(),
+      wasi_snapshot_preview1: wasi.getImports(context.debug),
+      wasi_unstable: wasi.getImports(context.debug),
     });
     wasi.init(wasm);
     return wasi.start();
@@ -99,7 +106,7 @@ export class WASI implements SnapshotPreview1 {
     };
   }
 
-  getImports(): WebAssembly.ModuleImports & SnapshotPreview1 {
+  getImports(debug?: DebugFn): WebAssembly.ModuleImports & SnapshotPreview1 {
     const imports = {
       args_get: this.args_get.bind(this),
       args_sizes_get: this.args_sizes_get.bind(this),
@@ -157,8 +164,10 @@ export class WASI implements SnapshotPreview1 {
 
     for (const [name, fn] of Object.entries(imports)) {
       (imports as any)[name] = function () {
-        const ret = (fn as any).apply(this, arguments);
-        console.log(name, arguments, " => ", ret);
+        let ret = (fn as any).apply(this, arguments);
+        if (debug) {
+          ret = debug(name, [...arguments], ret) ?? ret;
+        }
         return ret;
       };
     }
@@ -532,6 +541,43 @@ export class WASI implements SnapshotPreview1 {
    * Return the attributes of an open file.
    */
   fd_filestat_get(fd: number, retptr0: number): number {
+    // STDIN / STDOUT / STDERR
+    if (fd < 3) {
+      let path: string;
+      switch (fd) {
+        case 0:
+          path = "/dev/stdin";
+          break;
+        case 1:
+          path = "/dev/stdout";
+          break;
+        case 2:
+          path = "/dev/stderr";
+          break;
+        default:
+          path = "/dev/undefined";
+          break;
+      }
+      const buffer = createFilestat({
+        path,
+        byteLength: 0,
+        timestamps: {
+          access: new Date(),
+          modification: new Date(),
+          change: new Date(),
+        },
+        type: FileType.CHARACTER_DEVICE,
+      });
+      const retBuffer = new Uint8Array(
+        this.memory.buffer,
+        retptr0,
+        buffer.byteLength
+      );
+      retBuffer.set(buffer);
+
+      return Result.SUCCESS;
+    }
+
     const [result, stat] = this.drive.stat(fd);
     if (result != Result.SUCCESS) {
       return result;
