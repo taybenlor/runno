@@ -2,7 +2,13 @@ import { html, css, LitElement } from "lit";
 import { property, state } from "lit/decorators.js";
 import { createRef, Ref, ref } from "lit/directives/ref.js";
 
-import { Runtime, RuntimeMethods, Syntax, RunResult, FS } from "@runno/host";
+import {
+  Runtime,
+  RuntimeMethods,
+  Syntax,
+  RunResult,
+  WASIFS,
+} from "@runno/host";
 import { EditorElement } from "./editor";
 import { ControlsElement } from "./controls";
 import { TerminalElement } from "./terminal";
@@ -109,7 +115,7 @@ export class RunElement extends LitElement implements RuntimeMethods {
   async interactiveRunFS(
     runtime: Runtime,
     entryPath: string,
-    fs: FS
+    fs: WASIFS
   ): Promise<RunResult> {
     this._running = true;
     const result = await this._provider.interactiveRunFS(
@@ -117,13 +123,6 @@ export class RunElement extends LitElement implements RuntimeMethods {
       entryPath,
       fs
     );
-    this._running = false;
-    return result;
-  }
-
-  async interactiveUnsafeCommand(command: string, fs: FS): Promise<RunResult> {
-    this._running = true;
-    const result = await this._provider.interactiveUnsafeCommand(command, fs);
     this._running = false;
     return result;
   }
@@ -143,18 +142,10 @@ export class RunElement extends LitElement implements RuntimeMethods {
   headlessRunFS(
     runtime: Runtime,
     entryPath: string,
-    fs: FS,
+    fs: WASIFS,
     stdin?: string
   ): Promise<RunResult> {
     return this._provider.headlessRunFS(runtime, entryPath, fs, stdin);
-  }
-
-  headlessUnsafeCommand(
-    command: string,
-    fs: FS,
-    stdin?: string
-  ): Promise<RunResult> {
-    return this._provider.headlessUnsafeCommand(command, fs, stdin);
   }
 
   //
@@ -208,3 +199,5 @@ export class RunElement extends LitElement implements RuntimeMethods {
     `;
   }
 }
+
+customElements.define("runno-run", RunElement);

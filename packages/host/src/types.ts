@@ -7,27 +7,52 @@ export type Runtime =
   | "ruby";
 export type Syntax = "python" | "js" | "sql" | "cpp" | "ruby" | undefined;
 
-export type CommandResult = {
+export type CrashResult = {
+  resultType: "crash";
+  error: unknown;
+};
+
+export type CompleteResult = {
+  resultType: "complete";
   stdin: string;
   stdout: string;
   stderr: string;
   tty: string;
-  fs: FS;
-  exit: number;
+  fs: WASIFS;
+  exitCode: number;
 };
 
-export type RunResult = {
-  result?: CommandResult;
-  prepare?: CommandResult;
+export type RunResult = CompleteResult | CrashResult;
+
+export type WASIPath = string;
+
+export type WASIFS = {
+  [path: WASIPath]: WASIFile;
 };
 
-export type FS = {
-  [name: string]: File;
+export type WASITimestamps = {
+  access: Date;
+  modification: Date;
+  change: Date;
 };
 
-export type File = {
-  name: string;
-  content: string | Uint8Array;
+export type WASIFile = {
+  path: WASIPath; // TODO: This duplication is annoying, lets remove it
+  timestamps: WASITimestamps;
+} & (
+  | {
+      mode: "string";
+      content: string;
+    }
+  | {
+      mode: "binary";
+      content: Uint8Array;
+    }
+);
+
+export type WASIExecutionResult = {
+  exitCode: number;
+  fs: WASIFS;
 };
 
 export type RuntimeMethods = {
@@ -48,10 +73,8 @@ export type RuntimeMethods = {
   interactiveRunFS: (
     runtime: Runtime,
     entryPath: string,
-    fs: FS
+    fs: WASIFS
   ) => Promise<RunResult>;
-
-  interactiveUnsafeCommand: (command: string, fs: FS) => Promise<RunResult>;
 
   interactiveStop: () => void;
 
@@ -64,13 +87,7 @@ export type RuntimeMethods = {
   headlessRunFS: (
     runtime: Runtime,
     entryPath: string,
-    fs: FS,
-    stdin?: string
-  ) => Promise<RunResult>;
-
-  headlessUnsafeCommand: (
-    command: string,
-    fs: FS,
+    fs: WASIFS,
     stdin?: string
   ) => Promise<RunResult>;
 };

@@ -177,3 +177,5 @@ export class EditorElement extends HTMLElement {
     this.hidden = true;
   }
 }
+
+customElements.define("runno-editor", EditorElement);

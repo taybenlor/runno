@@ -1,5 +1,5 @@
 import { ParentHandshake, RemoteHandle, WindowMessenger } from "post-me";
-import { Runtime, RuntimeMethods, RunResult, FS, Syntax } from "./types";
+import { Runtime, RuntimeMethods, RunResult, WASIFS, Syntax } from "./types";
 import { encode } from "url-safe-base64";
 
 export function generateEmbedURL(
@@ -100,13 +100,9 @@ export class RunnoHost implements RuntimeMethods {
   interactiveRunFS(
     runtime: Runtime,
     entryPath: string,
-    fs: FS
+    fs: WASIFS
   ): Promise<RunResult> {
     return this.remoteHandle.call("interactiveRunFS", runtime, entryPath, fs);
-  }
-
-  interactiveUnsafeCommand(command: string, fs: FS): Promise<RunResult> {
-    return this.remoteHandle.call("interactiveUnsafeCommand", command, fs);
   }
 
   interactiveStop(): Promise<void> {
@@ -124,7 +120,7 @@ export class RunnoHost implements RuntimeMethods {
   headlessRunFS(
     runtime: Runtime,
     entryPath: string,
-    fs: FS,
+    fs: WASIFS,
     stdin?: string
   ): Promise<RunResult> {
     return this.remoteHandle.call(
@@ -134,14 +130,6 @@ export class RunnoHost implements RuntimeMethods {
       fs,
       stdin
     );
-  }
-
-  headlessUnsafeCommand(
-    command: string,
-    fs: FS,
-    stdin?: string
-  ): Promise<RunResult> {
-    return this.remoteHandle.call("headlessUnsafeCommand", command, fs, stdin);
   }
 }
 

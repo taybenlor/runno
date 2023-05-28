@@ -1,3 +1,6 @@
+import { WASIFS } from "@runno/wasi-motor";
+import { extractTarGz } from "./tar";
+
 export function stripWhitespace(text: string): string {
   const lines = text.split(/\n/);
   let commonWhitespace = null;
@@ -46,4 +49,26 @@ export function elementCodeContent(element: HTMLElement): string {
     code = stripWhitespace(element.textContent || "");
   }
   return code;
+}
+
+export async function fetchWASIFS(fsURL: `${string}.tar.gz`) {
+  const response = await fetch(fsURL);
+  const bytes = await response.arrayBuffer();
+  const files = await extractTarGz(new Uint8Array(bytes));
+
+  const fs: WASIFS = {};
+  for (const file of files) {
+    fs[file.name] = {
+      path: file.name,
+      timestamps: {
+        change: new Date(file.lastModified),
+        access: new Date(file.lastModified),
+        modification: new Date(file.lastModified),
+      },
+      mode: "binary",
+      content: new Uint8Array(await file.arrayBuffer()),
+    };
+  }
+
+  return fs;
 }

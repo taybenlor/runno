@@ -7,10 +7,6 @@ export default {
       name: "@runno/runtime",
     },
   },
-  define: {
-    "process.platform": JSON.stringify(null),
-    "process.env.NODE_DEBUG": JSON.stringify(false),
-  },
   plugins: [
     {
       ...typescript({ outDir: "dist" }),

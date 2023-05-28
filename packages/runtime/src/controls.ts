@@ -137,3 +137,5 @@ export class ControlsElement extends LitElement {
     }
   }
 }
+
+customElements.define("runno-controls", ControlsElement);

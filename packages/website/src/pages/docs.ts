@@ -821,17 +821,13 @@ content: string | Uint8Array;
 
             <pre><code>$ npm install @runno/runtime</code></pre>
 
-            <p>Then you'll be able to import <code>defineElements</code>.</p>
+            <p>Then import the package to define the elements:</p>
 
-            <pre><code>import { defineElements } from '@runno/runtime'</code></pre>
-
-            <p>And call it as part of your main script while the page loads.</p>
-
-            <pre><code>defineElements();</code></pre>
+            <pre><code>import '@runno/runtime'</code></pre>
 
             <p>
-              Once you've called <code>defineElements</code> you can use runno
-              elements on the page.
+              Once you've imported the runtime, you can use the custom elements
+              on your page.
             </p>
 
             <pre><code>&lt;runno-run runtime="python" editor controls&gt;
@@ -998,10 +994,6 @@ code="string" &lt;!-- optional --&gt;
                 >
                 - Runs a raw command (see:
                 <code>interactiveUnsafeCommand</code>)
-              </li>
-              <li>
-                <code>isReadyForCommand()</code>
-                - Whether it's ready for a command (not running one)
               </li>
               <li>
                 <code>stop()</code>
