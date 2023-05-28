@@ -126,21 +126,7 @@ export class WebsitePlayground extends TailwindElement {
       this.terminal.write(data);
     }
 
-    const view = new DataView(this.stdinBuffer);
-
-    // Wait until the stdinbuffer is consumed at the other end
-
-    // TODO: This isn't great, should probably use a lock instead
-    while (view.getInt32(0) !== 0) {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    }
-
-    const encodedText = new TextEncoder().encode(data);
-    const buffer = new Uint8Array(this.stdinBuffer, 4);
-    buffer.set(encodedText);
-
-    view.setInt32(0, encodedText.byteLength);
-    Atomics.notify(new Int32Array(this.stdinBuffer), 0);
+    this.workerHost?.pushStdin(data);
   };
 
   onTerminalKey = ({ domEvent }: { key: string; domEvent: KeyboardEvent }) => {
@@ -153,14 +139,7 @@ export class WebsitePlayground extends TailwindElement {
   };
 
   onTerminalEOF = async () => {
-    const view = new DataView(this.stdinBuffer);
-    // TODO: This isn't great, should probably use a lock instead
-    while (view.getInt32(0) !== 0) {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    }
-
-    view.setInt32(0, -1);
-    Atomics.notify(new Int32Array(this.stdinBuffer), 0);
+    this.workerHost?.pushEOF();
   };
 
   //
@@ -231,7 +210,7 @@ export class WebsitePlayground extends TailwindElement {
     const env = Object.fromEntries(vars.map((v) => v.split("=")));
 
     try {
-      this.workerHost = new WASIWorkerHost(binaryPath, this.stdinBuffer, {
+      this.workerHost = new WASIWorkerHost(binaryPath, {
         args: [binaryName, ...this.args],
         env,
         stdout: (out) => this.terminal.write(out),

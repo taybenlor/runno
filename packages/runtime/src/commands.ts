@@ -94,6 +94,7 @@ export function commandsForRuntime(
             entryPath,
           ],
           env: {},
+          baseFSURL: `${baseURL}/clang-fs.tar.gz`,
         },
         {
           binaryURL: `${baseURL}/wasm-ld.wasm`,
@@ -148,6 +149,7 @@ export function commandsForRuntime(
             entryPath,
           ],
           env: {},
+          baseFSURL: `${baseURL}/clang-fs.tar.gz`,
         },
         {
           binaryURL: `${baseURL}/wasm-ld.wasm`,

@@ -10,6 +10,14 @@ type TarFile = {
   blob: Blob;
 };
 
+/**
+ * Extract a .tar.gz file.
+ *
+ * Prefers ustar format.
+ *
+ * @param binary .tar.gz file
+ * @returns
+ */
 export const extractTarGz = async (binary: Uint8Array): Promise<File[]> => {
   let files: File[] = [];
 
@@ -22,7 +30,6 @@ export const extractTarGz = async (binary: Uint8Array): Promise<File[]> => {
       })
       .map((file: TarFile) => {
         // HACK: Make all files start with / to solve compatibility issues
-        // TODO: Perhaps switch this over to "sysroot/foo" => "/foo"
         const name = file.name.replace(/^([^/])/, "/$1");
         return new File([file.blob], name, {
           lastModified: Date.now(),

@@ -51,6 +51,14 @@ export function elementCodeContent(element: HTMLElement): string {
   return code;
 }
 
+/**
+ * Fetches and deflates a .tar.gz file representing a base filesystem.
+ * This is for languages that require specific files to already exist.
+ *
+ * Prefers .tar.gz files in ustar format.
+ *
+ * @param fsURL The URL of the filesystem to fetch
+ */
 export async function fetchWASIFS(fsURL: `${string}.tar.gz`) {
   const response = await fetch(fsURL);
   const bytes = await response.arrayBuffer();
