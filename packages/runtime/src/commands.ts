@@ -20,8 +20,9 @@ export type RuntimeCommands = {
   run: Command;
 };
 
-// TODO: Switch domain for prod vs dev
-const baseURL = "http://localhost:4321/langs";
+// TODO: Fix the way this integrates locally
+// const baseURL = `${import.meta.env.VITE_HOST}/langs`;
+const baseURL = `http://localhost:4321/langs`;
 
 export function commandsForRuntime(
   name: string,

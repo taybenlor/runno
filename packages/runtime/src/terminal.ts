@@ -15,7 +15,7 @@ export class TerminalElement extends HTMLElement {
   resizeObserver: ResizeObserver;
 
   // Configuration Options
-  echoStdin: boolean = false;
+  echoStdin: boolean = true;
 
   // Runtime State
   workerHost?: WASIWorkerHost;
@@ -101,8 +101,6 @@ export class TerminalElement extends HTMLElement {
         },
       });
       const result = await this.workerHost.start();
-
-      this.terminal.write(`\nProgram ended: ${result.exitCode}`);
       return {
         resultType: "complete",
         ...result,

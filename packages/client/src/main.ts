@@ -1,6 +1,7 @@
 import { createConnection } from "./messaging";
 import { handleParams } from "./params";
-import { RunElement } from "@runno/runtime";
+import "@runno/runtime";
+import type { RunElement } from "@runno/runtime";
 
 const runtime = document.querySelector<RunElement>("runno-run")!;
 
