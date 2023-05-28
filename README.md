@@ -85,8 +85,7 @@ This repo is broken down into a few packages using [lerna](https://lerna.js.org/
 - `client` - a static website that exposes the runno runtime to be embedded as an iframe
 - `host` - helpers for running code on the client from another website
 - `runtime` - a library that provides web components and helpers that can be bundled into your own project for using runno without an iframe
-- `terminal` - an internal package forked from `@wasmer/wasm-terminal` used to construct parts of the runtime - in the future this will be rolled into `runtime`
-- `wasi` - an internal package forked from `@wasmer/wasm-wasi` fixes some bugs - in the future this will be rolled into `runtime`
+- `wasi-motor` - a library for running WASI binaries in the browser
 
 ## Running locally
 
