@@ -22,7 +22,11 @@ export type CompleteResult = {
   exitCode: number;
 };
 
-export type RunResult = CompleteResult | CrashResult;
+export type TerminatedResult = {
+  resultType: "terminated";
+};
+
+export type RunResult = CompleteResult | CrashResult | TerminatedResult;
 
 export type WASIPath = string;
 

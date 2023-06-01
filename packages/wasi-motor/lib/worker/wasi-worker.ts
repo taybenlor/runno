@@ -33,22 +33,38 @@ type ResultHostMessage = {
   result: WASIExecutionResult;
 };
 
+type CrashHostMessage = {
+  target: "host";
+  type: "crash";
+  error: unknown;
+};
+
 export type HostMessage =
   | StdoutHostMessage
   | StderrHostMessage
-  | ResultHostMessage;
+  | ResultHostMessage
+  | CrashHostMessage;
 
 onmessage = async (ev: MessageEvent) => {
   const data = ev.data as WorkerMessage;
 
   switch (data.type) {
     case "start":
-      const result = await start(data.binaryURL, data.stdinBuffer, data);
-      sendMessage({
-        target: "host",
-        type: "result",
-        result,
-      });
+      try {
+        const result = await start(data.binaryURL, data.stdinBuffer, data);
+        sendMessage({
+          target: "host",
+          type: "result",
+          result,
+        });
+      } catch (e) {
+        sendMessage({
+          target: "host",
+          type: "crash",
+          error: e,
+        });
+      }
+
       break;
   }
 };

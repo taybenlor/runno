@@ -10,6 +10,8 @@ function sendMessage(worker: Worker, message: WorkerMessage) {
 
 type WASIWorkerHostContext = Partial<Omit<WASIContextOptions, "stdin">>;
 
+export class WASIWorkerHostKilledError extends Error {}
+
 export class WASIWorkerHost {
   binaryURL: string;
 
@@ -20,6 +22,7 @@ export class WASIWorkerHost {
 
   result?: Promise<WASIExecutionResult>;
   worker?: Worker;
+  reject?: (reason?: unknown) => void;
 
   constructor(binaryURL: string, context: WASIWorkerHostContext) {
     this.binaryURL = binaryURL;
@@ -31,7 +34,8 @@ export class WASIWorkerHost {
       throw new Error("WASIWorker Host can only be started once");
     }
 
-    this.result = new Promise<WASIExecutionResult>((resolve, _) => {
+    this.result = new Promise<WASIExecutionResult>((resolve, reject) => {
+      this.reject = reject;
       this.worker = new WASIWorker();
 
       this.worker.addEventListener("message", (messageEvent) => {
@@ -68,6 +72,7 @@ export class WASIWorkerHost {
       throw new Error("WASIWorker has not started");
     }
     this.worker.terminate();
+    this.reject?.(new WASIWorkerHostKilledError("WASI Worker was killed"));
   }
 
   async pushStdin(data: string) {

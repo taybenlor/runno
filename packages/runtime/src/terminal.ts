@@ -3,7 +3,11 @@ import xtermcss from "xterm/css/xterm.css";
 import { Terminal } from "xterm";
 import { WebLinksAddon } from "xterm-addon-web-links";
 import { FitAddon } from "xterm-addon-fit";
-import { WASIFS, WASIWorkerHost } from "@runno/wasi-motor";
+import {
+  WASIFS,
+  WASIWorkerHost,
+  WASIWorkerHostKilledError,
+} from "@runno/wasi-motor";
 
 export class TerminalElement extends HTMLElement {
   // Terminal Display
@@ -110,6 +114,9 @@ export class TerminalElement extends HTMLElement {
         tty: this.ttyHistory,
       };
     } catch (e) {
+      if (e instanceof WASIWorkerHostKilledError) {
+        return { resultType: "terminated" };
+      }
       this.terminal.write(`\nRunno crashed: ${e}`);
       return { resultType: "crash", error: e };
     } finally {

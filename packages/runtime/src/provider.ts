@@ -76,8 +76,17 @@ export class RunnoProvider implements RuntimeMethods {
   ): Promise<RunResult> {
     const commands = commandsForRuntime(runtime, entryPath);
 
-    const prepare = await headlessPrepareFS(commands.prepare ?? [], fs);
-    fs = prepare.fs;
+    try {
+      const prepare = await headlessPrepareFS(commands.prepare ?? [], fs);
+      fs = prepare.fs;
+    } catch (e) {
+      console.error(e);
+      this.terminal.terminal.write(`\nRunno crashed: ${e}`);
+      return {
+        resultType: "crash",
+        error: e,
+      };
+    }
 
     const { run } = commands;
     const binaryPath = getBinaryPathFromCommand(run, fs);
