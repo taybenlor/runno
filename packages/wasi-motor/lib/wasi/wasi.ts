@@ -703,6 +703,7 @@ export class WASI implements SnapshotPreview1 {
       }
 
       const bytes = Math.min(iov.byteLength, value.byteLength);
+      console.log("writing bytes", bytes);
       iov.set(value.subarray(0, bytes));
 
       bytesRead += bytes;
