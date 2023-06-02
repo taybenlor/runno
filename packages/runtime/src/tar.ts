@@ -21,8 +21,14 @@ type TarFile = {
 export const extractTarGz = async (binary: Uint8Array): Promise<File[]> => {
   let files: File[] = [];
 
-  // We receive a tar.gz, we first need to uncompress it.
-  const inflatedBinary: Uint8Array = inflate(binary);
+  // If we receive a tar.gz, we first need to uncompress it.
+  let inflatedBinary: Uint8Array;
+  try {
+    inflatedBinary = inflate(binary);
+  } catch (e) {
+    inflatedBinary = binary;
+  }
+
   try {
     files = (await untar(inflatedBinary.buffer))
       .filter((file: TarFile) => {

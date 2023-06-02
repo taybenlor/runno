@@ -13,7 +13,7 @@ export async function headlessRunCode(
   stdin?: string
 ): Promise<RunResult> {
   const fs: WASIFS = {
-    program: {
+    "/program": {
       path: "program",
       content: code,
       mode: "string",
@@ -24,7 +24,7 @@ export async function headlessRunCode(
       },
     },
   };
-  return headlessRunFS(runtime, "program", fs, stdin);
+  return headlessRunFS(runtime, "/program", fs, stdin);
 }
 
 export async function headlessRunFS(
@@ -67,6 +67,23 @@ export async function headlessRunFS(
   return prepare;
 }
 
+type PrepareErrorData = {
+  stdin: string;
+  stdout: string;
+  stderr: string;
+  tty: string;
+  fs: WASIFS;
+  exitCode: number;
+};
+export class PrepareError extends Error {
+  data: PrepareErrorData;
+
+  constructor(message: string, data: PrepareErrorData) {
+    super(message);
+    this.data = data;
+  }
+}
+
 export async function headlessPrepareFS(
   prepareCommands: Command[],
   fs: WASIFS
@@ -89,10 +106,13 @@ export async function headlessPrepareFS(
       prepare.fs = { ...prepare.fs, ...baseFS };
     }
 
+    console.log("-----------------------");
+    console.log("running", command.binaryName);
+
     const workerHost = new WASIWorkerHost(binaryPath, {
       args: [command.binaryName, ...(command.args ?? [])],
       env: command.env,
-      fs,
+      fs: prepare.fs,
       stdout: (out) => {
         prepare.stdout += out;
         prepare.tty += out;
@@ -101,15 +121,25 @@ export async function headlessPrepareFS(
         prepare.stderr += err;
         prepare.tty += err;
       },
+      debug: (...args) => {
+        console.log("DEBUG", ...args);
+        return args[2];
+      },
     });
     const result = await workerHost.start();
 
-    prepare.fs = { ...prepare.fs, ...result.fs };
+    prepare.fs = result.fs;
     prepare.exitCode = result.exitCode;
 
     if (result.exitCode !== 0) {
+      // TODO: Remove this
+      console.error("Prepare failed", prepare);
+
       // If a prepare step fails then we stop.
-      throw new Error("Prepare step returned a non-zero exitCode");
+      throw new PrepareError(
+        "Prepare step returned a non-zero exit code",
+        prepare
+      );
     }
   }
 

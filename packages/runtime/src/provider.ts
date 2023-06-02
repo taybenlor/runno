@@ -55,9 +55,9 @@ export class RunnoProvider implements RuntimeMethods {
   }
 
   interactiveRunCode(runtime: Runtime, code: string): Promise<RunResult> {
-    return this.interactiveRunFS(runtime, "program", {
-      program: {
-        path: "program",
+    return this.interactiveRunFS(runtime, "/program", {
+      "/program": {
+        path: "/program",
         content: code,
         mode: "string",
         timestamps: {

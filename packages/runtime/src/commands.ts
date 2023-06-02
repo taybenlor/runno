@@ -67,6 +67,10 @@ export function commandsForRuntime(
   //   return { run: `cat ${entryPath} | sqlite` };
   // }
 
+  //
+  // Clang based off work by binji https://github.com/binji/wasm-clang
+  //
+
   if (name === "clang") {
     return {
       prepare: [
@@ -90,7 +94,7 @@ export function commandsForRuntime(
             "-O2",
             "-emit-obj",
             "-o",
-            "program.o",
+            "/program.o",
             entryPath,
           ],
           env: {},
@@ -102,7 +106,7 @@ export function commandsForRuntime(
           args: [
             "-L/sys/lib/wasm32-wasi",
             "/sys/lib/wasm32-wasi/crt1.o",
-            "program.o",
+            "/program.o",
             "-lc",
             "-o",
             "program.wasm",
@@ -143,7 +147,7 @@ export function commandsForRuntime(
             "-fcolor-diagnostics",
             "-O2",
             "-o",
-            "program.o",
+            "/program.o",
             "-x",
             "c++",
             entryPath,
@@ -153,26 +157,25 @@ export function commandsForRuntime(
         },
         {
           binaryURL: `${baseURL}/wasm-ld.wasm`,
-          binaryName: "ld",
+          binaryName: "wasm-ld",
           args: [
             "--no-threads",
-            "--export-dynamic",
             "-z",
             "stack-size=1048576",
             "-L/sys/lib/wasm32-wasi",
             "/sys/lib/wasm32-wasi/crt1.o",
-            "program.o",
+            "/program.o",
             "-lc",
             "-lc++",
             "-lc++abi",
             "-o",
-            "program.wasm",
+            "/program.wasm",
           ],
           env: {},
         },
       ],
       run: {
-        fsPath: "program.wasm",
+        fsPath: "/program.wasm",
         binaryName: "program",
       },
     };

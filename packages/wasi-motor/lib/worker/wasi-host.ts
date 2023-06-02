@@ -47,6 +47,14 @@ export class WASIWorkerHost {
           case "stderr":
             this.context.stderr?.(message.text);
             break;
+          case "debug":
+            this.context.debug?.(
+              message.name,
+              message.args,
+              message.ret,
+              message.data
+            );
+            break;
           case "result":
             resolve(message.result);
             break;

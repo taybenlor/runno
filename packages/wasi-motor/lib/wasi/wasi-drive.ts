@@ -34,7 +34,7 @@ export class WASIDrive {
     // See:
     //   1. how to access preopens - https://github.com/WebAssembly/WASI/issues/323
     //   2. how preopens work - https://github.com/WebAssembly/WASI/issues/352
-    this.openMap.set(3, new OpenDirectory(this.fs, ""));
+    this.openMap.set(3, new OpenDirectory(this.fs, "/"));
   }
 
   //
@@ -63,12 +63,12 @@ export class WASIDrive {
     return [Result.SUCCESS, fd];
   }
 
-  private hasDir(path: string) {
+  private hasDir(dir: OpenDirectory, path: string) {
     if (path === ".") {
       return true;
     }
 
-    return !!Object.keys(this.fs).find((s) => s.startsWith(`${path}/`));
+    return dir.containsDirectory(path);
   }
 
   //
@@ -91,7 +91,7 @@ export class WASIDrive {
       return [Result.EBADF];
     }
 
-    if (path in this.fs) {
+    if (openDir.containsFile(path)) {
       // This is a file
       if (failIfNotDir) {
         return [Result.ENOTDIR];
@@ -99,20 +99,22 @@ export class WASIDrive {
       if (failIfFileExists) {
         return [Result.EEXIST];
       }
-      return this.openFile(this.fs[path], truncateFile, fdflags);
-    } else if (this.hasDir(path)) {
+
+      return this.openFile(openDir.get(path)!, truncateFile, fdflags);
+    } else if (this.hasDir(openDir, path)) {
       if (path === ".") {
-        return this.openDir(this.fs, "");
+        return this.openDir(this.fs, "/");
       }
 
-      const prefix = `${path}/`;
+      const prefix = `/${path}/`;
       // This is a directory
       const dir = Object.entries(this.fs).filter(([s]) => s.startsWith(prefix));
       return this.openDir(Object.fromEntries(dir), prefix);
     } else {
       if (createFileIfNone) {
-        this.fs[path] = {
-          path: path,
+        const fullPath = openDir.fullPath(path);
+        this.fs[fullPath] = {
+          path: fullPath,
           mode: "binary",
           content: new Uint8Array(),
           timestamps: {
@@ -121,7 +123,7 @@ export class WASIDrive {
             change: new Date(),
           },
         };
-        return this.openFile(this.fs[path], truncateFile, fdflags);
+        return this.openFile(this.fs[fullPath], truncateFile, fdflags);
       }
       return [Result.ENOTCAPABLE];
     }
@@ -198,7 +200,7 @@ export class WASIDrive {
     fd: FileDescriptor,
     offset: bigint,
     whence: Whence
-  ): DriveResult<number> {
+  ): DriveResult<bigint> {
     const file = this.openMap.get(fd);
     if (!file || file instanceof OpenDirectory) {
       return [Result.EBADF];
@@ -207,7 +209,7 @@ export class WASIDrive {
     return [Result.SUCCESS, file.seek(offset, whence)];
   }
 
-  tell(fd: FileDescriptor): DriveResult<number> {
+  tell(fd: FileDescriptor): DriveResult<bigint> {
     const file = this.openMap.get(fd);
     if (!file || file instanceof OpenDirectory) {
       return [Result.EBADF];
@@ -277,12 +279,14 @@ export class WASIDrive {
       return Result.EEXIST;
     }
 
+    const oldFullPath = oldDir.fullPath(oldPath);
+    const newFullPath = newDir.fullPath(newPath);
+
     for (const key of Object.keys(this.fs)) {
-      const oldFullPath = oldDir.fullPath(oldPath);
-      const newFullPath = newDir.fullPath(newPath);
       if (key.startsWith(oldFullPath)) {
         const newPath = key.replace(oldFullPath, newFullPath);
         this.fs[newPath] = this.fs[key];
+        this.fs[newPath].path = newPath;
         delete this.fs[key];
       }
     }
@@ -314,16 +318,18 @@ export class WASIDrive {
       return [Result.EBADF];
     }
 
-    if (path in this.fs) {
-      return [Result.SUCCESS, new OpenFile(this.fs[path], 0).stat()];
-    } else if (Object.keys(this.fs).find((s) => s.startsWith(`${path}/`))) {
-      const prefix = `${path}/`;
-      // This is a directory
+    if (dir.containsFile(path)) {
+      const stat = new OpenFile(this.fs[path], 0).stat();
+      return [Result.SUCCESS, stat];
+    } else if (this.hasDir(dir, path)) {
+      if (path === ".") {
+        return [Result.SUCCESS, new OpenDirectory(this.fs, "/").stat()];
+      }
+
+      const prefix = `/${path}/`;
       const dir = Object.entries(this.fs).filter(([s]) => s.startsWith(prefix));
-      return [
-        Result.SUCCESS,
-        new OpenDirectory(Object.fromEntries(dir), prefix).stat(),
-      ];
+      const stat = new OpenDirectory(Object.fromEntries(dir), prefix).stat();
+      return [Result.SUCCESS, stat];
     } else {
       return [Result.ENOTCAPABLE];
     }
@@ -464,7 +470,7 @@ export class WASIDrive {
 class OpenFile {
   file: WASIFile;
   buffer: Uint8Array;
-  private offset: number = 0;
+  private _offset: bigint = BigInt(0);
   isDirty: boolean = false;
   fdflags: number;
   flagAppend: boolean;
@@ -472,6 +478,12 @@ class OpenFile {
   flagNonBlock: boolean;
   flagRSync: boolean;
   flagSync: boolean;
+
+  private get offset(): number {
+    // Hack: This will cause overflow issues with offsets larger than 4gb
+    //       but I hope that's fine??
+    return Number(this._offset);
+  }
 
   constructor(file: WASIFile, fdflags: number) {
     this.file = file;
@@ -495,7 +507,7 @@ class OpenFile {
     const ret = new Uint8Array(
       this.buffer.subarray(this.offset, this.offset + bytes)
     );
-    this.offset += bytes;
+    this._offset += BigInt(bytes);
     return ret;
   }
 
@@ -520,10 +532,10 @@ class OpenFile {
       newBuffer.set(this.buffer);
       newBuffer.set(data, this.offset);
       this.buffer = newBuffer;
-      this.offset += data.byteLength;
+      this._offset += BigInt(data.byteLength);
     } else {
       this.buffer.set(data, this.offset);
-      this.offset += data.byteLength;
+      this._offset += BigInt(data.byteLength);
     }
 
     if (this.flagDSync || this.flagSync) {
@@ -561,36 +573,34 @@ class OpenFile {
       return;
     }
 
+    this.isDirty = false;
     if (this.file.mode === "binary") {
-      this.file.content = this.buffer;
+      this.file.content = new Uint8Array(this.buffer);
       return;
     }
 
     const decoder = new TextDecoder();
     this.file.content = decoder.decode(this.buffer);
-    this.isDirty = false;
     return;
   }
 
   seek(offset: bigint, whence: Whence) {
-    // TODO: Technically we're losing precision here by casting
-    //       bigint to number, that will cause issues with big files
     switch (whence) {
       case Whence.SET:
-        this.offset = Number(offset);
+        this._offset = offset;
         break;
       case Whence.CUR:
-        this.offset += Number(offset);
+        this._offset += offset;
         break;
       case Whence.END:
-        this.offset = this.buffer.byteLength + Number(offset);
+        this._offset = BigInt(this.buffer.byteLength) + offset;
         break;
     }
-    return this.offset;
+    return this._offset;
   }
 
   tell() {
-    return this.offset;
+    return this._offset;
   }
 
   stat(): DriveStat {
@@ -621,6 +631,12 @@ class OpenFile {
   }
 }
 
+function removePrefix(path: string, prefix: string) {
+  const escapedPrefix = prefix.replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&");
+  const leadingRegex = new RegExp(`^${escapedPrefix}`);
+  return path.replace(leadingRegex, "");
+}
+
 class OpenDirectory {
   dir: WASIFS;
   prefix: string; // full folder path including /
@@ -630,9 +646,31 @@ class OpenDirectory {
     this.prefix = prefix;
   }
 
+  containsFile(relativePath: string) {
+    for (const path of Object.keys(this.dir)) {
+      const name = removePrefix(path, this.prefix);
+      if (name === relativePath) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  containsDirectory(relativePath: string) {
+    for (const path of Object.keys(this.dir)) {
+      const name = removePrefix(path, this.prefix);
+      if (name.startsWith(`${relativePath}/`)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   contains(relativePath: string) {
     for (const path of Object.keys(this.dir)) {
-      const name = path.replace(this.prefix, "");
+      const name = removePrefix(path, this.prefix);
       if (name === relativePath || name.startsWith(`${relativePath}/`)) {
         return true;
       }
@@ -653,7 +691,7 @@ class OpenDirectory {
     const entries: Array<DirectoryEntry> = [];
     const seenFolders = new Set<string>();
     for (const path of Object.keys(this.dir)) {
-      const name = path.replace(this.prefix, "");
+      const name = removePrefix(path, this.prefix);
       if (name.includes("/")) {
         const dirName = name.split("/")[0];
         if (seenFolders.has(dirName)) {

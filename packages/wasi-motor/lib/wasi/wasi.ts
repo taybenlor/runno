@@ -20,8 +20,20 @@ import { DriveStat, WASIDrive } from "./wasi-drive";
 export type DebugFn = (
   name: string,
   args: string[],
-  ret: number
+  ret: number,
+  data: { [key: string]: any }
 ) => number | undefined;
+
+let _debugData: { [key: string]: string } = {};
+function pushDebugData(data: { [key: string]: any }) {
+  _debugData = data;
+}
+
+function popDebugStrings(): { [key: string]: string } {
+  const current = _debugData;
+  _debugData = {};
+  return current;
+}
 
 /**
  * Implementation of a WASI runner for the browser.
@@ -166,7 +178,8 @@ export class WASI implements SnapshotPreview1 {
       (imports as any)[name] = function () {
         let ret = (fn as any).apply(this, arguments);
         if (debug) {
-          ret = debug(name, [...arguments], ret) ?? ret;
+          const argStrings = popDebugStrings();
+          ret = debug(name, [...arguments], ret, argStrings) ?? ret;
         }
         return ret;
       };
@@ -423,6 +436,8 @@ export class WASI implements SnapshotPreview1 {
         // iov. Otherwise text decoder seems to just read all our memory.
         const output = decoder.decode(new Uint8Array(iov));
         stdfn(output);
+
+        pushDebugData({ output });
       } else {
         result = this.drive.write(fd, new Uint8Array(iov));
         if (result != Result.SUCCESS) {
@@ -583,6 +598,8 @@ export class WASI implements SnapshotPreview1 {
       return result;
     }
 
+    pushDebugData({ resolvedPath: stat.path, stat });
+
     const data = createFilestat(stat);
     const returnBuffer = new Uint8Array(
       this.memory.buffer,
@@ -706,7 +723,7 @@ export class WASI implements SnapshotPreview1 {
       return Result.EBADF;
     }
 
-    const dirname = new TextEncoder().encode(".");
+    const dirname = new TextEncoder().encode("/");
     const dirBuffer = new Uint8Array(this.memory.buffer, path_ptr, path_len);
     dirBuffer.set(dirname.subarray(0, path_len));
 
@@ -840,7 +857,12 @@ export class WASI implements SnapshotPreview1 {
 
   /**
    * Move the offset of a file descriptor.
+   *
+   * The offset is specified as a bigint here
    * Note: This is similar to lseek in POSIX.
+   *
+   * The offset, and return type are FileSize (u64) which is represented by
+   * bigint in JavaScript.
    */
   fd_seek(fd: number, offset: bigint, whence: number, retptr0: number) {
     const [result, newOffset] = this.drive.seek(fd, offset, whence);
@@ -848,7 +870,7 @@ export class WASI implements SnapshotPreview1 {
       return result;
     }
     const view = new DataView(this.memory.buffer);
-    view.setUint32(retptr0, newOffset, true);
+    view.setBigUint64(retptr0, newOffset, true);
     return result;
   }
 
@@ -863,6 +885,9 @@ export class WASI implements SnapshotPreview1 {
   /**
    * Return the current offset of a file descriptor.
    * Note: This is similar to lseek(fd, 0, SEEK_CUR) in POSIX.
+   *
+   * The return type is FileSize (u64) which is represented by bigint in JS.
+   *
    */
   fd_tell(fd: number, retptr0: number): number {
     const [result, offset] = this.drive.tell(fd);
@@ -871,7 +896,7 @@ export class WASI implements SnapshotPreview1 {
     }
 
     const view = new DataView(this.memory.buffer);
-    view.setUint32(retptr0, offset, true);
+    view.setBigUint64(retptr0, offset, true);
     return result;
   }
 
@@ -893,6 +918,8 @@ export class WASI implements SnapshotPreview1 {
     const path = new TextDecoder().decode(
       new Uint8Array(this.memory.buffer, path_ptr, path_len)
     );
+
+    pushDebugData({ path });
 
     const [result, stat] = this.drive.pathStat(fd, path);
     if (result != Result.SUCCESS) {
@@ -973,7 +1000,7 @@ export class WASI implements SnapshotPreview1 {
    * Note: This is similar to openat in POSIX.
    * @param fd: fd
    * @param dirflags: lookupflags Flags determining the method of how the path
-   *                  is resolved.
+   *                  is resolved. Not supported by Runno (symlinks)
    * @param path: string The relative path of the file or directory to open,
    *              relative to the path_open::fd directory.
    * @param oflags: oflags The method by which to open the file.
@@ -1005,6 +1032,7 @@ export class WASI implements SnapshotPreview1 {
   ): number {
     const view = new DataView(this.memory.buffer);
     const path = readString(this.memory, path_ptr, path_len);
+    pushDebugData({ path });
 
     const [result, newFd] = this.drive.open(fd, path, oflags, fdflags);
     if (result) {
@@ -1030,6 +1058,8 @@ export class WASI implements SnapshotPreview1 {
     const oldPath = readString(this.memory, old_path_ptr, old_path_len);
     const newPath = readString(this.memory, new_path_ptr, new_path_len);
 
+    pushDebugData({ oldPath, newPath });
+
     return this.drive.rename(old_fd_dir, oldPath, new_fd_dir, newPath);
   }
 
@@ -1039,6 +1069,8 @@ export class WASI implements SnapshotPreview1 {
    */
   path_unlink_file(fd: number, path_ptr: number, path_len: number): number {
     const path = readString(this.memory, path_ptr, path_len);
+    pushDebugData({ path });
+
     return this.drive.unlink(fd, path);
   }
 
@@ -1388,7 +1420,7 @@ function readSubscription(buffer: Uint8Array): Subscription {
  *  Alignment: 8
  *  Record members
  *    dev (offset: 0, size: 8): device Device ID of device containing the file.
- *    ino (offset: 8, size: 8): inode File serial number.
+ *    ino (offset: 8, size: 8): inode File serial number that is unique within its file system.
  *    filetype (offset: 16, size: 1): filetype File type.
  *    nlink (offset: 24, size: 8): linkcount Number of hard links to the file.
  *    size (offset: 32, size: 8): filesize For regular files, the file size in bytes. For symbolic links, the length in bytes of the pathname contained in the symbolic link.
@@ -1404,12 +1436,9 @@ function createFilestat(stat: DriveStat): Uint8Array {
   view.setUint8(16, stat.type); // filetype
   view.setBigUint64(24, BigInt(0), true); // nlink
   view.setBigUint64(32, BigInt(stat.byteLength), true); // size
-  view.setBigUint64(40, BigInt(dateToNanoseconds(stat.timestamps.access))); // atim
-  view.setBigUint64(
-    48,
-    BigInt(dateToNanoseconds(stat.timestamps.modification))
-  ); // mtim
-  view.setBigUint64(56, BigInt(dateToNanoseconds(stat.timestamps.change))); // ctim
+  view.setBigUint64(40, dateToNanoseconds(stat.timestamps.access), true); // atim
+  view.setBigUint64(48, dateToNanoseconds(stat.timestamps.modification), true); // mtim
+  view.setBigUint64(56, dateToNanoseconds(stat.timestamps.change), true); // ctim
   return buffer;
 }
 

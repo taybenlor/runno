@@ -61,8 +61,8 @@ export function elementCodeContent(element: HTMLElement): string {
  */
 export async function fetchWASIFS(fsURL: `${string}.tar.gz`) {
   const response = await fetch(fsURL);
-  const bytes = await response.arrayBuffer();
-  const files = await extractTarGz(new Uint8Array(bytes));
+  const buffer = await response.arrayBuffer();
+  const files = await extractTarGz(new Uint8Array(buffer));
 
   const fs: WASIFS = {};
   for (const file of files) {

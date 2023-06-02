@@ -27,6 +27,15 @@ type StderrHostMessage = {
   text: string;
 };
 
+type DebugHostMessage = {
+  target: "host";
+  type: "debug";
+  name: string;
+  args: string[];
+  ret: number;
+  data: { [key: string]: any };
+};
+
 type ResultHostMessage = {
   target: "host";
   type: "result";
@@ -42,6 +51,7 @@ type CrashHostMessage = {
 export type HostMessage =
   | StdoutHostMessage
   | StderrHostMessage
+  | DebugHostMessage
   | ResultHostMessage
   | CrashHostMessage;
 
@@ -85,6 +95,7 @@ async function start(
       stdout: sendStdout,
       stderr: sendStderr,
       stdin: (maxByteLength) => getStdin(maxByteLength, stdinBuffer),
+      debug: sendDebug,
     })
   );
 }
@@ -103,6 +114,27 @@ function sendStderr(err: string) {
     type: "stderr",
     text: err,
   });
+}
+
+function sendDebug(
+  name: string,
+  args: string[],
+  ret: number,
+  data: { [key: string]: any }
+) {
+  sendMessage({
+    target: "host",
+    type: "debug",
+    name,
+    args,
+    ret,
+    data,
+  });
+
+  // TODO: debugging WASI supports substituting a return value
+  //       but it's hard to do async, so lets just always return
+  //       the same value
+  return ret;
 }
 
 function getStdin(
