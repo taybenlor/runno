@@ -168,7 +168,7 @@ function addFilesFromPath(files: WASIFS, path: string, rootPath: string) {
         continue;
       }
 
-      const filePath = `${rootPath}/${file}`;
+      const filePath = `/${rootPath}/${file}`;
       files[filePath] = {
         path: filePath,
         timestamps: {

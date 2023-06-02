@@ -106,9 +106,6 @@ export async function headlessPrepareFS(
       prepare.fs = { ...prepare.fs, ...baseFS };
     }
 
-    console.log("-----------------------");
-    console.log("running", command.binaryName);
-
     const workerHost = new WASIWorkerHost(binaryPath, {
       args: [command.binaryName, ...(command.args ?? [])],
       env: command.env,

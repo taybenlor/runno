@@ -33,7 +33,7 @@ type DebugHostMessage = {
   name: string;
   args: string[];
   ret: number;
-  data: { [key: string]: any };
+  data: { [key: string]: any }[];
 };
 
 type ResultHostMessage = {
@@ -120,7 +120,7 @@ function sendDebug(
   name: string,
   args: string[],
   ret: number,
-  data: { [key: string]: any }
+  data: { [key: string]: any }[]
 ) {
   sendMessage({
     target: "host",

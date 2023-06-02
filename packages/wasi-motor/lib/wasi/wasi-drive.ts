@@ -319,7 +319,8 @@ export class WASIDrive {
     }
 
     if (dir.containsFile(path)) {
-      const stat = new OpenFile(this.fs[path], 0).stat();
+      const fullPath = dir.fullPath(path);
+      const stat = new OpenFile(this.fs[fullPath], 0).stat();
       return [Result.SUCCESS, stat];
     } else if (this.hasDir(dir, path)) {
       if (path === ".") {
@@ -512,8 +513,7 @@ class OpenFile {
   }
 
   pread(bytes: number, offset: number) {
-    const ret = new Uint8Array(this.buffer.subarray(offset, bytes));
-    return ret;
+    return new Uint8Array(this.buffer.subarray(offset, offset + bytes));
   }
 
   write(data: Uint8Array) {

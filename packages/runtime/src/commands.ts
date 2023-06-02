@@ -160,6 +160,7 @@ export function commandsForRuntime(
           binaryName: "wasm-ld",
           args: [
             "--no-threads",
+            "--export-dynamic",
             "-z",
             "stack-size=1048576",
             "-L/sys/lib/wasm32-wasi",

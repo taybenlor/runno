@@ -21,17 +21,17 @@ export type DebugFn = (
   name: string,
   args: string[],
   ret: number,
-  data: { [key: string]: any }
+  data: { [key: string]: any }[]
 ) => number | undefined;
 
-let _debugData: { [key: string]: string } = {};
+let _debugData: { [key: string]: string }[] = [];
 function pushDebugData(data: { [key: string]: any }) {
-  _debugData = data;
+  _debugData.push(data);
 }
 
-function popDebugStrings(): { [key: string]: string } {
+function popDebugStrings(): { [key: string]: string }[] {
   const current = _debugData;
-  _debugData = {};
+  _debugData = [];
   return current;
 }
 
@@ -399,6 +399,8 @@ export class WASI implements SnapshotPreview1 {
       bytesRead += bytes;
     }
 
+    pushDebugData({ bytesRead });
+
     view.setUint32(retptr0, bytesRead, true);
     return result;
   }
@@ -690,22 +692,18 @@ export class WASI implements SnapshotPreview1 {
     let result: Result = Result.SUCCESS;
 
     for (const iov of iovs) {
-      let data: Uint8Array;
-
       const [error, value] = this.drive.pread(
         fd,
         iov.byteLength,
-        Number(offset)
+        Number(offset) + bytesRead
       );
       if (error !== Result.SUCCESS) {
         result = error;
         break;
-      } else {
-        data = value;
       }
 
-      const bytes = Math.min(iov.byteLength, data.byteLength);
-      iov.set(data.subarray(0, bytes));
+      const bytes = Math.min(iov.byteLength, value.byteLength);
+      iov.set(value.subarray(0, bytes));
 
       bytesRead += bytes;
     }
@@ -1434,7 +1432,7 @@ function createFilestat(stat: DriveStat): Uint8Array {
   view.setBigUint64(0, BigInt(0), true); // dev
   view.setBigUint64(8, BigInt(cyrb53(stat.path)), true); // ino
   view.setUint8(16, stat.type); // filetype
-  view.setBigUint64(24, BigInt(0), true); // nlink
+  view.setBigUint64(24, BigInt(1), true); // nlink - every file has one hard link
   view.setBigUint64(32, BigInt(stat.byteLength), true); // size
   view.setBigUint64(40, dateToNanoseconds(stat.timestamps.access), true); // atim
   view.setBigUint64(48, dateToNanoseconds(stat.timestamps.modification), true); // mtim
