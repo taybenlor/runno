@@ -122,6 +122,9 @@ function sendDebug(
   ret: number,
   data: { [key: string]: any }[]
 ) {
+  // this debug data comes through as part of a message
+  // we need to make sure it can be encoded by sendMessage
+  data = JSON.parse(JSON.stringify(data));
   sendMessage({
     target: "host",
     type: "debug",
