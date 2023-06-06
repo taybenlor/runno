@@ -10,6 +10,7 @@ import {
 import { ControlsElement } from "./controls";
 import { commandsForRuntime, getBinaryPathFromCommand } from "./commands";
 import { headlessPrepareFS, headlessRunCode, headlessRunFS } from "./headless";
+import { fetchWASIFS } from "./helpers";
 
 export class RunnoProvider implements RuntimeMethods {
   terminal: TerminalElement;
@@ -90,6 +91,11 @@ export class RunnoProvider implements RuntimeMethods {
 
     const { run } = commands;
     const binaryPath = getBinaryPathFromCommand(run, fs);
+
+    if (run.baseFSURL) {
+      const baseFS = await fetchWASIFS(run.baseFSURL);
+      fs = { ...fs, ...baseFS };
+    }
 
     return this.terminal.run(
       binaryPath,

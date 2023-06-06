@@ -71,7 +71,10 @@ onmessage = async (ev: MessageEvent) => {
         sendMessage({
           target: "host",
           type: "crash",
-          error: e,
+          error:
+            typeof e === "object" && (e as any).mesage
+              ? (e as any).message
+              : JSON.parse(JSON.stringify(e)),
         });
       }
 

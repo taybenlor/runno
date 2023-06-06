@@ -45,8 +45,9 @@ export function commandsForRuntime(
       run: {
         binaryURL: `${baseURL}/ruby-3.2.0.wasm`,
         binaryName: "ruby",
-        args: [entryPath],
+        args: ["-r", "/ruby-3.2.0/.rubyopts.rb", entryPath],
         env: {},
+        baseFSURL: `${baseURL}/ruby-3.2.0.tar.gz`,
       },
     };
   }

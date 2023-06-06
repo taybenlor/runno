@@ -103,6 +103,10 @@ export class TerminalElement extends HTMLElement {
           this.ttyHistory += err;
           this.terminal.write(err); // TODO: Different colour?
         },
+        debug: (...args) => {
+          console.log("DEBUG", ...args);
+          return args[2];
+        },
       });
       const result = await this.workerHost.start();
       return {
