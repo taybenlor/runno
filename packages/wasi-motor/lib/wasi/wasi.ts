@@ -61,8 +61,8 @@ export class WASI implements SnapshotPreview1 {
   ) {
     const wasi = new WASI(context);
     const wasm = await WebAssembly.instantiateStreaming(wasmSource, {
-      wasi_snapshot_preview1: wasi.getImports(context.debug),
-      wasi_unstable: wasi.getImports(context.debug),
+      wasi_snapshot_preview1: wasi.getImports("preview1", context.debug),
+      wasi_unstable: wasi.getImports("unstable", context.debug),
     });
     wasi.init(wasm);
     return wasi.start();
@@ -118,7 +118,10 @@ export class WASI implements SnapshotPreview1 {
     };
   }
 
-  getImports(debug?: DebugFn): WebAssembly.ModuleImports & SnapshotPreview1 {
+  getImports(
+    version: "unstable" | "preview1",
+    debug?: DebugFn
+  ): WebAssembly.ModuleImports & SnapshotPreview1 {
     const imports = {
       args_get: this.args_get.bind(this),
       args_sizes_get: this.args_sizes_get.bind(this),
@@ -183,6 +186,11 @@ export class WASI implements SnapshotPreview1 {
       sock_getpeeraddr: this.sock_getpeeraddr.bind(this),
       sock_getaddrinfo: this.sock_getaddrinfo.bind(this),
     };
+
+    if (version === "unstable") {
+      imports.path_filestat_get = this.unstable_path_filestat_get.bind(this);
+      imports.fd_filestat_get = this.unstable_fd_filestat_get.bind(this);
+    }
 
     for (const [name, fn] of Object.entries(imports)) {
       (imports as any)[name] = function () {
@@ -568,6 +576,28 @@ export class WASI implements SnapshotPreview1 {
    * Return the attributes of an open file.
    */
   fd_filestat_get(fd: number, retptr0: number): number {
+    return this.shared_fd_filestat_get(fd, retptr0, "preview1");
+  }
+
+  /**
+   * Return the attributes of an open file.
+   * This version is used
+   */
+  unstable_fd_filestat_get(fd: number, retptr0: number): number {
+    return this.shared_fd_filestat_get(fd, retptr0, "unstable");
+  }
+
+  /**
+   * Return the attributes of an open file.
+   */
+  shared_fd_filestat_get(
+    fd: number,
+    retptr0: number,
+    version: "unstable" | "preview1"
+  ): number {
+    const createFilestatFn =
+      version === "unstable" ? createUnstableFilestat : createFilestat;
+
     // STDIN / STDOUT / STDERR
     if (fd < 3) {
       let path: string;
@@ -585,7 +615,7 @@ export class WASI implements SnapshotPreview1 {
           path = "/dev/undefined";
           break;
       }
-      const buffer = createFilestat({
+      const buffer = createFilestatFn({
         path,
         byteLength: 0,
         timestamps: {
@@ -612,7 +642,7 @@ export class WASI implements SnapshotPreview1 {
 
     pushDebugData({ resolvedPath: stat.path, stat });
 
-    const data = createFilestat(stat);
+    const data = createFilestatFn(stat);
     const returnBuffer = new Uint8Array(
       this.memory.buffer,
       retptr0,
@@ -913,17 +943,55 @@ export class WASI implements SnapshotPreview1 {
   // Paths
   //
 
-  /**
-   * Return the attributes of a file or directory.
-   * Note: This is similar to stat in POSIX.
-   */
   path_filestat_get(
     fd: number,
-    _: number,
+    flags: number,
     path_ptr: number,
     path_len: number,
     retptr0: number
   ): number {
+    return this.shared_path_filestat_get(
+      fd,
+      flags,
+      path_ptr,
+      path_len,
+      retptr0,
+      "preview1"
+    );
+  }
+
+  unstable_path_filestat_get(
+    fd: number,
+    flags: number,
+    path_ptr: number,
+    path_len: number,
+    retptr0: number
+  ): number {
+    return this.shared_path_filestat_get(
+      fd,
+      flags,
+      path_ptr,
+      path_len,
+      retptr0,
+      "unstable"
+    );
+  }
+
+  /**
+   * Return the attributes of a file or directory.
+   * Note: This is similar to stat in POSIX.
+   */
+  shared_path_filestat_get(
+    fd: number,
+    _: number,
+    path_ptr: number,
+    path_len: number,
+    retptr0: number,
+    version: "unstable" | "preview1"
+  ): number {
+    const createFilestatFn =
+      version === "unstable" ? createUnstableFilestat : createFilestat;
+
     const path = new TextDecoder().decode(
       new Uint8Array(this.memory.buffer, path_ptr, path_len)
     );
@@ -935,7 +1003,7 @@ export class WASI implements SnapshotPreview1 {
       return result;
     }
 
-    const statBuffer = createFilestat(stat);
+    const statBuffer = createFilestatFn(stat);
     const returnBuffer = new Uint8Array(
       this.memory.buffer,
       retptr0,
@@ -1483,6 +1551,37 @@ function createFilestat(stat: DriveStat): Uint8Array {
   view.setBigUint64(40, dateToNanoseconds(stat.timestamps.access), true); // atim
   view.setBigUint64(48, dateToNanoseconds(stat.timestamps.modification), true); // mtim
   view.setBigUint64(56, dateToNanoseconds(stat.timestamps.change), true); // ctim
+  return buffer;
+}
+
+/**
+ * Creates a filestat record as bytes
+ * This is the wasi-unstable (preview0) version
+ * File attributes.
+ *  Size: 64
+ *  Alignment: 8
+ *  Record members
+ *    dev (offset: 0, size: 8): device Device ID of device containing the file.
+ *    ino (offset: 8, size: 8): inode File serial number that is unique within its file system.
+ *    filetype (offset: 16, size: 1): filetype File type.
+ *    nlink (offset: 20, size: 4): linkcount Number of hard links to the file.
+ *    size (offset: 24, size: 8): filesize For regular files, the file size in bytes. For symbolic links, the length in bytes of the pathname contained in the symbolic link.
+ *    atim (offset: 32, size: 8): timestamp Last data access timestamp.
+ *    mtim (offset: 40, size: 8): timestamp Last data modification timestamp.
+ *    ctim (offset: 48, size: 8): timestamp Last file status change timestamp.
+ *
+ */
+function createUnstableFilestat(stat: DriveStat): Uint8Array {
+  const buffer = new Uint8Array(FILESTAT_SIZE);
+  const view = new DataView(buffer.buffer);
+  view.setBigUint64(0, BigInt(0), true); // dev
+  view.setBigUint64(8, BigInt(cyrb53(stat.path)), true); // ino
+  view.setUint8(16, stat.type); // filetype
+  view.setUint32(20, 1, true); // nlink - every file has one hard link
+  view.setBigUint64(24, BigInt(stat.byteLength), true); // size
+  view.setBigUint64(32, dateToNanoseconds(stat.timestamps.access), true); // atim
+  view.setBigUint64(40, dateToNanoseconds(stat.timestamps.modification), true); // mtim
+  view.setBigUint64(48, dateToNanoseconds(stat.timestamps.change), true); // ctim
   return buffer;
 }
 
