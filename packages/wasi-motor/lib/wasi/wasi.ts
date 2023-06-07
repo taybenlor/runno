@@ -172,6 +172,16 @@ export class WASI implements SnapshotPreview1 {
       sock_recv: this.sock_recv.bind(this),
       sock_send: this.sock_send.bind(this),
       sock_shutdown: this.sock_shutdown.bind(this),
+
+      // Unimplemented - WASMEdge compatibility
+      sock_open: this.sock_open.bind(this),
+      sock_listen: this.sock_listen.bind(this),
+      sock_connect: this.sock_connect.bind(this),
+      sock_setsockopt: this.sock_setsockopt.bind(this),
+      sock_bind: this.sock_bind.bind(this),
+      sock_getlocaladdr: this.sock_getlocaladdr.bind(this),
+      sock_getpeeraddr: this.sock_getpeeraddr.bind(this),
+      sock_getaddrinfo: this.sock_getaddrinfo.bind(this),
     };
 
     for (const [name, fn] of Object.entries(imports)) {
@@ -1251,6 +1261,41 @@ export class WASI implements SnapshotPreview1 {
    * shutdown in POSIX.
    */
   sock_shutdown(): number {
+    return Result.ENOSYS;
+  }
+
+  //
+  // Unimplemented - these are for compatibility with Wasmedge
+  //
+  sock_open(): number {
+    return Result.ENOSYS;
+  }
+
+  sock_listen(): number {
+    return Result.ENOSYS;
+  }
+
+  sock_connect(): number {
+    return Result.ENOSYS;
+  }
+
+  sock_setsockopt(): number {
+    return Result.ENOSYS;
+  }
+
+  sock_bind(): number {
+    return Result.ENOSYS;
+  }
+
+  sock_getlocaladdr(): number {
+    return Result.ENOSYS;
+  }
+
+  sock_getpeeraddr(): number {
+    return Result.ENOSYS;
+  }
+
+  sock_getaddrinfo(): number {
     return Result.ENOSYS;
   }
 }

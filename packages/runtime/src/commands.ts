@@ -55,18 +55,26 @@ export function commandsForRuntime(
   if (name === "quickjs") {
     return {
       run: {
-        binaryURL: `${baseURL}/quickjs.wasi.wasm`,
+        binaryURL: `${baseURL}/wasmedge_quickjs.wasm`,
         binaryName: "quickjs",
-        args: ["--std", entryPath],
+        // TODO: This quickjs binary doesn't support std library :(
+        // args: ["--std", entryPath],
+        args: [entryPath],
         env: {},
       },
     };
   }
 
-  // TODO: Find another compiled Sqlite binary
-  // if (name === "sqlite") {
-  //   return { run: `cat ${entryPath} | sqlite` };
-  // }
+  if (name === "sqlite") {
+    return {
+      run: {
+        binaryURL: `${baseURL}/sqlite.wasm`,
+        binaryName: "sqlite",
+        args: ["-cmd", `.read ${entryPath}`],
+        env: {},
+      },
+    };
+  }
 
   //
   // Clang based off work by binji https://github.com/binji/wasm-clang
