@@ -110,13 +110,13 @@ export function commandsForRuntime(
             "/program.o",
             "-lc",
             "-o",
-            "program.wasm",
+            "/program.wasm",
           ],
           env: {},
         },
       ],
       run: {
-        fsPath: "program.wasm",
+        fsPath: "/program.wasm",
         binaryName: "program",
       },
     };

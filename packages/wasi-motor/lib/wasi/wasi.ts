@@ -867,6 +867,7 @@ export class WASI implements SnapshotPreview1 {
     if (result !== Result.SUCCESS) {
       return result;
     }
+    pushDebugData({ newOffset: newOffset.toString() });
     const view = new DataView(this.memory.buffer);
     view.setBigUint64(retptr0, newOffset, true);
     return result;

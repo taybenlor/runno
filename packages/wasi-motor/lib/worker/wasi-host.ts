@@ -58,6 +58,9 @@ export class WASIWorkerHost {
           case "result":
             resolve(message.result);
             break;
+          case "crash":
+            reject(message.error);
+            break;
         }
       });
 
