@@ -28,6 +28,7 @@ export function commandsForRuntime(
   name: string,
   entryPath: string
 ): RuntimeCommands {
+  // Python from VMWare https://github.com/vmware-labs/webassembly-language-runtimes
   if (name === "python") {
     return {
       run: {
@@ -40,6 +41,7 @@ export function commandsForRuntime(
     };
   }
 
+  // Ruby from VMWare https://github.com/vmware-labs/webassembly-language-runtimes
   if (name === "ruby") {
     return {
       run: {
@@ -52,19 +54,19 @@ export function commandsForRuntime(
     };
   }
 
+  // QuickJS from wasmedge https://github.com/second-state/wasmedge-quickjs
   if (name === "quickjs") {
     return {
       run: {
         binaryURL: `${baseURL}/wasmedge_quickjs.wasm`,
         binaryName: "quickjs",
-        // TODO: This quickjs binary doesn't support std library :(
-        // args: ["--std", entryPath],
         args: [entryPath],
         env: {},
       },
     };
   }
 
+  // SQLite from WAPM https://wapm.io/sqlite/sqlite
   if (name === "sqlite") {
     return {
       run: {
@@ -77,9 +79,8 @@ export function commandsForRuntime(
   }
 
   //
-  // Clang based off work by binji https://github.com/binji/wasm-clang
+  // Clang by binji https://github.com/binji/wasm-clang
   //
-
   if (name === "clang") {
     return {
       prepare: [

@@ -121,6 +121,7 @@ export class TerminalElement extends HTMLElement {
       if (e instanceof WASIWorkerHostKilledError) {
         return { resultType: "terminated" };
       }
+      console.error(e);
       this.terminal.write(`\nRunno crashed: ${e}`);
       return { resultType: "crash", error: e };
     } finally {
