@@ -9,7 +9,10 @@ export type Syntax = "python" | "js" | "sql" | "cpp" | "ruby" | undefined;
 
 export type CrashResult = {
   resultType: "crash";
-  error: unknown;
+  error: {
+    message: string;
+    type: string;
+  };
 };
 
 export type CompleteResult = {

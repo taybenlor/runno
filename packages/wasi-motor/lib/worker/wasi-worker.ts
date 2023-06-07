@@ -45,7 +45,10 @@ type ResultHostMessage = {
 type CrashHostMessage = {
   target: "host";
   type: "crash";
-  error: unknown;
+  error: {
+    message: string;
+    type: string;
+  };
 };
 
 export type HostMessage =
@@ -68,13 +71,22 @@ onmessage = async (ev: MessageEvent) => {
           result,
         });
       } catch (e) {
+        let error;
+        if (e instanceof Error) {
+          error = {
+            message: e.message,
+            type: e.constructor.name,
+          };
+        } else {
+          error = {
+            message: `unknown error - ${e}`,
+            type: "Unknown",
+          };
+        }
         sendMessage({
           target: "host",
           type: "crash",
-          error:
-            typeof e === "object" && (e as any).mesage
-              ? (e as any).message
-              : JSON.parse(JSON.stringify(e)),
+          error,
         });
       }
 
