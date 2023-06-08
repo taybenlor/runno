@@ -75,6 +75,9 @@ export class RunnoProvider implements RuntimeMethods {
     entryPath: string,
     fs: WASIFS
   ): Promise<RunResult> {
+    this.terminal.terminal.clear();
+    this.terminal.terminal.write("Preparing environment...");
+
     const commands = commandsForRuntime(runtime, entryPath);
 
     try {
@@ -97,6 +100,7 @@ export class RunnoProvider implements RuntimeMethods {
       fs = { ...fs, ...baseFS };
     }
 
+    this.terminal.terminal.clear();
     return this.terminal.run(
       binaryPath,
       run.binaryName,
