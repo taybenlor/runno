@@ -47,8 +47,7 @@ export class WASIDrive {
   ): DriveResult<FileDescriptor> {
     const file = new OpenFile(fileData, fdflags);
     if (truncateFile) {
-      file.buffer = new Uint8Array(1024);
-      file.usedBytes = 0;
+      file.buffer = new Uint8Array(new ArrayBuffer(1024), 0, 0);
     }
     const fd = this.nextFD;
     this.openMap.set(fd, file);
@@ -472,7 +471,6 @@ export class WASIDrive {
 class OpenFile {
   file: WASIFile;
   buffer: Uint8Array;
-  usedBytes: number = 0;
   private _offset: bigint = BigInt(0);
   isDirty: boolean = false;
   fdflags: number;
@@ -498,8 +496,6 @@ class OpenFile {
       this.buffer = this.file.content;
     }
 
-    this.usedBytes = this.buffer.byteLength;
-
     this.fdflags = fdflags;
     this.flagAppend = !!(fdflags & FileDescriptorFlags.APPEND);
     this.flagDSync = !!(fdflags & FileDescriptorFlags.DSYNC);
@@ -509,13 +505,13 @@ class OpenFile {
   }
 
   read(bytes: number) {
-    const ret = this.buffer.subarray(this.offset, this.offset + bytes);
+    const ret = new Uint8Array(this.buffer.buffer, this.offset, bytes);
     this._offset += BigInt(bytes);
     return ret;
   }
 
   pread(bytes: number, offset: number) {
-    return this.buffer.subarray(offset, offset + bytes);
+    return new Uint8Array(this.buffer.buffer, offset, bytes);
   }
 
   write(data: Uint8Array) {
@@ -523,14 +519,13 @@ class OpenFile {
 
     if (this.flagAppend) {
       // TODO: Not sure what the semantics for offset are here
-      this.resize(this.usedBytes + data.byteLength);
-      this.buffer.set(data, this.usedBytes);
-      this.usedBytes += data.byteLength;
+      const end = this.buffer.length;
+      this.resize(end + data.byteLength);
+      this.buffer.set(data, end);
     } else {
       this.resize(this.offset + data.byteLength);
       this.buffer.set(data, this.offset);
       this._offset += BigInt(data.byteLength);
-      this.usedBytes = this.offset;
     }
 
     if (this.flagDSync || this.flagSync) {
@@ -543,13 +538,12 @@ class OpenFile {
 
     if (this.flagAppend) {
       // TODO: Not sure what the semantics for offset are here
-      this.resize(this.usedBytes + data.byteLength);
-      this.buffer.set(data, this.usedBytes);
-      this.usedBytes += data.byteLength;
+      const end = this.buffer.length;
+      this.resize(end + data.byteLength);
+      this.buffer.set(data, end);
     } else {
       this.resize(offset + data.byteLength);
       this.buffer.set(data, offset);
-      this.usedBytes = offset + data.byteLength;
     }
 
     if (this.flagDSync || this.flagSync) {
@@ -564,16 +558,17 @@ class OpenFile {
 
     this.isDirty = false;
     if (this.file.mode === "binary") {
-      this.file.content = this.buffer.slice(0, this.usedBytes);
+      this.file.content = this.buffer;
       return;
     }
 
     const decoder = new TextDecoder();
-    this.file.content = decoder.decode(this.buffer.slice(0, this.usedBytes));
+    this.file.content = decoder.decode(this.buffer);
     return;
   }
 
   seek(offset: bigint, whence: Whence) {
+    const originalOffset = this._offset;
     switch (whence) {
       case Whence.SET:
         this._offset = offset;
@@ -582,7 +577,7 @@ class OpenFile {
         this._offset += offset;
         break;
       case Whence.END:
-        this._offset = BigInt(this.usedBytes) + offset;
+        this._offset = BigInt(this.buffer.length) + offset;
         break;
     }
     return this._offset;
@@ -597,7 +592,7 @@ class OpenFile {
       path: this.file.path,
       timestamps: this.file.timestamps,
       type: FileType.REGULAR_FILE,
-      byteLength: this.usedBytes,
+      byteLength: this.buffer.length,
     };
   }
 
@@ -606,10 +601,11 @@ class OpenFile {
   }
 
   setSize(size: number) {
-    const newBuffer = new Uint8Array(size);
-    newBuffer.set(this.buffer.subarray(0, size));
-    this.buffer = newBuffer;
-    this.usedBytes = size;
+    if (this.buffer.length > size) {
+      this.buffer = new Uint8Array(this.buffer.buffer, 0, size);
+    } else {
+      this.resize(size);
+    }
   }
 
   setAccessTime(date: Date) {
@@ -630,19 +626,22 @@ class OpenFile {
    * @param requiredBytes how many bytes the buffer needs to have available
    */
   private resize(requiredBytes: number) {
-    if (requiredBytes < this.buffer.byteLength) {
+    if (requiredBytes < this.buffer.buffer.byteLength) {
+      this.buffer = new Uint8Array(this.buffer.buffer, 0, requiredBytes);
       return;
     }
 
-    let newBuffer: Uint8Array;
-    if (this.buffer.byteLength === 0) {
-      newBuffer = new Uint8Array(1024);
-    } else if (requiredBytes > this.buffer.byteLength * 2) {
-      newBuffer = new Uint8Array(requiredBytes * 2);
+    let underBuffer: ArrayBuffer;
+
+    if (this.buffer.buffer.byteLength === 0) {
+      underBuffer = new ArrayBuffer(1024);
+    } else if (requiredBytes > this.buffer.buffer.byteLength * 2) {
+      underBuffer = new ArrayBuffer(requiredBytes * 2);
     } else {
-      newBuffer = new Uint8Array(this.buffer.byteLength * 2);
+      underBuffer = new ArrayBuffer(this.buffer.buffer.byteLength * 2);
     }
 
+    const newBuffer = new Uint8Array(underBuffer, 0, requiredBytes);
     newBuffer.set(this.buffer);
     this.buffer = newBuffer;
   }

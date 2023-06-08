@@ -11,7 +11,11 @@ import {
   EventType,
   SubscriptionClockFlags,
   EVENT_SIZE,
+  OpenFlags,
+  FileDescriptorFlags,
+  Whence,
 } from "./snapshot-preview1";
+import { Whence as UnstableWhence } from "./unstable";
 import { WASIExecutionResult } from "../types";
 import { WASIContext } from "./wasi-context";
 import { DriveStat, WASIDrive } from "./wasi-drive";
@@ -190,6 +194,7 @@ export class WASI implements SnapshotPreview1 {
     if (version === "unstable") {
       imports.path_filestat_get = this.unstable_path_filestat_get.bind(this);
       imports.fd_filestat_get = this.unstable_fd_filestat_get.bind(this);
+      imports.fd_seek = this.unstable_fd_seek.bind(this);
     }
 
     for (const [name, fn] of Object.entries(imports)) {
@@ -454,12 +459,12 @@ export class WASI implements SnapshotPreview1 {
         const stdfn = fd === 1 ? this.context.stdout : this.context.stderr;
         // We have to copy the `iov` to restrict text decoder to the bounds of
         // iov. Otherwise text decoder seems to just read all our memory.
-        const output = decoder.decode(new Uint8Array(iov));
+        const output = decoder.decode(iov);
         stdfn(output);
 
         pushDebugData({ output });
       } else {
-        result = this.drive.write(fd, new Uint8Array(iov));
+        result = this.drive.write(fd, iov);
         if (result != Result.SUCCESS) {
           break;
         }
@@ -817,7 +822,7 @@ export class WASI implements SnapshotPreview1 {
         continue;
       }
 
-      result = this.drive.pwrite(fd, new Uint8Array(iov), Number(offset));
+      result = this.drive.pwrite(fd, iov, Number(offset));
       if (result != Result.SUCCESS) {
         break;
       }
@@ -911,6 +916,16 @@ export class WASI implements SnapshotPreview1 {
     const view = new DataView(this.memory.buffer);
     view.setBigUint64(retptr0, newOffset, true);
     return result;
+  }
+
+  unstable_fd_seek(
+    fd: number,
+    offset: bigint,
+    whence: number,
+    retptr0: number
+  ) {
+    const newWhence = UNSTABLE_WHENCE_MAP[whence as UnstableWhence];
+    return this.fd_seek(fd, offset, newWhence, retptr0);
   }
 
   /**
@@ -1109,7 +1124,33 @@ export class WASI implements SnapshotPreview1 {
   ): number {
     const view = new DataView(this.memory.buffer);
     const path = readString(this.memory, path_ptr, path_len);
-    pushDebugData({ path });
+
+    const createFileIfNone: boolean = !!(oflags & OpenFlags.CREAT);
+    const failIfNotDir: boolean = !!(oflags & OpenFlags.DIRECTORY);
+    const failIfFileExists: boolean = !!(oflags & OpenFlags.EXCL);
+    const truncateFile: boolean = !!(oflags & OpenFlags.TRUNC);
+
+    const flagAppend = !!(fdflags & FileDescriptorFlags.APPEND);
+    const flagDSync = !!(fdflags & FileDescriptorFlags.DSYNC);
+    const flagNonBlock = !!(fdflags & FileDescriptorFlags.NONBLOCK);
+    const flagRSync = !!(fdflags & FileDescriptorFlags.RSYNC);
+    const flagSync = !!(fdflags & FileDescriptorFlags.SYNC);
+    pushDebugData({
+      path,
+      openFlags: {
+        createFileIfNone,
+        failIfNotDir,
+        failIfFileExists,
+        truncateFile,
+      },
+      fileDescriptorFlags: {
+        flagAppend,
+        flagDSync,
+        flagNonBlock,
+        flagRSync,
+        flagSync,
+      },
+    });
 
     const [result, newFd] = this.drive.open(fd, path, oflags, fdflags);
     if (result) {
@@ -1726,3 +1767,10 @@ function dateToNanoseconds(date: Date) {
 function nanosecondsToDate(nanos: bigint) {
   return new Date(Number(nanos / BigInt(1e6)));
 }
+
+// Whence in wasi_unstable and wasi_snapshot_preview1 has different values
+const UNSTABLE_WHENCE_MAP = {
+  [UnstableWhence.CUR]: Whence.CUR,
+  [UnstableWhence.END]: Whence.END,
+  [UnstableWhence.SET]: Whence.SET,
+};
