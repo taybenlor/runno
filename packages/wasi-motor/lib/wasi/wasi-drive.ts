@@ -568,7 +568,6 @@ class OpenFile {
   }
 
   seek(offset: bigint, whence: Whence) {
-    const originalOffset = this._offset;
     switch (whence) {
       case Whence.SET:
         this._offset = offset;
@@ -601,11 +600,7 @@ class OpenFile {
   }
 
   setSize(size: number) {
-    if (this.buffer.length > size) {
-      this.buffer = new Uint8Array(this.buffer.buffer, 0, size);
-    } else {
-      this.resize(size);
-    }
+    this.resize(size);
   }
 
   setAccessTime(date: Date) {
@@ -617,8 +612,8 @@ class OpenFile {
   }
 
   /**
-   * Resizes the underlying buffer to be large enough to fit the required bytes.
-   * If there are enough bytes available, nothing will change.
+   * Resizes the buffer to be exactly requiredBytes length, while resizing the
+   * underlying buffer to be larger if necessary.
    *
    * Resizing will internally double the buffer size to reduce the need for
    * resizing often.
