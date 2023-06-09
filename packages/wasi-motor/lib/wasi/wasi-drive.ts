@@ -505,13 +505,13 @@ class OpenFile {
   }
 
   read(bytes: number) {
-    const ret = new Uint8Array(this.buffer.buffer, this.offset, bytes);
-    this._offset += BigInt(bytes);
+    const ret = this.buffer.slice(this.offset, bytes);
+    this._offset += BigInt(ret.length);
     return ret;
   }
 
   pread(bytes: number, offset: number) {
-    return new Uint8Array(this.buffer.buffer, offset, bytes);
+    return this.buffer.slice(offset, bytes);
   }
 
   write(data: Uint8Array) {
@@ -519,11 +519,15 @@ class OpenFile {
 
     if (this.flagAppend) {
       // TODO: Not sure what the semantics for offset are here
-      const end = this.buffer.length;
-      this.resize(end + data.byteLength);
-      this.buffer.set(data, end);
+      const length = this.buffer.length;
+      this.resize(length + data.byteLength);
+      this.buffer.set(data, length);
     } else {
-      this.resize(this.offset + data.byteLength);
+      const newSize = Math.max(
+        this.offset + data.byteLength,
+        this.buffer.byteLength
+      );
+      this.resize(newSize);
       this.buffer.set(data, this.offset);
       this._offset += BigInt(data.byteLength);
     }
@@ -538,11 +542,15 @@ class OpenFile {
 
     if (this.flagAppend) {
       // TODO: Not sure what the semantics for offset are here
-      const end = this.buffer.length;
-      this.resize(end + data.byteLength);
-      this.buffer.set(data, end);
+      const length = this.buffer.length;
+      this.resize(length + data.byteLength);
+      this.buffer.set(data, length);
     } else {
-      this.resize(offset + data.byteLength);
+      const newSize = Math.max(
+        offset + data.byteLength,
+        this.buffer.byteLength
+      );
+      this.resize(newSize);
       this.buffer.set(data, offset);
     }
 
@@ -558,7 +566,7 @@ class OpenFile {
 
     this.isDirty = false;
     if (this.file.mode === "binary") {
-      this.file.content = this.buffer;
+      this.file.content = new Uint8Array(this.buffer);
       return;
     }
 
@@ -621,7 +629,7 @@ class OpenFile {
    * @param requiredBytes how many bytes the buffer needs to have available
    */
   private resize(requiredBytes: number) {
-    if (requiredBytes < this.buffer.buffer.byteLength) {
+    if (requiredBytes <= this.buffer.buffer.byteLength) {
       this.buffer = new Uint8Array(this.buffer.buffer, 0, requiredBytes);
       return;
     }

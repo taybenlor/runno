@@ -457,8 +457,6 @@ export class WASI implements SnapshotPreview1 {
       // STDOUT or STDERR
       if (fd === 1 || fd === 2) {
         const stdfn = fd === 1 ? this.context.stdout : this.context.stderr;
-        // We have to copy the `iov` to restrict text decoder to the bounds of
-        // iov. Otherwise text decoder seems to just read all our memory.
         const output = decoder.decode(iov);
         stdfn(output);
 
