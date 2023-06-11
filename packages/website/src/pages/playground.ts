@@ -202,7 +202,7 @@ $ cargo build --target=wasm32-wasi</pre>
             <p>
               The Runno WASI runtime is not yet available as an NPM package
               but the source is available
-              <a href="https://github.com/taybenlor/runno/tree/main/packages/wasi-motor">
+              <a href="https://github.com/taybenlor/runno/tree/main/packages/wasi">
                 on Github
               </a>.
               <!-- There are many other WASI runtimes, but Runno's is specifically

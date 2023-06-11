@@ -16,13 +16,13 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/wasi-motor.umd.cjs",
-  "module": "./dist/wasi-motor.js",
+  "main": "./dist/wasi.umd.cjs",
+  "module": "./dist/wasi.js",
   "types": "./dist/lib/main.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/wasi-motor.js",
-      "require": "./dist/wasi-motor.umd.cjs"
+      "import": "./dist/wasi.js",
+      "require": "./dist/wasi.umd.cjs"
     }
   },
   "scripts": {

@@ -6,9 +6,9 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, "lib/main.ts"),
-      name: "WasiMotor",
+      name: "WASI",
       // the proper extensions will be added
-      fileName: "wasi-motor",
+      fileName: "wasi",
     },
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled

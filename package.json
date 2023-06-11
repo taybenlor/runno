@@ -17,14 +17,14 @@
     "publish": "npm run build && npx lerna publish",
     "build:host": "cd packages/host && npm run build",
     "build:client": "cd packages/client && npm run build",
-    "build:wasi-motor": "cd packages/wasi-motor && npm run build",
+    "build:wasi": "cd packages/wasi && npm run build",
     "build:runtime": "cd packages/runtime && npm run build",
     "build:website": "cd packages/website && npm run build",
-    "build": "npm run build:host && npm run build:wasi-motor && npm run build:runtime && npm run build:client && npm run build:website",
+    "build": "npm run build:host && npm run build:wasi && npm run build:runtime && npm run build:client && npm run build:website",
     "build:deploy": "npm run bootstrap && npm run build",
     "test:client": "cd packages/client && npm run test",
-    "test:wasi-motor": "cd packages/wasi-motor && npm run test:prepare && npm run test",
-    "test": "npm run test:client && npm run test:wasi-motor"
+    "test:wasi": "cd packages/wasi && npm run test:prepare && npm run test",
+    "test": "npm run test:client && npm run test:wasi"
   },
   "eslintConfig": {
     "extends": "preact",
