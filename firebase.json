@@ -45,6 +45,15 @@
               "value": "require-corp"
             }
           ]
+        },
+        {
+          "source": "/langs/*",
+          "headers": [
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
+          ]
         }
       ],
       "rewrites": [
