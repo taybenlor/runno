@@ -1,44 +1,144 @@
-import { CommandRunner, WasmTerminalConfig } from "@runno/terminal";
-import processWorkerURL from "@runno/terminal/lib/workers/process.worker.js?url";
+import { CompleteResult, RunResult, Runtime } from "@runno/host";
+import { WASIFS, WASIWorkerHost } from "@runno/wasi-motor";
+import {
+  Command,
+  commandsForRuntime,
+  getBinaryPathFromCommand,
+} from "./commands";
+import { fetchWASIFS } from "./helpers";
 
-import { CommandResult } from "@runno/host";
-import { WasmFs } from "./wasmfs";
-import WAPM from "./wapm/wapm";
-
-class MissingStdinError extends Error {}
-
-export function headlessRunCommand(
-  command: string,
-  fs?: WasmFs,
+export async function headlessRunCode(
+  runtime: Runtime,
+  code: string,
   stdin?: string
-): Promise<CommandResult> {
-  return new Promise<CommandResult>(function (resolve) {
-    const wasmfs = fs || new WasmFs();
-    const wapm = new WAPM(wasmfs);
-
-    const stdinArr = stdin ? stdin.split("\n") : [];
-
-    const commandRunner = new CommandRunner(
-      new WasmTerminalConfig({
-        fetchCommand: wapm.runCommand.bind(wapm),
-        processWorkerUrl: processWorkerURL,
-        // This is a conflict between my wasmfs in here vs the terminal
-        // Probably terminal should be moved into runtime as well
-        // There's not really much value in it being a different package
-        // @ts-ignore
-        wasmFs: wasmfs,
-      }),
-      command,
-      () => {
-        if (stdinArr.length == 0) {
-          throw new MissingStdinError(
-            "Process requested stdin but none was available"
-          );
-        }
-        return Promise.resolve(stdinArr.shift());
+): Promise<RunResult> {
+  const fs: WASIFS = {
+    "/program": {
+      path: "program",
+      content: code,
+      mode: "string",
+      timestamps: {
+        access: new Date(),
+        modification: new Date(),
+        change: new Date(),
       },
-      resolve
-    );
-    commandRunner.runCommand();
+    },
+  };
+  return headlessRunFS(runtime, "/program", fs, stdin);
+}
+
+export async function headlessRunFS(
+  runtime: Runtime,
+  entryPath: string,
+  fs: WASIFS,
+  stdin?: string
+): Promise<RunResult> {
+  const commands = commandsForRuntime(runtime, entryPath);
+
+  const prepare = await headlessPrepareFS(commands.prepare ?? [], fs);
+  fs = prepare.fs;
+
+  const { run } = commands;
+  const binaryPath = getBinaryPathFromCommand(run, fs);
+
+  const workerHost = new WASIWorkerHost(binaryPath, {
+    args: [run.binaryName, ...(run.args ?? [])],
+    env: run.env,
+    fs,
+    stdout: (out) => {
+      prepare.stdout += out;
+      prepare.tty += out;
+    },
+    stderr: (err) => {
+      prepare.stderr += err;
+      prepare.tty += err;
+    },
   });
+
+  if (stdin) {
+    workerHost.pushStdin(stdin);
+  }
+
+  const result = await workerHost.start();
+
+  prepare.fs = { ...prepare.fs, ...result.fs };
+  prepare.exitCode = result.exitCode;
+
+  return prepare;
+}
+
+type PrepareErrorData = {
+  stdin: string;
+  stdout: string;
+  stderr: string;
+  tty: string;
+  fs: WASIFS;
+  exitCode: number;
+};
+export class PrepareError extends Error {
+  data: PrepareErrorData;
+
+  constructor(message: string, data: PrepareErrorData) {
+    super(message);
+    this.data = data;
+  }
+}
+
+export async function headlessPrepareFS(
+  prepareCommands: Command[],
+  fs: WASIFS
+) {
+  let prepare: CompleteResult = {
+    resultType: "complete",
+    stdin: "",
+    stdout: "",
+    stderr: "",
+    tty: "",
+    fs,
+    exitCode: 0,
+  };
+
+  for (const command of prepareCommands) {
+    const binaryPath = getBinaryPathFromCommand(command, prepare.fs);
+
+    if (command.baseFSURL) {
+      const baseFS = await fetchWASIFS(command.baseFSURL);
+      prepare.fs = { ...prepare.fs, ...baseFS };
+    }
+
+    const workerHost = new WASIWorkerHost(binaryPath, {
+      args: [command.binaryName, ...(command.args ?? [])],
+      env: command.env,
+      fs: prepare.fs,
+      stdout: (out) => {
+        prepare.stdout += out;
+        prepare.tty += out;
+      },
+      stderr: (err) => {
+        prepare.stderr += err;
+        prepare.tty += err;
+      },
+      debug: (...args) => {
+        console.log("DEBUG", ...args);
+        return args[2];
+      },
+    });
+    const result = await workerHost.start();
+
+    prepare.fs = result.fs;
+    prepare.exitCode = result.exitCode;
+
+    if (result.exitCode !== 0) {
+      // TODO: Remove this
+      console.error("Prepare failed", prepare);
+
+      // If a prepare step fails then we stop.
+      throw new PrepareError(
+        "Prepare step returned a non-zero exit code",
+        prepare
+      );
+    }
+  }
+
+  return prepare;
 }

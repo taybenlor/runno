@@ -11,10 +11,33 @@ import {
   EventType,
   SubscriptionClockFlags,
   EVENT_SIZE,
+  OpenFlags,
+  FileDescriptorFlags,
+  Whence,
 } from "./snapshot-preview1";
+import { Whence as UnstableWhence } from "./unstable";
 import { WASIExecutionResult } from "../types";
 import { WASIContext } from "./wasi-context";
 import { DriveStat, WASIDrive } from "./wasi-drive";
+
+/** Injects a function between implementation and return for debugging */
+export type DebugFn = (
+  name: string,
+  args: string[],
+  ret: number,
+  data: { [key: string]: any }[]
+) => number | undefined;
+
+let _debugData: { [key: string]: string }[] = [];
+function pushDebugData(data: { [key: string]: any }) {
+  _debugData.push(data);
+}
+
+function popDebugStrings(): { [key: string]: string }[] {
+  const current = _debugData;
+  _debugData = [];
+  return current;
+}
 
 /**
  * Implementation of a WASI runner for the browser.
@@ -42,8 +65,8 @@ export class WASI implements SnapshotPreview1 {
   ) {
     const wasi = new WASI(context);
     const wasm = await WebAssembly.instantiateStreaming(wasmSource, {
-      wasi_snapshot_preview1: wasi.getImports(),
-      wasi_unstable: wasi.getImports(),
+      wasi_snapshot_preview1: wasi.getImports("preview1", context.debug),
+      wasi_unstable: wasi.getImports("unstable", context.debug),
     });
     wasi.init(wasm);
     return wasi.start();
@@ -99,7 +122,10 @@ export class WASI implements SnapshotPreview1 {
     };
   }
 
-  getImports(): WebAssembly.ModuleImports & SnapshotPreview1 {
+  getImports(
+    version: "unstable" | "preview1",
+    debug?: DebugFn
+  ): WebAssembly.ModuleImports & SnapshotPreview1 {
     const imports = {
       args_get: this.args_get.bind(this),
       args_sizes_get: this.args_sizes_get.bind(this),
@@ -153,12 +179,31 @@ export class WASI implements SnapshotPreview1 {
       sock_recv: this.sock_recv.bind(this),
       sock_send: this.sock_send.bind(this),
       sock_shutdown: this.sock_shutdown.bind(this),
+
+      // Unimplemented - WASMEdge compatibility
+      sock_open: this.sock_open.bind(this),
+      sock_listen: this.sock_listen.bind(this),
+      sock_connect: this.sock_connect.bind(this),
+      sock_setsockopt: this.sock_setsockopt.bind(this),
+      sock_bind: this.sock_bind.bind(this),
+      sock_getlocaladdr: this.sock_getlocaladdr.bind(this),
+      sock_getpeeraddr: this.sock_getpeeraddr.bind(this),
+      sock_getaddrinfo: this.sock_getaddrinfo.bind(this),
     };
+
+    if (version === "unstable") {
+      imports.path_filestat_get = this.unstable_path_filestat_get.bind(this);
+      imports.fd_filestat_get = this.unstable_fd_filestat_get.bind(this);
+      imports.fd_seek = this.unstable_fd_seek.bind(this);
+    }
 
     for (const [name, fn] of Object.entries(imports)) {
       (imports as any)[name] = function () {
-        const ret = (fn as any).apply(this, arguments);
-        console.log(name, arguments, " => ", ret);
+        let ret = (fn as any).apply(this, arguments);
+        if (debug) {
+          const argStrings = popDebugStrings();
+          ret = debug(name, [...arguments], ret, argStrings) ?? ret;
+        }
         return ret;
       };
     }
@@ -377,6 +422,8 @@ export class WASI implements SnapshotPreview1 {
       bytesRead += bytes;
     }
 
+    pushDebugData({ bytesRead });
+
     view.setUint32(retptr0, bytesRead, true);
     return result;
   }
@@ -410,12 +457,12 @@ export class WASI implements SnapshotPreview1 {
       // STDOUT or STDERR
       if (fd === 1 || fd === 2) {
         const stdfn = fd === 1 ? this.context.stdout : this.context.stderr;
-        // We have to copy the `iov` to restrict text decoder to the bounds of
-        // iov. Otherwise text decoder seems to just read all our memory.
-        const output = decoder.decode(new Uint8Array(iov));
+        const output = decoder.decode(iov);
         stdfn(output);
+
+        pushDebugData({ output });
       } else {
-        result = this.drive.write(fd, new Uint8Array(iov));
+        result = this.drive.write(fd, iov);
         if (result != Result.SUCCESS) {
           break;
         }
@@ -532,12 +579,73 @@ export class WASI implements SnapshotPreview1 {
    * Return the attributes of an open file.
    */
   fd_filestat_get(fd: number, retptr0: number): number {
+    return this.shared_fd_filestat_get(fd, retptr0, "preview1");
+  }
+
+  /**
+   * Return the attributes of an open file.
+   * This version is used
+   */
+  unstable_fd_filestat_get(fd: number, retptr0: number): number {
+    return this.shared_fd_filestat_get(fd, retptr0, "unstable");
+  }
+
+  /**
+   * Return the attributes of an open file.
+   */
+  shared_fd_filestat_get(
+    fd: number,
+    retptr0: number,
+    version: "unstable" | "preview1"
+  ): number {
+    const createFilestatFn =
+      version === "unstable" ? createUnstableFilestat : createFilestat;
+
+    // STDIN / STDOUT / STDERR
+    if (fd < 3) {
+      let path: string;
+      switch (fd) {
+        case 0:
+          path = "/dev/stdin";
+          break;
+        case 1:
+          path = "/dev/stdout";
+          break;
+        case 2:
+          path = "/dev/stderr";
+          break;
+        default:
+          path = "/dev/undefined";
+          break;
+      }
+      const buffer = createFilestatFn({
+        path,
+        byteLength: 0,
+        timestamps: {
+          access: new Date(),
+          modification: new Date(),
+          change: new Date(),
+        },
+        type: FileType.CHARACTER_DEVICE,
+      });
+      const retBuffer = new Uint8Array(
+        this.memory.buffer,
+        retptr0,
+        buffer.byteLength
+      );
+      retBuffer.set(buffer);
+
+      return Result.SUCCESS;
+    }
+
     const [result, stat] = this.drive.stat(fd);
     if (result != Result.SUCCESS) {
       return result;
     }
 
-    const data = createFilestat(stat);
+    pushDebugData({ resolvedPath: stat.path, stat });
+
+    const data = createFilestatFn(stat);
     const returnBuffer = new Uint8Array(
       this.memory.buffer,
       retptr0,
@@ -627,22 +735,18 @@ export class WASI implements SnapshotPreview1 {
     let result: Result = Result.SUCCESS;
 
     for (const iov of iovs) {
-      let data: Uint8Array;
-
       const [error, value] = this.drive.pread(
         fd,
         iov.byteLength,
-        Number(offset)
+        Number(offset) + bytesRead
       );
       if (error !== Result.SUCCESS) {
         result = error;
         break;
-      } else {
-        data = value;
       }
 
-      const bytes = Math.min(iov.byteLength, data.byteLength);
-      iov.set(data.subarray(0, bytes));
+      const bytes = Math.min(iov.byteLength, value.byteLength);
+      iov.set(value.subarray(0, bytes));
 
       bytesRead += bytes;
     }
@@ -660,7 +764,7 @@ export class WASI implements SnapshotPreview1 {
       return Result.EBADF;
     }
 
-    const dirname = new TextEncoder().encode(".");
+    const dirname = new TextEncoder().encode("/");
     const dirBuffer = new Uint8Array(this.memory.buffer, path_ptr, path_len);
     dirBuffer.set(dirname.subarray(0, path_len));
 
@@ -716,7 +820,7 @@ export class WASI implements SnapshotPreview1 {
         continue;
       }
 
-      result = this.drive.pwrite(fd, new Uint8Array(iov), Number(offset));
+      result = this.drive.pwrite(fd, iov, Number(offset));
       if (result != Result.SUCCESS) {
         break;
       }
@@ -794,16 +898,32 @@ export class WASI implements SnapshotPreview1 {
 
   /**
    * Move the offset of a file descriptor.
+   *
+   * The offset is specified as a bigint here
    * Note: This is similar to lseek in POSIX.
+   *
+   * The offset, and return type are FileSize (u64) which is represented by
+   * bigint in JavaScript.
    */
   fd_seek(fd: number, offset: bigint, whence: number, retptr0: number) {
     const [result, newOffset] = this.drive.seek(fd, offset, whence);
     if (result !== Result.SUCCESS) {
       return result;
     }
+    pushDebugData({ newOffset: newOffset.toString() });
     const view = new DataView(this.memory.buffer);
-    view.setUint32(retptr0, newOffset, true);
+    view.setBigUint64(retptr0, newOffset, true);
     return result;
+  }
+
+  unstable_fd_seek(
+    fd: number,
+    offset: bigint,
+    whence: number,
+    retptr0: number
+  ) {
+    const newWhence = UNSTABLE_WHENCE_MAP[whence as UnstableWhence];
+    return this.fd_seek(fd, offset, newWhence, retptr0);
   }
 
   /**
@@ -817,6 +937,9 @@ export class WASI implements SnapshotPreview1 {
   /**
    * Return the current offset of a file descriptor.
    * Note: This is similar to lseek(fd, 0, SEEK_CUR) in POSIX.
+   *
+   * The return type is FileSize (u64) which is represented by bigint in JS.
+   *
    */
   fd_tell(fd: number, retptr0: number): number {
     const [result, offset] = this.drive.tell(fd);
@@ -825,7 +948,7 @@ export class WASI implements SnapshotPreview1 {
     }
 
     const view = new DataView(this.memory.buffer);
-    view.setUint32(retptr0, offset, true);
+    view.setBigUint64(retptr0, offset, true);
     return result;
   }
 
@@ -833,27 +956,67 @@ export class WASI implements SnapshotPreview1 {
   // Paths
   //
 
-  /**
-   * Return the attributes of a file or directory.
-   * Note: This is similar to stat in POSIX.
-   */
   path_filestat_get(
     fd: number,
-    _: number,
+    flags: number,
     path_ptr: number,
     path_len: number,
     retptr0: number
   ): number {
+    return this.shared_path_filestat_get(
+      fd,
+      flags,
+      path_ptr,
+      path_len,
+      retptr0,
+      "preview1"
+    );
+  }
+
+  unstable_path_filestat_get(
+    fd: number,
+    flags: number,
+    path_ptr: number,
+    path_len: number,
+    retptr0: number
+  ): number {
+    return this.shared_path_filestat_get(
+      fd,
+      flags,
+      path_ptr,
+      path_len,
+      retptr0,
+      "unstable"
+    );
+  }
+
+  /**
+   * Return the attributes of a file or directory.
+   * Note: This is similar to stat in POSIX.
+   */
+  shared_path_filestat_get(
+    fd: number,
+    _: number,
+    path_ptr: number,
+    path_len: number,
+    retptr0: number,
+    version: "unstable" | "preview1"
+  ): number {
+    const createFilestatFn =
+      version === "unstable" ? createUnstableFilestat : createFilestat;
+
     const path = new TextDecoder().decode(
       new Uint8Array(this.memory.buffer, path_ptr, path_len)
     );
+
+    pushDebugData({ path });
 
     const [result, stat] = this.drive.pathStat(fd, path);
     if (result != Result.SUCCESS) {
       return result;
     }
 
-    const statBuffer = createFilestat(stat);
+    const statBuffer = createFilestatFn(stat);
     const returnBuffer = new Uint8Array(
       this.memory.buffer,
       retptr0,
@@ -927,7 +1090,7 @@ export class WASI implements SnapshotPreview1 {
    * Note: This is similar to openat in POSIX.
    * @param fd: fd
    * @param dirflags: lookupflags Flags determining the method of how the path
-   *                  is resolved.
+   *                  is resolved. Not supported by Runno (symlinks)
    * @param path: string The relative path of the file or directory to open,
    *              relative to the path_open::fd directory.
    * @param oflags: oflags The method by which to open the file.
@@ -960,6 +1123,33 @@ export class WASI implements SnapshotPreview1 {
     const view = new DataView(this.memory.buffer);
     const path = readString(this.memory, path_ptr, path_len);
 
+    const createFileIfNone: boolean = !!(oflags & OpenFlags.CREAT);
+    const failIfNotDir: boolean = !!(oflags & OpenFlags.DIRECTORY);
+    const failIfFileExists: boolean = !!(oflags & OpenFlags.EXCL);
+    const truncateFile: boolean = !!(oflags & OpenFlags.TRUNC);
+
+    const flagAppend = !!(fdflags & FileDescriptorFlags.APPEND);
+    const flagDSync = !!(fdflags & FileDescriptorFlags.DSYNC);
+    const flagNonBlock = !!(fdflags & FileDescriptorFlags.NONBLOCK);
+    const flagRSync = !!(fdflags & FileDescriptorFlags.RSYNC);
+    const flagSync = !!(fdflags & FileDescriptorFlags.SYNC);
+    pushDebugData({
+      path,
+      openFlags: {
+        createFileIfNone,
+        failIfNotDir,
+        failIfFileExists,
+        truncateFile,
+      },
+      fileDescriptorFlags: {
+        flagAppend,
+        flagDSync,
+        flagNonBlock,
+        flagRSync,
+        flagSync,
+      },
+    });
+
     const [result, newFd] = this.drive.open(fd, path, oflags, fdflags);
     if (result) {
       // Error
@@ -984,6 +1174,8 @@ export class WASI implements SnapshotPreview1 {
     const oldPath = readString(this.memory, old_path_ptr, old_path_len);
     const newPath = readString(this.memory, new_path_ptr, new_path_len);
 
+    pushDebugData({ oldPath, newPath });
+
     return this.drive.rename(old_fd_dir, oldPath, new_fd_dir, newPath);
   }
 
@@ -993,6 +1185,8 @@ export class WASI implements SnapshotPreview1 {
    */
   path_unlink_file(fd: number, path_ptr: number, path_len: number): number {
     const path = readString(this.memory, path_ptr, path_len);
+    pushDebugData({ path });
+
     return this.drive.unlink(fd, path);
   }
 
@@ -1176,6 +1370,41 @@ export class WASI implements SnapshotPreview1 {
   sock_shutdown(): number {
     return Result.ENOSYS;
   }
+
+  //
+  // Unimplemented - these are for compatibility with Wasmedge
+  //
+  sock_open(): number {
+    return Result.ENOSYS;
+  }
+
+  sock_listen(): number {
+    return Result.ENOSYS;
+  }
+
+  sock_connect(): number {
+    return Result.ENOSYS;
+  }
+
+  sock_setsockopt(): number {
+    return Result.ENOSYS;
+  }
+
+  sock_bind(): number {
+    return Result.ENOSYS;
+  }
+
+  sock_getlocaladdr(): number {
+    return Result.ENOSYS;
+  }
+
+  sock_getpeeraddr(): number {
+    return Result.ENOSYS;
+  }
+
+  sock_getaddrinfo(): number {
+    return Result.ENOSYS;
+  }
 }
 
 const ALL_RIGHTS: bigint =
@@ -1342,7 +1571,7 @@ function readSubscription(buffer: Uint8Array): Subscription {
  *  Alignment: 8
  *  Record members
  *    dev (offset: 0, size: 8): device Device ID of device containing the file.
- *    ino (offset: 8, size: 8): inode File serial number.
+ *    ino (offset: 8, size: 8): inode File serial number that is unique within its file system.
  *    filetype (offset: 16, size: 1): filetype File type.
  *    nlink (offset: 24, size: 8): linkcount Number of hard links to the file.
  *    size (offset: 32, size: 8): filesize For regular files, the file size in bytes. For symbolic links, the length in bytes of the pathname contained in the symbolic link.
@@ -1356,14 +1585,42 @@ function createFilestat(stat: DriveStat): Uint8Array {
   view.setBigUint64(0, BigInt(0), true); // dev
   view.setBigUint64(8, BigInt(cyrb53(stat.path)), true); // ino
   view.setUint8(16, stat.type); // filetype
-  view.setBigUint64(24, BigInt(0), true); // nlink
+  view.setBigUint64(24, BigInt(1), true); // nlink - every file has one hard link
   view.setBigUint64(32, BigInt(stat.byteLength), true); // size
-  view.setBigUint64(40, BigInt(dateToNanoseconds(stat.timestamps.access))); // atim
-  view.setBigUint64(
-    48,
-    BigInt(dateToNanoseconds(stat.timestamps.modification))
-  ); // mtim
-  view.setBigUint64(56, BigInt(dateToNanoseconds(stat.timestamps.change))); // ctim
+  view.setBigUint64(40, dateToNanoseconds(stat.timestamps.access), true); // atim
+  view.setBigUint64(48, dateToNanoseconds(stat.timestamps.modification), true); // mtim
+  view.setBigUint64(56, dateToNanoseconds(stat.timestamps.change), true); // ctim
+  return buffer;
+}
+
+/**
+ * Creates a filestat record as bytes
+ * This is the wasi-unstable (preview0) version
+ * File attributes.
+ *  Size: 64
+ *  Alignment: 8
+ *  Record members
+ *    dev (offset: 0, size: 8): device Device ID of device containing the file.
+ *    ino (offset: 8, size: 8): inode File serial number that is unique within its file system.
+ *    filetype (offset: 16, size: 1): filetype File type.
+ *    nlink (offset: 20, size: 4): linkcount Number of hard links to the file.
+ *    size (offset: 24, size: 8): filesize For regular files, the file size in bytes. For symbolic links, the length in bytes of the pathname contained in the symbolic link.
+ *    atim (offset: 32, size: 8): timestamp Last data access timestamp.
+ *    mtim (offset: 40, size: 8): timestamp Last data modification timestamp.
+ *    ctim (offset: 48, size: 8): timestamp Last file status change timestamp.
+ *
+ */
+function createUnstableFilestat(stat: DriveStat): Uint8Array {
+  const buffer = new Uint8Array(FILESTAT_SIZE);
+  const view = new DataView(buffer.buffer);
+  view.setBigUint64(0, BigInt(0), true); // dev
+  view.setBigUint64(8, BigInt(cyrb53(stat.path)), true); // ino
+  view.setUint8(16, stat.type); // filetype
+  view.setUint32(20, 1, true); // nlink - every file has one hard link
+  view.setBigUint64(24, BigInt(stat.byteLength), true); // size
+  view.setBigUint64(32, dateToNanoseconds(stat.timestamps.access), true); // atim
+  view.setBigUint64(40, dateToNanoseconds(stat.timestamps.modification), true); // mtim
+  view.setBigUint64(48, dateToNanoseconds(stat.timestamps.change), true); // ctim
   return buffer;
 }
 
@@ -1508,3 +1765,10 @@ function dateToNanoseconds(date: Date) {
 function nanosecondsToDate(nanos: bigint) {
   return new Date(Number(nanos / BigInt(1e6)));
 }
+
+// Whence in wasi_unstable and wasi_snapshot_preview1 has different values
+const UNSTABLE_WHENCE_MAP = {
+  [UnstableWhence.CUR]: Whence.CUR,
+  [UnstableWhence.END]: Whence.END,
+  [UnstableWhence.SET]: Whence.SET,
+};

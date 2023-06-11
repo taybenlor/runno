@@ -25,7 +25,6 @@ export function handleParams(provider: RuntimeMethods) {
   const params = new URLSearchParams(urlParams);
 
   const code = params.get("code") ? atob(decode(params.get("code")!)) : "";
-  const command = params.get("command");
   const runtimeName = params.get("runtime");
   const showEditor = isTruthy(params.get("editor"));
   const autorun = isTruthy(params.get("autorun"));
@@ -53,14 +52,5 @@ export function handleParams(provider: RuntimeMethods) {
 
   if (autorun && runtimeName) {
     provider.interactiveRunCode(runtimeName as Runtime, code);
-  }
-
-  if (command) {
-    provider.interactiveUnsafeCommand(command, {
-      code: {
-        name: "code",
-        content: code,
-      },
-    });
   }
 }

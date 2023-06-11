@@ -4,7 +4,6 @@ import { WASI, WASIContext } from "../lib/main";
 (window as any)["WASI"] = WASI;
 (window as any)["WASIContext"] = WASIContext;
 
-// TODO: Provide UI for changing test binaries
 const programSelect = document.getElementById("program")! as HTMLSelectElement;
 const argsInput = document.getElementById("args")! as HTMLInputElement;
 const runButton = document.getElementById("run")! as HTMLButtonElement;

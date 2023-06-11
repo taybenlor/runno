@@ -34,7 +34,7 @@ export class WASIDrive {
     // See:
     //   1. how to access preopens - https://github.com/WebAssembly/WASI/issues/323
     //   2. how preopens work - https://github.com/WebAssembly/WASI/issues/352
-    this.openMap.set(3, new OpenDirectory(this.fs, ""));
+    this.openMap.set(3, new OpenDirectory(this.fs, "/"));
   }
 
   //
@@ -47,7 +47,7 @@ export class WASIDrive {
   ): DriveResult<FileDescriptor> {
     const file = new OpenFile(fileData, fdflags);
     if (truncateFile) {
-      file.buffer = new Uint8Array();
+      file.buffer = new Uint8Array(new ArrayBuffer(1024), 0, 0);
     }
     const fd = this.nextFD;
     this.openMap.set(fd, file);
@@ -63,12 +63,12 @@ export class WASIDrive {
     return [Result.SUCCESS, fd];
   }
 
-  private hasDir(path: string) {
+  private hasDir(dir: OpenDirectory, path: string) {
     if (path === ".") {
       return true;
     }
 
-    return !!Object.keys(this.fs).find((s) => s.startsWith(`${path}/`));
+    return dir.containsDirectory(path);
   }
 
   //
@@ -91,7 +91,7 @@ export class WASIDrive {
       return [Result.EBADF];
     }
 
-    if (path in this.fs) {
+    if (openDir.containsFile(path)) {
       // This is a file
       if (failIfNotDir) {
         return [Result.ENOTDIR];
@@ -99,20 +99,22 @@ export class WASIDrive {
       if (failIfFileExists) {
         return [Result.EEXIST];
       }
-      return this.openFile(this.fs[path], truncateFile, fdflags);
-    } else if (this.hasDir(path)) {
+
+      return this.openFile(openDir.get(path)!, truncateFile, fdflags);
+    } else if (this.hasDir(openDir, path)) {
       if (path === ".") {
-        return this.openDir(this.fs, "");
+        return this.openDir(this.fs, "/");
       }
 
-      const prefix = `${path}/`;
+      const prefix = `/${path}/`;
       // This is a directory
       const dir = Object.entries(this.fs).filter(([s]) => s.startsWith(prefix));
       return this.openDir(Object.fromEntries(dir), prefix);
     } else {
       if (createFileIfNone) {
-        this.fs[path] = {
-          path: path,
+        const fullPath = openDir.fullPath(path);
+        this.fs[fullPath] = {
+          path: fullPath,
           mode: "binary",
           content: new Uint8Array(),
           timestamps: {
@@ -121,7 +123,7 @@ export class WASIDrive {
             change: new Date(),
           },
         };
-        return this.openFile(this.fs[path], truncateFile, fdflags);
+        return this.openFile(this.fs[fullPath], truncateFile, fdflags);
       }
       return [Result.ENOTCAPABLE];
     }
@@ -198,7 +200,7 @@ export class WASIDrive {
     fd: FileDescriptor,
     offset: bigint,
     whence: Whence
-  ): DriveResult<number> {
+  ): DriveResult<bigint> {
     const file = this.openMap.get(fd);
     if (!file || file instanceof OpenDirectory) {
       return [Result.EBADF];
@@ -207,7 +209,7 @@ export class WASIDrive {
     return [Result.SUCCESS, file.seek(offset, whence)];
   }
 
-  tell(fd: FileDescriptor): DriveResult<number> {
+  tell(fd: FileDescriptor): DriveResult<bigint> {
     const file = this.openMap.get(fd);
     if (!file || file instanceof OpenDirectory) {
       return [Result.EBADF];
@@ -277,12 +279,14 @@ export class WASIDrive {
       return Result.EEXIST;
     }
 
+    const oldFullPath = oldDir.fullPath(oldPath);
+    const newFullPath = newDir.fullPath(newPath);
+
     for (const key of Object.keys(this.fs)) {
-      const oldFullPath = oldDir.fullPath(oldPath);
-      const newFullPath = newDir.fullPath(newPath);
       if (key.startsWith(oldFullPath)) {
         const newPath = key.replace(oldFullPath, newFullPath);
         this.fs[newPath] = this.fs[key];
+        this.fs[newPath].path = newPath;
         delete this.fs[key];
       }
     }
@@ -314,16 +318,19 @@ export class WASIDrive {
       return [Result.EBADF];
     }
 
-    if (path in this.fs) {
-      return [Result.SUCCESS, new OpenFile(this.fs[path], 0).stat()];
-    } else if (Object.keys(this.fs).find((s) => s.startsWith(`${path}/`))) {
-      const prefix = `${path}/`;
-      // This is a directory
+    if (dir.containsFile(path)) {
+      const fullPath = dir.fullPath(path);
+      const stat = new OpenFile(this.fs[fullPath], 0).stat();
+      return [Result.SUCCESS, stat];
+    } else if (this.hasDir(dir, path)) {
+      if (path === ".") {
+        return [Result.SUCCESS, new OpenDirectory(this.fs, "/").stat()];
+      }
+
+      const prefix = `/${path}/`;
       const dir = Object.entries(this.fs).filter(([s]) => s.startsWith(prefix));
-      return [
-        Result.SUCCESS,
-        new OpenDirectory(Object.fromEntries(dir), prefix).stat(),
-      ];
+      const stat = new OpenDirectory(Object.fromEntries(dir), prefix).stat();
+      return [Result.SUCCESS, stat];
     } else {
       return [Result.ENOTCAPABLE];
     }
@@ -464,7 +471,7 @@ export class WASIDrive {
 class OpenFile {
   file: WASIFile;
   buffer: Uint8Array;
-  private offset: number = 0;
+  private _offset: bigint = BigInt(0);
   isDirty: boolean = false;
   fdflags: number;
   flagAppend: boolean;
@@ -473,6 +480,12 @@ class OpenFile {
   flagRSync: boolean;
   flagSync: boolean;
 
+  private get offset(): number {
+    // Hack: This will cause overflow issues with offsets larger than 4gb
+    //       but I hope that's fine??
+    return Number(this._offset);
+  }
+
   constructor(file: WASIFile, fdflags: number) {
     this.file = file;
 
@@ -480,7 +493,7 @@ class OpenFile {
       const encoder = new TextEncoder();
       this.buffer = encoder.encode(this.file.content);
     } else {
-      this.buffer = new Uint8Array(this.file.content);
+      this.buffer = this.file.content;
     }
 
     this.fdflags = fdflags;
@@ -492,16 +505,13 @@ class OpenFile {
   }
 
   read(bytes: number) {
-    const ret = new Uint8Array(
-      this.buffer.subarray(this.offset, this.offset + bytes)
-    );
-    this.offset += bytes;
+    const ret = this.buffer.slice(this.offset, bytes);
+    this._offset += BigInt(ret.length);
     return ret;
   }
 
   pread(bytes: number, offset: number) {
-    const ret = new Uint8Array(this.buffer.subarray(offset, bytes));
-    return ret;
+    return this.buffer.slice(offset, bytes);
   }
 
   write(data: Uint8Array) {
@@ -509,21 +519,17 @@ class OpenFile {
 
     if (this.flagAppend) {
       // TODO: Not sure what the semantics for offset are here
-      const newBuffer = new Uint8Array(
-        this.buffer.byteLength + data.byteLength
-      );
-      newBuffer.set(this.buffer);
-      newBuffer.set(data, this.buffer.byteLength);
-      this.buffer = newBuffer;
-    } else if (this.offset + data.byteLength > this.buffer.byteLength) {
-      const newBuffer = new Uint8Array(this.offset + data.byteLength);
-      newBuffer.set(this.buffer);
-      newBuffer.set(data, this.offset);
-      this.buffer = newBuffer;
-      this.offset += data.byteLength;
+      const length = this.buffer.length;
+      this.resize(length + data.byteLength);
+      this.buffer.set(data, length);
     } else {
+      const newSize = Math.max(
+        this.offset + data.byteLength,
+        this.buffer.byteLength
+      );
+      this.resize(newSize);
       this.buffer.set(data, this.offset);
-      this.offset += data.byteLength;
+      this._offset += BigInt(data.byteLength);
     }
 
     if (this.flagDSync || this.flagSync) {
@@ -535,20 +541,17 @@ class OpenFile {
     this.isDirty = true;
 
     if (this.flagAppend) {
-      // TODO: Not sure what the semantics for offset are here?
-      const newBuffer = new Uint8Array(
-        this.buffer.byteLength + data.byteLength + offset
-      );
-      newBuffer.set(this.buffer);
-      newBuffer.set(data, this.buffer.byteLength + offset);
-      this.buffer = newBuffer;
-    } else if (offset + data.byteLength > this.buffer.byteLength) {
-      const newBuffer = new Uint8Array(offset + data.byteLength);
-      newBuffer.set(this.buffer);
-      newBuffer.set(data, offset);
-      this.buffer = newBuffer;
+      // TODO: Not sure what the semantics for offset are here
+      const length = this.buffer.length;
+      this.resize(length + data.byteLength);
+      this.buffer.set(data, length);
     } else {
-      this.buffer.set(data);
+      const newSize = Math.max(
+        offset + data.byteLength,
+        this.buffer.byteLength
+      );
+      this.resize(newSize);
+      this.buffer.set(data, offset);
     }
 
     if (this.flagDSync || this.flagSync) {
@@ -561,36 +564,34 @@ class OpenFile {
       return;
     }
 
+    this.isDirty = false;
     if (this.file.mode === "binary") {
-      this.file.content = this.buffer;
+      this.file.content = new Uint8Array(this.buffer);
       return;
     }
 
     const decoder = new TextDecoder();
     this.file.content = decoder.decode(this.buffer);
-    this.isDirty = false;
     return;
   }
 
   seek(offset: bigint, whence: Whence) {
-    // TODO: Technically we're losing precision here by casting
-    //       bigint to number, that will cause issues with big files
     switch (whence) {
       case Whence.SET:
-        this.offset = Number(offset);
+        this._offset = offset;
         break;
       case Whence.CUR:
-        this.offset += Number(offset);
+        this._offset += offset;
         break;
       case Whence.END:
-        this.offset = this.buffer.byteLength + Number(offset);
+        this._offset = BigInt(this.buffer.length) + offset;
         break;
     }
-    return this.offset;
+    return this._offset;
   }
 
   tell() {
-    return this.offset;
+    return this._offset;
   }
 
   stat(): DriveStat {
@@ -598,7 +599,7 @@ class OpenFile {
       path: this.file.path,
       timestamps: this.file.timestamps,
       type: FileType.REGULAR_FILE,
-      byteLength: this.buffer.byteLength,
+      byteLength: this.buffer.length,
     };
   }
 
@@ -607,9 +608,7 @@ class OpenFile {
   }
 
   setSize(size: number) {
-    const newBuffer = new Uint8Array(size);
-    newBuffer.set(this.buffer.subarray(0, size));
-    this.buffer = newBuffer;
+    this.resize(size);
   }
 
   setAccessTime(date: Date) {
@@ -619,6 +618,42 @@ class OpenFile {
   setModificationTime(date: Date) {
     this.file.timestamps.modification = date;
   }
+
+  /**
+   * Resizes the buffer to be exactly requiredBytes length, while resizing the
+   * underlying buffer to be larger if necessary.
+   *
+   * Resizing will internally double the buffer size to reduce the need for
+   * resizing often.
+   *
+   * @param requiredBytes how many bytes the buffer needs to have available
+   */
+  private resize(requiredBytes: number) {
+    if (requiredBytes <= this.buffer.buffer.byteLength) {
+      this.buffer = new Uint8Array(this.buffer.buffer, 0, requiredBytes);
+      return;
+    }
+
+    let underBuffer: ArrayBuffer;
+
+    if (this.buffer.buffer.byteLength === 0) {
+      underBuffer = new ArrayBuffer(1024);
+    } else if (requiredBytes > this.buffer.buffer.byteLength * 2) {
+      underBuffer = new ArrayBuffer(requiredBytes * 2);
+    } else {
+      underBuffer = new ArrayBuffer(this.buffer.buffer.byteLength * 2);
+    }
+
+    const newBuffer = new Uint8Array(underBuffer, 0, requiredBytes);
+    newBuffer.set(this.buffer);
+    this.buffer = newBuffer;
+  }
+}
+
+function removePrefix(path: string, prefix: string) {
+  const escapedPrefix = prefix.replace(/[/\-\\^$*+?.()|[\]{}]/g, "\\$&");
+  const leadingRegex = new RegExp(`^${escapedPrefix}`);
+  return path.replace(leadingRegex, "");
 }
 
 class OpenDirectory {
@@ -630,9 +665,31 @@ class OpenDirectory {
     this.prefix = prefix;
   }
 
+  containsFile(relativePath: string) {
+    for (const path of Object.keys(this.dir)) {
+      const name = removePrefix(path, this.prefix);
+      if (name === relativePath) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  containsDirectory(relativePath: string) {
+    for (const path of Object.keys(this.dir)) {
+      const name = removePrefix(path, this.prefix);
+      if (name.startsWith(`${relativePath}/`)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   contains(relativePath: string) {
     for (const path of Object.keys(this.dir)) {
-      const name = path.replace(this.prefix, "");
+      const name = removePrefix(path, this.prefix);
       if (name === relativePath || name.startsWith(`${relativePath}/`)) {
         return true;
       }
@@ -653,7 +710,7 @@ class OpenDirectory {
     const entries: Array<DirectoryEntry> = [];
     const seenFolders = new Set<string>();
     for (const path of Object.keys(this.dir)) {
-      const name = path.replace(this.prefix, "");
+      const name = removePrefix(path, this.prefix);
       if (name.includes("/")) {
         const dirName = name.split("/")[0];
         if (seenFolders.has(dirName)) {

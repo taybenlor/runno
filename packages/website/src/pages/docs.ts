@@ -693,16 +693,6 @@ fs: FS
               the editor.
             </p>
 
-            <h4><code>interactiveUnsafeCommand</code></h4>
-            <pre><code>interactiveUnsafeCommand(command: string, fs: FS): Promise&lt;RunResult&gt;</code></pre>
-            <p>
-              Runs a concrete command in a similar way to
-              <a target="_blank" href="https://webassembly.sh">
-                webassembly.sh </a
-              >. This is internally used to support Runno's runtimes. You could
-              use this to pull your own packages from WAPM and run them.
-            </p>
-
             <h4><code>interactiveStop</code></h4>
             <pre><code>interactiveStop(): Promise&lt;void&gt;</code></pre>
             <p>
@@ -734,17 +724,6 @@ stdin?: string
             <p>
               Corresponding headless version of running with an FS. See:
               <code>interactiveRunFS</code>
-            </p>
-
-            <h4><code>headlessUnsafeCommand</code></h4>
-            <pre><code>headlessUnsafeCommand(
-command: string,
-fs: FS,
-stdin?: string
-): Promise&lt;RunResult&gt;</code></pre>
-            <p>
-              Corresponding headless version of running an unsafe command. See:
-              <code>interactiveUnsafeCommand</code>
             </p>
 
             <h3 class="host-types">Important Types</h3>
@@ -821,17 +800,13 @@ content: string | Uint8Array;
 
             <pre><code>$ npm install @runno/runtime</code></pre>
 
-            <p>Then you'll be able to import <code>defineElements</code>.</p>
+            <p>Then import the package to define the elements:</p>
 
-            <pre><code>import { defineElements } from '@runno/runtime'</code></pre>
-
-            <p>And call it as part of your main script while the page loads.</p>
-
-            <pre><code>defineElements();</code></pre>
+            <pre><code>import '@runno/runtime'</code></pre>
 
             <p>
-              Once you've called <code>defineElements</code> you can use runno
-              elements on the page.
+              Once you've imported the runtime, you can use the custom elements
+              on your page.
             </p>
 
             <pre><code>&lt;runno-run runtime="python" editor controls&gt;
@@ -991,17 +966,6 @@ code="string" &lt;!-- optional --&gt;
                   Uint8Array)</code
                 >
                 - writes a file to the local file system
-              </li>
-              <li>
-                <code
-                  >runCommand(command: string): Promise&lt;RunResult&gt;</code
-                >
-                - Runs a raw command (see:
-                <code>interactiveUnsafeCommand</code>)
-              </li>
-              <li>
-                <code>isReadyForCommand()</code>
-                - Whether it's ready for a command (not running one)
               </li>
               <li>
                 <code>stop()</code>

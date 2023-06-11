@@ -31,7 +31,13 @@ test.describe("Python Hello World", () => {
     await expect(page.locator("runno-editor .cm-content")).toHaveText(program);
   });
 
-  test("should say hello world", async ({ page }) => {
+  test("should say hello world", async ({ page, browserName }) => {
+    // https://github.com/microsoft/playwright/issues/14043
+    test.skip(
+      browserName === "webkit",
+      "Playwright doesn't support SharedArrayBuffer"
+    );
+
     await page.locator("button", { hasText: "Run" }).click();
 
     await page.locator("runno-controls:not([running])").waitFor();
@@ -39,8 +45,8 @@ test.describe("Python Hello World", () => {
     const terminal = await page.locator("runno-terminal").elementHandle();
     expect(terminal).not.toBeNull();
     const text = await terminal!.evaluate((terminal: TerminalElement) => {
-      terminal.wasmTerminal.xterm.selectAll();
-      return terminal.wasmTerminal.xterm.getSelection().trim();
+      terminal.terminal.selectAll();
+      return terminal.terminal.getSelection().trim();
     });
 
     expect(text).toEqual("hello world");

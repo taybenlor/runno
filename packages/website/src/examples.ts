@@ -48,6 +48,7 @@ puts "G'day #{name}, welcome to Runno."
 `.trimStart();
 
 const quickjs = `
+import * as std from "std";
 std.out.puts("Hello, World!\\nWhat's your name? ");
 std.out.flush();
 const name = std.in.getline();

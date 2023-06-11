@@ -21,7 +21,9 @@ export const extractTarGz = async (binary: Uint8Array): Promise<File[]> => {
         return file.type === "file" || file.type === "0" || file.type == 0;
       })
       .map((file: TarFile) => {
-        return new File([file.blob], file.name, {
+        // HACK: Make all files start with / to solve compatibility issues
+        const name = file.name.replace(/^([^/])/, "/$1");
+        return new File([file.blob], name, {
           lastModified: Date.now(),
         });
       });

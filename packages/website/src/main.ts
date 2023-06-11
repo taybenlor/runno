@@ -7,6 +7,4 @@ import "./pages/articles";
 
 import "./components/route";
 
-import { defineElements } from "@runno/runtime";
-
-defineElements();
+import "@runno/runtime";

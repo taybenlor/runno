@@ -1,3 +1,6 @@
+import { WASIFS } from "@runno/wasi-motor";
+import { extractTarGz } from "./tar";
+
 export function stripWhitespace(text: string): string {
   const lines = text.split(/\n/);
   let commonWhitespace = null;
@@ -46,4 +49,63 @@ export function elementCodeContent(element: HTMLElement): string {
     code = stripWhitespace(element.textContent || "");
   }
   return code;
+}
+
+/**
+ * Fetches and deflates a .tar.gz file representing a base filesystem.
+ * This is for languages that require specific files to already exist.
+ *
+ * Prefers .tar.gz files in ustar format.
+ *
+ * @param fsURL The URL of the filesystem to fetch
+ */
+export async function fetchWASIFS(fsURL: `${string}.tar.gz`) {
+  const response = await fetch(fsURL);
+  const buffer = await response.arrayBuffer();
+  const files = await extractTarGz(new Uint8Array(buffer));
+
+  const fs: WASIFS = {};
+  for (const file of files) {
+    fs[file.name] = {
+      path: file.name,
+      timestamps: {
+        change: new Date(file.lastModified),
+        access: new Date(file.lastModified),
+        modification: new Date(file.lastModified),
+      },
+      mode: "binary",
+      content: new Uint8Array(await file.arrayBuffer()),
+    };
+  }
+
+  return fs;
+}
+
+export function isErrorObject(
+  e: unknown
+): e is { type: string; message: string } {
+  return (
+    e != null &&
+    typeof e === "object" &&
+    "message" in e &&
+    typeof e["message"] === "string" &&
+    "type" in e &&
+    typeof e["type"] === "string"
+  );
+}
+
+export function makeRunnoError(e: unknown): { type: string; message: string } {
+  if (e instanceof Error) {
+    return {
+      message: e.message,
+      type: e.constructor.name,
+    };
+  } else if (isErrorObject(e)) {
+    return e;
+  } else {
+    return {
+      message: `unknown error - ${e}`,
+      type: "Unknown",
+    };
+  }
 }

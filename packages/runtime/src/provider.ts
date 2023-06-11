@@ -2,60 +2,15 @@ import { EditorElement } from "./editor";
 import { TerminalElement } from "./terminal";
 import {
   RunResult,
-  CommandResult,
-  FS,
+  WASIFS,
   Runtime,
   Syntax,
   RuntimeMethods,
 } from "@runno/host";
-import { WasmFs } from "./wasmfs";
-import { headlessRunCommand } from "./headless";
 import { ControlsElement } from "./controls";
-
-type RuntimeCommands = {
-  prepare?: Array<string>;
-  run: string;
-};
-
-function commandsForRuntime(name: string, entryPath: string): RuntimeCommands {
-  if (name === "python") {
-    return { run: `python ${entryPath}` };
-  }
-
-  if (name === "ruby") {
-    return { run: `cat ${entryPath} | ruby --disable=gems` };
-  }
-
-  if (name === "quickjs") {
-    return { run: `quickjs --std ${entryPath}` };
-  }
-
-  if (name === "sqlite") {
-    return { run: `cat ${entryPath} | sqlite` };
-  }
-
-  if (name === "clang") {
-    return {
-      prepare: [
-        `clang -cc1 -Werror -triple wasm32-unkown-wasi -isysroot /sys -internal-isystem /sys/include -ferror-limit 4 -fmessage-length 80 -fcolor-diagnostics -O2 -emit-obj -o ./program.o ${entryPath}`,
-        `wasm-ld -L/sys/lib/wasm32-wasi /sys/lib/wasm32-wasi/crt1.o ./program.o -lc -o ./program.wasm`,
-      ],
-      run: `wasmer run ./program.wasm`,
-    };
-  }
-
-  if (name === "clangpp") {
-    return {
-      prepare: [
-        `runno-clang -cc1 -Werror -emit-obj -disable-free -isysroot /sys -internal-isystem /sys/include/c++/v1 -internal-isystem /sys/include -internal-isystem /sys/lib/clang/8.0.1/include -ferror-limit 4 -fmessage-length 80 -fcolor-diagnostics -O2 -o program.o -x c++  ${entryPath}`,
-        `runno-wasm-ld --no-threads --export-dynamic -z stack-size=1048576 -L/sys/lib/wasm32-wasi /sys/lib/wasm32-wasi/crt1.o program.o -lc -lc++ -lc++abi -o ./program.wasm`,
-      ],
-      run: `wasmer run ./program.wasm`,
-    };
-  }
-
-  throw new Error(`Unknown runtime ${name}`);
-}
+import { commandsForRuntime, getBinaryPathFromCommand } from "./commands";
+import { headlessPrepareFS, headlessRunCode, headlessRunFS } from "./headless";
+import { fetchWASIFS, makeRunnoError } from "./helpers";
 
 export class RunnoProvider implements RuntimeMethods {
   terminal: TerminalElement;
@@ -70,16 +25,6 @@ export class RunnoProvider implements RuntimeMethods {
     this.terminal = terminal;
     this.editor = editor;
     this.controls = controls;
-  }
-
-  //
-  // Private Helpers
-  //
-
-  writeFS(fs: FS) {
-    for (const [name, file] of Object.entries(fs)) {
-      this.terminal.writeFile(name, file.content);
-    }
   }
 
   //
@@ -111,82 +56,60 @@ export class RunnoProvider implements RuntimeMethods {
   }
 
   interactiveRunCode(runtime: Runtime, code: string): Promise<RunResult> {
-    return this.interactiveRunFS(runtime, "program", {
-      program: { name: "program", content: code },
+    return this.interactiveRunFS(runtime, "/program", {
+      "/program": {
+        path: "/program",
+        content: code,
+        mode: "string",
+        timestamps: {
+          access: new Date(),
+          modification: new Date(),
+          change: new Date(),
+        },
+      },
     });
   }
 
   async interactiveRunFS(
     runtime: Runtime,
     entryPath: string,
-    fs: FS
+    fs: WASIFS
   ): Promise<RunResult> {
+    this.terminal.terminal.clear();
+    this.terminal.terminal.write("Preparing environment...");
+
     const commands = commandsForRuntime(runtime, entryPath);
 
-    this.writeFS(fs);
+    try {
+      const prepare = await headlessPrepareFS(commands.prepare ?? [], fs);
+      fs = prepare.fs;
+    } catch (e) {
+      console.error(e);
+      this.terminal.terminal.write(`\nRunno crashed: ${e}`);
 
-    let prepare: CommandResult | undefined = undefined;
-    if (commands.prepare) {
-      prepare = {
-        stdin: "",
-        stdout: "",
-        stderr: "",
-        tty: "",
-        fs: {},
-        exit: 0,
+      return {
+        resultType: "crash",
+        error: makeRunnoError(e),
       };
-      for (const command of commands.prepare || []) {
-        const { result } = await this.interactiveUnsafeCommand(command, {});
-        if (!result) {
-          throw new Error("Unexpected missing result");
-        }
-        prepare.stdin += result.stdin;
-        prepare.stdout += result.stdout;
-        prepare.stderr += result.stderr;
-        prepare.tty += result.tty;
-
-        // It's okay not to merge here since the FS is cumulative
-        // over each run.
-        prepare.fs = result.fs;
-        prepare.exit = result.exit;
-
-        if (result.exit !== 0) {
-          // If a prepare step fails then we stop.
-          return {
-            prepare,
-          };
-        }
-      }
     }
 
-    const { result } = await this.interactiveUnsafeCommand(commands.run, {});
-    return { result, prepare };
-  }
+    const { run } = commands;
+    const binaryPath = getBinaryPathFromCommand(run, fs);
 
-  async interactiveUnsafeCommand(command: string, fs: FS): Promise<RunResult> {
-    this.writeFS(fs);
-    this.terminal.clear();
-    let result = await this.terminal.runCommand(command);
-    if (result.exit === 1) {
-      const isSafari = /^((?!chrome|android).)*safari/i.test(
-        navigator.userAgent
-      );
-      if (isSafari) {
-        // Safari seems to hit its call stack maximum probably due to the super
-        // large number of promises used, followed by calling WebAssembly etc.
-        // A neat solution is to just run the whole thing again since the second
-        // time it uses less promises because the binary is already downloaded.
-        // TODO: Fix this a different way see:
-        // https://github.com/taybenlor/runno/issues/152
-        this.writeFS(fs);
-        this.terminal.clear();
-        this.terminal.wasmTerminal.wasmTty.clearTty();
-        result = await this.terminal.runCommand(command);
-      }
+    this.terminal.terminal.clear();
+
+    if (run.baseFSURL) {
+      const baseFS = await fetchWASIFS(run.baseFSURL);
+      fs = { ...fs, ...baseFS };
     }
-    return {
-      result,
-    };
+
+    return this.terminal.run(
+      binaryPath,
+      run.binaryName,
+      fs,
+      run.args ?? [],
+      run.env ?? {}
+    );
   }
 
   interactiveStop(): void {
@@ -198,88 +121,15 @@ export class RunnoProvider implements RuntimeMethods {
     code: string,
     stdin?: string
   ): Promise<RunResult> {
-    return this.headlessRunFS(
-      runtime,
-      "program",
-      {
-        program: { name: "program", content: code },
-      },
-      stdin
-    );
+    return headlessRunCode(runtime, code, stdin);
   }
 
   async headlessRunFS(
     runtime: Runtime,
     entryPath: string,
-    fs: FS,
+    fs: WASIFS,
     stdin?: string
   ): Promise<RunResult> {
-    const commands = commandsForRuntime(runtime, entryPath);
-
-    let prepare: CommandResult | undefined = undefined;
-    if (commands.prepare) {
-      prepare = {
-        stdin: "",
-        stdout: "",
-        stderr: "",
-        tty: "",
-        fs: {},
-        exit: 0,
-      };
-      for (const command of commands.prepare || []) {
-        const { result } = await this.interactiveUnsafeCommand(command, {});
-        if (!result) {
-          throw new Error("Unexpected missing result");
-        }
-        prepare.stdin += result.stdin;
-        prepare.stdout += result.stdout;
-        prepare.stderr += result.stderr;
-        prepare.tty += result.tty;
-
-        // It's okay not to merge here since the FS is cumulative
-        // over each run.
-        prepare.fs = result.fs;
-        prepare.exit = result.exit;
-
-        if (result.exit !== 0) {
-          // If a prepare step fails then we stop.
-          return {
-            prepare,
-          };
-        }
-      }
-    }
-
-    const { result } = await this.headlessUnsafeCommand(
-      commands.run,
-      fs,
-      stdin
-    );
-    return {
-      result,
-      prepare,
-    };
-  }
-
-  async headlessUnsafeCommand(
-    command: string,
-    fs: FS,
-    stdin?: string
-  ): Promise<RunResult> {
-    const wasmfs = new WasmFs();
-    const jsonFs: { [name: string]: string | Uint8Array } = {
-      "/dev/stdin": "",
-      "/dev/stdout": "",
-      "/dev/stderr": "",
-    };
-    for (const key of Object.keys(fs)) {
-      jsonFs[key] = fs[key].content;
-    }
-    wasmfs.fromJSON(jsonFs);
-
-    const result = await headlessRunCommand(command, wasmfs, stdin);
-    return {
-      result,
-    };
+    return headlessRunFS(runtime, entryPath, fs, stdin);
   }
 }

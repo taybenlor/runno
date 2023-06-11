@@ -2,7 +2,9 @@ import { WASI } from "../wasi/wasi";
 import { WASIContextOptions, WASIContext } from "../wasi/wasi-context";
 import type { WASIExecutionResult } from "../types";
 
-type WorkerWASIContext = Pick<WASIContextOptions, "args" | "env" | "fs">;
+type WorkerWASIContext = Partial<
+  Pick<WASIContextOptions, "args" | "env" | "fs">
+>;
 
 type StartWorkerMessage = {
   target: "client";
@@ -25,28 +27,69 @@ type StderrHostMessage = {
   text: string;
 };
 
+type DebugHostMessage = {
+  target: "host";
+  type: "debug";
+  name: string;
+  args: string[];
+  ret: number;
+  data: { [key: string]: any }[];
+};
+
 type ResultHostMessage = {
   target: "host";
   type: "result";
   result: WASIExecutionResult;
 };
 
+type CrashHostMessage = {
+  target: "host";
+  type: "crash";
+  error: {
+    message: string;
+    type: string;
+  };
+};
+
 export type HostMessage =
   | StdoutHostMessage
   | StderrHostMessage
-  | ResultHostMessage;
+  | DebugHostMessage
+  | ResultHostMessage
+  | CrashHostMessage;
 
 onmessage = async (ev: MessageEvent) => {
   const data = ev.data as WorkerMessage;
 
   switch (data.type) {
     case "start":
-      const result = await start(data.binaryURL, data.stdinBuffer, data);
-      sendMessage({
-        target: "host",
-        type: "result",
-        result,
-      });
+      try {
+        const result = await start(data.binaryURL, data.stdinBuffer, data);
+        sendMessage({
+          target: "host",
+          type: "result",
+          result,
+        });
+      } catch (e) {
+        let error;
+        if (e instanceof Error) {
+          error = {
+            message: e.message,
+            type: e.constructor.name,
+          };
+        } else {
+          error = {
+            message: `unknown error - ${e}`,
+            type: "Unknown",
+          };
+        }
+        sendMessage({
+          target: "host",
+          type: "crash",
+          error,
+        });
+      }
+
       break;
   }
 };
@@ -67,6 +110,7 @@ async function start(
       stdout: sendStdout,
       stderr: sendStderr,
       stdin: (maxByteLength) => getStdin(maxByteLength, stdinBuffer),
+      debug: sendDebug,
     })
   );
 }
@@ -85,6 +129,30 @@ function sendStderr(err: string) {
     type: "stderr",
     text: err,
   });
+}
+
+function sendDebug(
+  name: string,
+  args: string[],
+  ret: number,
+  data: { [key: string]: any }[]
+) {
+  // this debug data comes through as part of a message
+  // we need to make sure it can be encoded by sendMessage
+  data = JSON.parse(JSON.stringify(data));
+  sendMessage({
+    target: "host",
+    type: "debug",
+    name,
+    args,
+    ret,
+    data,
+  });
+
+  // TODO: debugging WASI supports substituting a return value
+  //       but it's hard to do async, so lets just always return
+  //       the same value
+  return ret;
 }
 
 function getStdin(
