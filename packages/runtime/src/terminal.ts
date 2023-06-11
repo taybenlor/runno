@@ -3,11 +3,7 @@ import xtermcss from "xterm/css/xterm.css";
 import { Terminal } from "xterm";
 import { WebLinksAddon } from "xterm-addon-web-links";
 import { FitAddon } from "xterm-addon-fit";
-import {
-  WASIFS,
-  WASIWorkerHost,
-  WASIWorkerHostKilledError,
-} from "@runno/wasi-motor";
+import { WASIFS, WASIWorkerHost, WASIWorkerHostKilledError } from "@runno/wasi";
 import { makeRunnoError } from "./helpers";
 
 export class TerminalElement extends HTMLElement {

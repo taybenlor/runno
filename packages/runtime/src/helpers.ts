@@ -1,4 +1,4 @@
-import { WASIFS } from "@runno/wasi-motor";
+import { WASIFS } from "@runno/wasi";
 import { extractTarGz } from "./tar";
 
 export function stripWhitespace(text: string): string {

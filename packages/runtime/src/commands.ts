@@ -1,4 +1,4 @@
-import { WASIFS } from "@runno/wasi-motor";
+import { WASIFS } from "@runno/wasi";
 
 type CommandSource =
   | {

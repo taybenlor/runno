@@ -1,8 +1,8 @@
 {
-  "name": "@runno/wasi-motor",
-  "version": "0.3.1",
+  "name": "@runno/wasi",
+  "version": "0.4.0",
   "author": "Ben Taylor <runno@taybenlor.com>",
-  "description": "new WASI implementation for @runno",
+  "description": "Browser-only WASI implementation",
   "website": "https://runno.dev",
   "repository": {
     "type": "git",
