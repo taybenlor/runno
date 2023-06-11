@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "prepare": "npx husky install",
-    "bootstrap": "npx lerna bootstrap",
+    "bootstrap": "npm install",
     "dev": "echo TODO dev command, for now just use dev in client and website",
     "publish": "npm run build && npx lerna publish",
     "build:host": "cd packages/host && npm run build",
