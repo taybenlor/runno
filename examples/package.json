@@ -16,8 +16,8 @@
     "build": "tsc && vite build"
   },
   "dependencies": {
-    "@runno/host": "^0.3.0",
-    "@runno/runtime": "^0.3.0",
+    "@runno/host": "^0.4.1",
+    "@runno/runtime": "^0.4.2",
     "lit": "^2.0.2"
   },
   "devDependencies": {
