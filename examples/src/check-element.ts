@@ -1,4 +1,4 @@
-import { CommandResult, RuntimeMethods } from "@runno/host";
+import { CompleteResult, RuntimeMethods } from "@runno/host";
 import { RunElement } from "@runno/runtime";
 import { html, css, LitElement, svg } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
@@ -201,7 +201,7 @@ export class CheckElement extends LitElement {
     return stdin;
   }
 
-  matchStdout(result: CommandResult): StdoutMatch {
+  matchStdout(result: CompleteResult): StdoutMatch {
     const stdoutEl = this.querySelector<StdoutElement>("cs-stdout");
     if (!stdoutEl) {
       return {
@@ -209,7 +209,7 @@ export class CheckElement extends LitElement {
       };
     }
 
-    return stdoutEl.matchStdout(result.tty);
+    return stdoutEl.matchStdout(result.stdout);
   }
 
   clearStatus() {
@@ -231,10 +231,10 @@ export class CheckElement extends LitElement {
     this.status = "checking";
 
     const program = await provider.getEditorProgram();
-    const stdin = this.getStdin();
-    const { result } = await provider.headlessRunCode("python", program, stdin);
+    const stdin = this.getStdin() + "\n";
+    const result = await provider.headlessRunCode("python", program, stdin);
 
-    if (!result) {
+    if (result.resultType === "crash") {
       this.status = "none";
       this.feedback = {
         message: "There was a system error running your program.",
@@ -244,7 +244,17 @@ export class CheckElement extends LitElement {
         status: this.status,
         result,
       };
-    } else if (result.exit != 0) {
+    } else if (result.resultType === "terminated") {
+      this.status = "none";
+      this.feedback = {
+        message: "Your program was terminated early.",
+      };
+
+      return {
+        status: this.status,
+        result,
+      };
+    } else if (result.exitCode != 0) {
       this.status = "fail";
       this.feedback = {
         message: "Your program had an error.",
