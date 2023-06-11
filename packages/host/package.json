@@ -1,6 +1,6 @@
 {
   "name": "@runno/host",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "author": "Ben Taylor <runno@taybenlor.com>",
   "description": "iframe host for @runno",
   "website": "https://runno.dev",
@@ -32,11 +32,10 @@
     "@types/node": "^16.11.4",
     "@types/url-safe-base64": "^1.1.0",
     "esbuild": "^0.14.48",
-    "typescript": "^4.4.4",
-    "tslib": "^2.2.0",
     "post-me": "^0.4.5",
+    "tslib": "^2.2.0",
+    "typescript": "^4.4.4",
     "url-safe-base64": "^1.1.1"
   },
-  "dependencies": {},
   "gitHead": "812d21ec7c0c5d57c0274caaf7ff21c79ca79c1f"
 }
