@@ -6,13 +6,21 @@
 
 Runno helps you make runnable code examples that can be embedded in web pages.
 
-This project is based off a number of tools provided by [Wasmer](https://wasmer.io/). Wasmer provides a Web Assembly Package Manager ([wapm](https://wapm.io)) and a shell that can execute arbitrary packages from wapm in an in-memory file system using a terminal emulator. Using these tools together we can arbitrarily pull down packages that implement programming languages, and run them in the browser.
+This project is powered by [WASI](https://wasi.dev) the Web Assembly System
+Interface. It provides a standard way for programs to interact with an
+operating system. By emulating this interface, we can provide a fake file system
+and operating system, all running within the browser. Then we can run
+programming languages in the browser, without modification.
 
 This is very handy for programming education it means:
 
 - No need for newbies to install complex programming tools to run code
 - Programming examples can be made runnable in the browser with no server
 - Simple programs can be tested for correctness inside a sandbox on the user's machine
+
+Runno also ships its own WASI runtime (`@runno/wasi`) which is used to power
+Runno under the hood. It can be used independently to run WASI binaries in the
+browser.
 
 # Using Runno
 
@@ -172,13 +180,13 @@ The intention is for Runno to either disclose security risks upfront, or to fix 
 
 A number of open-source projects and standards have been used to make Runno possible. These include:
 
-- [Wasmer](https://wasmer.io/), [WAPM](https://wapm.io/), and [WebAssembly.sh](https://webassembly.sh) - the Wasmer team have built a lot of great tools for running Web Assembly. WAPM, the Web Assembly Package Manager is key to how Runno works. WebAssembly.sh was a great inspiration and starting point.
-
 - WASI and WebAssembly - a bunch of people from various working groups and especially the Bytecode Alliance have been involved in making WASM and WASI what it is today. Thanks heaps!
 
 - [XTerm.js](https://xtermjs.org/) - a fully featured terminal that can be run in the browser
 
 - [CodeMirror](https://codemirror.net) - a great web-based code editor that's always a delight to integrate
+
+- [Wasmer](https://wasmer.io/), [WAPM](https://wapm.io/), and [WebAssembly.sh](https://webassembly.sh) - the Wasmer team have built a lot of great tools for running Web Assembly. WebAssembly.sh was a great inspiration and starting point.
 
 - The extensive work by many in the web development community on making native code and APIs run successfully inside the browser.
 
