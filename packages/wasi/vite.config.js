@@ -4,6 +4,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   build: {
+    copyPublicDir: false, // Public dir contains testing binaries
     lib: {
       entry: resolve(__dirname, "lib/main.ts"),
       name: "WASI",
