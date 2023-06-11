@@ -18,7 +18,7 @@ This is very handy for programming education it means:
 - Programming examples can be made runnable in the browser with no server
 - Simple programs can be tested for correctness inside a sandbox on the user's machine
 
-Runno also ships its own WASI runtime (`@runno/wasi`) which is used to power
+Runno also ships its own WASI runtime ([`@runno/wasi`](https://github.com/taybenlor/runno/tree/main/packages/wasi)) which is used to power
 Runno under the hood. It can be used independently to run WASI binaries in the
 browser.
 

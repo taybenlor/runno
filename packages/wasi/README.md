@@ -1,4 +1,4 @@
-# @runno/wasi - A WASI runner for the web
+# A WASI runner for the web (`@runno/wasi`)
 
 There are a bunch of different WASI runners out there, some of them even work in
 the browser. This one is focused on sandboxed emulation. Not system integration.
