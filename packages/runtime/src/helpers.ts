@@ -80,3 +80,32 @@ export async function fetchWASIFS(fsURL: `${string}.tar.gz`) {
 
   return fs;
 }
+
+export function isErrorObject(
+  e: unknown
+): e is { type: string; message: string } {
+  return (
+    e != null &&
+    typeof e === "object" &&
+    "message" in e &&
+    typeof e["message"] === "string" &&
+    "type" in e &&
+    typeof e["type"] === "string"
+  );
+}
+
+export function makeRunnoError(e: unknown): { type: string; message: string } {
+  if (e instanceof Error) {
+    return {
+      message: e.message,
+      type: e.constructor.name,
+    };
+  } else if (isErrorObject(e)) {
+    return e;
+  } else {
+    return {
+      message: `unknown error - ${e}`,
+      type: "Unknown",
+    };
+  }
+}

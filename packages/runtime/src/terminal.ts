@@ -8,6 +8,7 @@ import {
   WASIWorkerHost,
   WASIWorkerHostKilledError,
 } from "@runno/wasi-motor";
+import { makeRunnoError } from "./helpers";
 
 export class TerminalElement extends HTMLElement {
   // Terminal Display
@@ -123,7 +124,7 @@ export class TerminalElement extends HTMLElement {
       }
       console.error(e);
       this.terminal.write(`\nRunno crashed: ${e}`);
-      return { resultType: "crash", error: e };
+      return { resultType: "crash", error: makeRunnoError(e) };
     } finally {
       this.workerHost = undefined;
     }

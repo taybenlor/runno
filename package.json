@@ -7,6 +7,9 @@
   "engines": {
     "node": ">=12"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "prepare": "npx husky install",
     "bootstrap": "npx lerna bootstrap",

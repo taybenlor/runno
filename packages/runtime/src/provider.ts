@@ -10,7 +10,7 @@ import {
 import { ControlsElement } from "./controls";
 import { commandsForRuntime, getBinaryPathFromCommand } from "./commands";
 import { headlessPrepareFS, headlessRunCode, headlessRunFS } from "./headless";
-import { fetchWASIFS } from "./helpers";
+import { fetchWASIFS, makeRunnoError } from "./helpers";
 
 export class RunnoProvider implements RuntimeMethods {
   terminal: TerminalElement;
@@ -86,9 +86,10 @@ export class RunnoProvider implements RuntimeMethods {
     } catch (e) {
       console.error(e);
       this.terminal.terminal.write(`\nRunno crashed: ${e}`);
+
       return {
         resultType: "crash",
-        error: e,
+        error: makeRunnoError(e),
       };
     }
 
