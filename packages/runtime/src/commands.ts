@@ -21,8 +21,7 @@ export type RuntimeCommands = {
 };
 
 // TODO: Fix the way this integrates locally
-// const baseURL = `${import.meta.env.VITE_HOST}/langs`;
-const baseURL = `http://localhost:4321/langs`;
+const baseURL = `${import.meta.env.VITE_HOST}/langs`;
 
 export function commandsForRuntime(
   name: string,
