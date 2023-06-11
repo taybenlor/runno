@@ -96,6 +96,8 @@ export function commandsForRuntime(
             "/sys",
             "-internal-isystem",
             "/sys/include",
+            "-internal-isystem",
+            "/sys/lib/clang/8.0.1/include",
             "-ferror-limit",
             "4",
             "-fmessage-length",
@@ -112,8 +114,12 @@ export function commandsForRuntime(
         },
         {
           binaryURL: `${baseURL}/wasm-ld.wasm`,
-          binaryName: "ld",
+          binaryName: "wasm-ld",
           args: [
+            "--no-threads",
+            "--export-dynamic",
+            "-z",
+            "stack-size=1048576",
             "-L/sys/lib/wasm32-wasi",
             "/sys/lib/wasm32-wasi/crt1.o",
             "/program.o",

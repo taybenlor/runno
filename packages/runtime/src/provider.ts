@@ -95,12 +95,13 @@ export class RunnoProvider implements RuntimeMethods {
     const { run } = commands;
     const binaryPath = getBinaryPathFromCommand(run, fs);
 
+    this.terminal.terminal.clear();
+
     if (run.baseFSURL) {
       const baseFS = await fetchWASIFS(run.baseFSURL);
       fs = { ...fs, ...baseFS };
     }
 
-    this.terminal.terminal.clear();
     return this.terminal.run(
       binaryPath,
       run.binaryName,
