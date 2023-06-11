@@ -1,4 +1,4 @@
-# @runno/wasi-motor - A WASI runner for the web
+# @runno/wasi - A WASI runner for the web
 
 There are a bunch of different WASI runners out there, some of them even work in
 the browser. This one is focused on sandboxed emulation. Not system integration.
@@ -20,7 +20,7 @@ Be aware that this will run on the main thread, not inside a worker. So you will
 interrupt any interactive use of the browser until it completes.
 
 ```js
-import { WASI, WASIContext } from "@runno/wasi-motor";
+import { WASI, WASIContext } from "@runno/wasi";
 
 //...
 
@@ -66,7 +66,7 @@ buffer which is then handled asynchronously. See `@runno/runtime` for examples
 on how to do this.
 
 ```ts
-import { WASIWorkerHost } from "@runno/wasi-motor";
+import { WASIWorkerHost } from "@runno/wasi";
 
 // ...
 

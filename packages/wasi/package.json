@@ -1,8 +1,8 @@
 {
-  "name": "@runno/wasi-motor",
-  "version": "0.3.1",
+  "name": "@runno/wasi",
+  "version": "0.4.0",
   "author": "Ben Taylor <runno@taybenlor.com>",
-  "description": "new WASI implementation for @runno",
+  "description": "Browser-only WASI implementation",
   "website": "https://runno.dev",
   "repository": {
     "type": "git",
@@ -16,13 +16,13 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/wasi-motor.umd.cjs",
-  "module": "./dist/wasi-motor.js",
+  "main": "./dist/wasi.umd.cjs",
+  "module": "./dist/wasi.js",
   "types": "./dist/lib/main.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/wasi-motor.js",
-      "require": "./dist/wasi-motor.umd.cjs"
+      "import": "./dist/wasi.js",
+      "require": "./dist/wasi.umd.cjs"
     }
   },
   "scripts": {

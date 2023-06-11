@@ -6,7 +6,7 @@ import { Terminal } from "xterm";
 import { WebLinksAddon } from "xterm-addon-web-links";
 import { FitAddon } from "xterm-addon-fit";
 
-import { WASIFS, WASIWorkerHost } from "@runno/wasi-motor";
+import { WASIFS, WASIWorkerHost } from "@runno/wasi";
 
 import { TailwindElement } from "../lib/tailwind";
 import { extractTarGz } from "../demos/tar";

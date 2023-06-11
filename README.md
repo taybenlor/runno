@@ -85,7 +85,7 @@ This repo is broken down into a few packages using [lerna](https://lerna.js.org/
 - `client` - a static website that exposes the runno runtime to be embedded as an iframe
 - `host` - helpers for running code on the client from another website
 - `runtime` - a library that provides web components and helpers that can be bundled into your own project for using runno without an iframe
-- `wasi-motor` - a library for running WASI binaries in the browser
+- `wasi` - a library for running WASI binaries in the browser
 
 ## Running locally
 

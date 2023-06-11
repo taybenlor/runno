@@ -1,5 +1,5 @@
 import { CompleteResult, RunResult, Runtime } from "@runno/host";
-import { WASIFS, WASIWorkerHost } from "@runno/wasi-motor";
+import { WASIFS, WASIWorkerHost } from "@runno/wasi";
 import {
   Command,
   commandsForRuntime,
