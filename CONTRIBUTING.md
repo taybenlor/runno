@@ -15,6 +15,7 @@ Some things I'd be very happy for other people to contribute:
 
 - **Support for new languages** (most useful!)
 - Fixing bugs
+- WASI Test cases
 - Small enhancements to the API
 - Performance improvements
 - Ideas, suggestions and feedback in Issues or by email
@@ -24,26 +25,30 @@ What I would be cautious about accepting:
 - Refactors to the way Runno works
 - Changes to the look and feel of Runno
 - Substantial new features
-- Tests
 - Documentation
 - Examples
+- Tests (outside of WASI)
 
 Tests, documentation, and examples would normally be useful contributions. But I
 haven't thought through how I want to fit them all in. For now these sorts of
 contributions would be best as issues, or elsewhere as blog posts.
 
-Runno doesn't have a test suite yet, so I'll be cautious about merging changes
-until I've worked through how I want to do testing. Please feel free to make
-suggestions in issues.
+Runno doesn't have a full test suite yet, so I'll be cautious about merging
+changes until I've worked through how I want to do testing. Please feel free to
+make suggestions in issues.
 
-The best thing you can do to contribute to Runno is to help add a new language!
+If you're interested in adding tests to the `@runno/wasi` package go ahead! That
+would be very useful. Check how the existing tests are being done to see how to
+contribute.
+
+Overall the best thing you can do to contribute to Runno is to help add a new
+language!
 
 ## Adding a language to Runno
 
-The most helpful thing you can do for Runno is to add a package for a language
-runtime to [WAPM](https://wapm.io) (the Web Assembly Package Manager) using the
-WASI ABI. Many languages have been ported to WASM already, but they tend to use
-Emscripten. Runno only supports WASI binaries at the moment.
+Runno only supports WASI binaries. If you can run the binary in the [Runno
+Playground (https://runno.dev/wasi)](https://runno.dev/wasi), then it should
+work in the Runno Runtime (`@runno/runtime`).
 
 ### Building your language runtime
 
@@ -65,17 +70,6 @@ language to already support WASM + WASI. So if you're thinking of compiling your
 favourite compiled language, make sure it supports WASI itself. Interpreted
 languages don't have this downside.
 
-For Runno to use your binary you'll need to put it up on WAPM. There's a guide
-to publishing packages [on the wasmer website](https://docs.wasmer.io/ecosystem/wapm/publishing-your-package).
-You could also look at a package I've published [runno-clang](https://github.com/taybenlor/clang).
-
-You should also test that it will run with a WASI runtime. You can use either
-the [wasmer](https://docs.wasmer.io/ecosystem/wasmer/getting-started) or
-[wasmtime](https://docs.wasmtime.dev/cli.html) standalone CLI tools. If it's
-already on WAPM you can also check it works on [WebAssembly.sh](https://webassembly.sh/).
-Runno forks a lot of the WebAssembly.sh packages, and so if it works there it
-will probably work in Runno.
-
 If you need any help with this, please email me! I'm very keen to see other
 languages get on Runno.
 
@@ -85,17 +79,17 @@ experience with it_
 
 ### Adding your language runtime to Runno
 
-If you've managed to get a language built and up on WAPM, I'm happy to do the
-work of putting it in Runno. Just throw up an issue, or email me! But if you're
-keen on doing the PR yourself here's some tips.
+If you've managed to get a language built and running on WASI, then I'm happy to
+do the work of putting it in Runno. Just throw up an issue, or email me! But if
+you're keen on doing the PR yourself here's some tips.
 
 Adding a new language to Runno means adding the name of the runtime in a bunch
 of different places. This might change as Runno changes, but if you look for the
 term `clang` in the codebase you should be able to find them all.
 
-The most important part is adding the commands to the `Provider` inside
-`commandsForRuntime`. Figuring out the best way to do this can be a bit
-hit-and-miss, but there should be enough examples there to work with.
+The most important part is adding the commands to `commands.ts`. Figuring out
+the best way to do this can be a bit hit-and-miss, but there should be enough
+examples there to work with.
 
 Once you've got it working you'll need to add an example for the language to
 `examples.ts`.
