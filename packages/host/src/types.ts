@@ -4,8 +4,16 @@ export type Runtime =
   | "sqlite"
   | "clang"
   | "clangpp"
-  | "ruby";
-export type Syntax = "python" | "js" | "sql" | "cpp" | "ruby" | undefined;
+  | "ruby"
+  | "php-cgi";
+export type Syntax =
+  | "python"
+  | "js"
+  | "sql"
+  | "cpp"
+  | "ruby"
+  | "php"
+  | undefined;
 
 export type CrashResult = {
   resultType: "crash";

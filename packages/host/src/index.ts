@@ -38,25 +38,24 @@ export function generateEmbedHTML(url: URL): string {
 }
 
 export function runtimeToSyntax(runtime: string | undefined | null): Syntax {
-  if (runtime == "python") {
-    return "python";
+  switch (runtime) {
+    case "python":
+      return "python";
+    case "quickjs":
+      return "js";
+    case "sqlite":
+      return "sql";
+    case "clang":
+      return "cpp";
+    case "clangpp":
+      return "cpp";
+    case "ruby":
+      return "ruby";
+    case "php-cgi":
+      return "php";
+    default:
+      return undefined;
   }
-  if (runtime == "quickjs") {
-    return "js";
-  }
-  if (runtime == "sqlite") {
-    return "sql";
-  }
-  if (runtime == "clang") {
-    return "cpp";
-  }
-  if (runtime == "clangpp") {
-    return "cpp";
-  }
-  if (runtime == "ruby") {
-    return "ruby";
-  }
-  return undefined;
 }
 
 export class RunnoHost implements RuntimeMethods {

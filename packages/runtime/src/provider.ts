@@ -56,9 +56,10 @@ export class RunnoProvider implements RuntimeMethods {
   }
 
   interactiveRunCode(runtime: Runtime, code: string): Promise<RunResult> {
-    return this.interactiveRunFS(runtime, "/program", {
-      "/program": {
-        path: "/program",
+    const entryPath = "/program";
+    return this.interactiveRunFS(runtime, entryPath, {
+      [entryPath]: {
+        path: entryPath,
         content: code,
         mode: "string",
         timestamps: {
@@ -76,7 +77,7 @@ export class RunnoProvider implements RuntimeMethods {
     fs: WASIFS
   ): Promise<RunResult> {
     this.terminal.terminal.clear();
-    this.terminal.terminal.write("Preparing environment...");
+    this.terminal.terminal.write("Preparing environment...\n");
 
     const commands = commandsForRuntime(runtime, entryPath);
 
@@ -85,7 +86,7 @@ export class RunnoProvider implements RuntimeMethods {
       fs = prepare.fs;
     } catch (e) {
       console.error(e);
-      this.terminal.terminal.write(`\nRunno crashed: ${e}`);
+      this.terminal.terminal.write(`\nRunno crashed: ${e}\n`);
 
       return {
         resultType: "crash",
@@ -96,6 +97,8 @@ export class RunnoProvider implements RuntimeMethods {
     const { run } = commands;
     const binaryPath = getBinaryPathFromCommand(run, fs);
 
+    // wait for terminal to write before we clear it
+    await new Promise((r) => setTimeout(r));
     this.terminal.terminal.clear();
 
     if (run.baseFSURL) {
