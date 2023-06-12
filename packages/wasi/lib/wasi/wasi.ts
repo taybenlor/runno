@@ -529,7 +529,14 @@ export class WASI implements SnapshotPreview1 {
   fd_fdstat_get(fd: number, retptr0: number): number {
     // STDIN / STDOUT / STDERR
     if (fd < 3) {
-      const buffer = createFdStat(FileType.CHARACTER_DEVICE, 0);
+      let buffer: Uint8Array;
+      if (this.context.isTTY) {
+        // Turn off FD_SEEK and FD_TELL rights to communicate that it's a tty
+        const rights = ALL_RIGHTS ^ RightsFlags.FD_SEEK ^ RightsFlags.FD_TELL;
+        buffer = createFdStat(FileType.CHARACTER_DEVICE, 0, rights);
+      } else {
+        buffer = createFdStat(FileType.BLOCK_DEVICE, 0);
+      }
       const retBuffer = new Uint8Array(
         this.memory.buffer,
         retptr0,
@@ -1633,9 +1640,13 @@ function createUnstableFilestat(stat: DriveStat): Uint8Array {
  * - fs_rights_base (offset: 8, size: 8): rights Rights that apply to this file descriptor.
  * - fs_rights_inheriting (offset: 16, size: 8): rights Maximum set of rights that may be installed on new file descriptors that are created through this file descriptor, e.g., through path_open.
  */
-function createFdStat(type: FileType, fdflags: number): Uint8Array {
-  const rightsBase = ALL_RIGHTS;
-  const rightsInheriting = ALL_RIGHTS;
+function createFdStat(
+  type: FileType,
+  fdflags: number,
+  rights?: bigint
+): Uint8Array {
+  const rightsBase = rights ?? ALL_RIGHTS;
+  const rightsInheriting = rights ?? ALL_RIGHTS;
 
   const buffer = new Uint8Array(24);
   const view = new DataView(buffer.buffer, 0, 24);

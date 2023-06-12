@@ -3,7 +3,7 @@ import { WASIContextOptions, WASIContext } from "../wasi/wasi-context";
 import type { WASIExecutionResult } from "../types";
 
 type WorkerWASIContext = Partial<
-  Pick<WASIContextOptions, "args" | "env" | "fs">
+  Omit<WASIContextOptions, "stdin" | "stdout" | "stderr" | "debug">
 >;
 
 type StartWorkerMessage = {
