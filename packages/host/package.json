@@ -1,6 +1,6 @@
 {
   "name": "@runno/host",
-  "version": "0.4.1",
+  "version": "0.4.3",
   "author": "Ben Taylor <runno@taybenlor.com>",
   "description": "iframe host for @runno",
   "website": "https://runno.dev",
