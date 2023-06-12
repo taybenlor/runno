@@ -535,7 +535,7 @@ export class WASI implements SnapshotPreview1 {
         const rights = ALL_RIGHTS ^ RightsFlags.FD_SEEK ^ RightsFlags.FD_TELL;
         buffer = createFdStat(FileType.CHARACTER_DEVICE, 0, rights);
       } else {
-        buffer = createFdStat(FileType.BLOCK_DEVICE, 0);
+        buffer = createFdStat(FileType.CHARACTER_DEVICE, 0);
       }
       const retBuffer = new Uint8Array(
         this.memory.buffer,
