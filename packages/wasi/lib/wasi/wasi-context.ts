@@ -9,6 +9,7 @@ export type WASIContextOptions = {
   stdout: (out: string) => void;
   stderr: (err: string) => void;
   debug: DebugFn;
+  isTTY: boolean;
 };
 
 /**
@@ -35,6 +36,7 @@ export class WASIContext {
   stdout: WASIContextOptions["stdout"];
   stderr: WASIContextOptions["stderr"];
   debug?: WASIContextOptions["debug"];
+  isTTY: WASIContextOptions["isTTY"];
 
   constructor(options?: Partial<WASIContextOptions>) {
     this.fs = options?.fs ?? {};
@@ -45,5 +47,6 @@ export class WASIContext {
     this.stdout = options?.stdout ?? (() => {});
     this.stderr = options?.stderr ?? (() => {});
     this.debug = options?.debug;
+    this.isTTY = !!options?.isTTY;
   }
 }

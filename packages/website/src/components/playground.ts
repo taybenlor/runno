@@ -216,6 +216,7 @@ export class WebsitePlayground extends TailwindElement {
         stdout: (out) => this.terminal.write(out),
         stderr: (err) => this.terminal.write(err), // TODO: Different colour?
         fs,
+        isTTY: true,
       });
       const result = await this.workerHost.start();
 

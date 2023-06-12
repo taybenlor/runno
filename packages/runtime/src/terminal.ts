@@ -90,6 +90,7 @@ export class TerminalElement extends HTMLElement {
         args: [binaryName, ...args],
         env,
         fs,
+        isTTY: true,
         stdout: (out) => {
           stdout += out;
           this.ttyHistory += out;

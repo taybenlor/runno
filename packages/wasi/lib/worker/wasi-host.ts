@@ -69,9 +69,13 @@ export class WASIWorkerHost {
         type: "start",
         binaryURL: this.binaryURL,
         stdinBuffer: this.stdinBuffer,
+
+        // Unfortunately can't just splat these because it includes types
+        // that can't be sent as a message.
         args: this.context.args,
         env: this.context.env,
         fs: this.context.fs,
+        isTTY: this.context.isTTY,
       });
     });
 
