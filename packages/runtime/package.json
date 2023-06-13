@@ -7,7 +7,7 @@
     "type": "git",
     "url": "git://github.com/taybenlor/runno.git"
   },
-  "version": "0.4.3",
+  "version": "0.5.0",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -52,11 +52,11 @@
     "@codemirror/highlight": "^0.19.5",
     "@codemirror/lang-cpp": "^0.19.1",
     "@codemirror/lang-javascript": "^0.19.1",
+    "@codemirror/lang-php": "0.19.1",
     "@codemirror/lang-python": "^0.19.2",
     "@codemirror/lang-sql": "^0.19.3",
-    "@codemirror/lang-php": "0.19.1",
-    "@runno/host": "^0.4.3",
-    "@runno/wasi": "^0.4.3",
+    "@runno/host": "^0.5.0",
+    "@runno/wasi": "^0.5.0",
     "js-untar": "^2.0.0",
     "lit": "^2.0.0",
     "pako": "^1.0.11",
