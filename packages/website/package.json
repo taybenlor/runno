@@ -2,7 +2,7 @@
   "private": "true",
   "name": "@runno/website",
   "description": "Runtime for @runno",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "author": "Ben Taylor <runno@taybenlor.com>",
   "license": "MIT",
   "repository": {
@@ -21,9 +21,9 @@
     "serve": "vite preview"
   },
   "devDependencies": {
-    "@runno/host": "^0.4.3",
-    "@runno/runtime": "^0.4.3",
-    "@runno/wasi": "^0.4.3",
+    "@runno/host": "^0.5.0",
+    "@runno/runtime": "^0.5.0",
+    "@runno/wasi": "^0.5.0",
     "@tailwindcss/typography": "^0.5.4",
     "@types/marked": "^4.0.7",
     "autoprefixer": "^10.4.0",
