@@ -1,3 +1,5 @@
+import { html, css, LitElement, unsafeCSS } from "lit";
+import { property } from "lit/decorators.js";
 import type { RunResult } from "@runno/host";
 import xtermcss from "xterm/css/xterm.css";
 import { Terminal } from "xterm";
@@ -6,7 +8,28 @@ import { FitAddon } from "xterm-addon-fit";
 import { WASIFS, WASIWorkerHost, WASIWorkerHostKilledError } from "@runno/wasi";
 import { makeRunnoError } from "./helpers";
 
-export class TerminalElement extends HTMLElement {
+export class WASIElement extends LitElement {
+  @property()
+  src: string = "";
+
+  @property()
+  name: string = "program";
+
+  @property({ type: String, attribute: "args-json" })
+  argsJSON?: string;
+
+  @property({ type: String, attribute: "env-json" })
+  envJSON?: string;
+
+  @property({ type: Boolean, attribute: "disable-echo" })
+  disableEcho: boolean = false;
+
+  @property({ type: Boolean, attribute: "disable-tty" })
+  disableTTY: boolean = false;
+
+  @property({ type: Boolean })
+  controls: boolean = false;
+
   // Terminal Display
   terminal: Terminal = new Terminal({
     convertEol: true,
@@ -15,13 +38,62 @@ export class TerminalElement extends HTMLElement {
   fitAddon: FitAddon = new FitAddon();
   resizeObserver: ResizeObserver;
 
-  // Configuration Options
-  echoStdin: boolean = true;
-
   // Runtime State
   workerHost?: WASIWorkerHost;
   stdinHistory: string = "";
   ttyHistory: string = "";
+
+  get args(): string[] {
+    if (!this.argsJSON) {
+      return [];
+    }
+
+    try {
+      return JSON.parse(this.argsJSON);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  get env(): Record<string, string> {
+    if (!this.envJSON) {
+      return {};
+    }
+
+    try {
+      return JSON.parse(this.envJSON);
+    } catch (e) {
+      return {};
+    }
+  }
+
+  static styles = css`
+    :host {
+      position: relative;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    ${unsafeCSS(xtermcss)}
+
+    .xterm,
+    .xterm-viewport,
+    .xterm-screen {
+      width: 100%;
+      height: 100%;
+    }
+
+    #container {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 0.5em;
+    }
+  `;
 
   constructor() {
     super();
@@ -30,38 +102,10 @@ export class TerminalElement extends HTMLElement {
     this.terminal.onKey(this.onTerminalKey);
 
     this.resizeObserver = new ResizeObserver(this.onResize);
+  }
 
-    this.attachShadow({ mode: "open" });
-    this.shadowRoot!.innerHTML = `
-    <style>
-      :host {
-        position: relative;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      ${xtermcss}
-      
-      .xterm,
-      .xterm-viewport,
-      .xterm-screen {
-        width: 100%;
-        height: 100%;
-      }
-
-      #container {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        padding: 0.5em;
-      }
-    </style>
-    <div id="container"></div>
-    `;
+  render() {
+    return html`<div id="container"></div>`;
   }
 
   //
@@ -203,4 +247,4 @@ export class TerminalElement extends HTMLElement {
   }
 }
 
-customElements.define("runno-terminal", TerminalElement);
+customElements.define("runno-wasi", WASIElement);
