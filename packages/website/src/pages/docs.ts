@@ -510,17 +510,25 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
 
             <ul>
               <li>
-                <code>python</code> - Runs Python 3 code, not pinned to a
-                particular version but is at least 3.6.
+                <code>python</code> - Runs Python 3 code, using Python WASI
+                target (at least Python 3.11).
               </li>
               <li>
-                <code>ruby</code> - Runs Ruby code, not pinned to a particular
-                version but is at least 3.2.
+                <code>ruby</code> - Runs Ruby code, using Ruby WASI target (at
+                least Ruby 3.2.0).
               </li>
               <li>
                 <code>quickjs</code> - Runs JavaScript code using the
                 <a target="_blank" href="https://bellard.org/quickjs/"
                   >QuickJS engine</a
+                >.
+              </li>
+              <li>
+                <code>php-cgi</code> - Runs PHP code using the
+                <a
+                  target="_blank"
+                  href="https://wasmlabs.dev/articles/php-wasm32-wasi-port/"
+                  >VMWare PHP WASM Port</a
                 >.
               </li>
               <li>
@@ -666,7 +674,7 @@ code: string
               Sets the program in the editor, how to highlight it, and how to
               run it. <code>Syntax</code> can be <code>python</code>,
               <code>ruby</code>, <code>js</code>, <code>sql</code>,
-              <code>cpp</code>, or <code>undefined</code>.
+              <code>cpp</code>, <code>php</code> or <code>undefined</code>.
             </p>
 
             <h4><code>getEditorProgram</code></h4>
@@ -729,11 +737,11 @@ stdin?: string
             <h3 class="host-types">Important Types</h3>
 
             <h4><code>Runtime</code></h4>
-            <pre><code>export type Runtime = "python" | "quickjs" | "sqlite" | "clang" | "clangpp" | "ruby";</code></pre>
+            <pre><code>export type Runtime = "python" | "quickjs" | "sqlite" | "clang" | "clangpp" | "ruby" | "php-cgi";</code></pre>
             <p>Runtimes that Runno supports.</p>
 
             <h4><code>Syntax</code></h4>
-            <pre><code>export type Syntax = "python" | "js" | "sql" | "cpp" | "ruby" | undefined;</code></pre>
+            <pre><code>export type Syntax = "python" | "js" | "sql" | "cpp" | "ruby" | "php" | undefined;</code></pre>
             <p>Syntax highlighting options that the Runno editor supports.</p>
 
             <h4><code>CommandResult</code></h4>
