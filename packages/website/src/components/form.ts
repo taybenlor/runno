@@ -114,6 +114,7 @@ export class WebsiteForm extends TailwindElement {
             <option value="python" selected default>Python (CPython)</option>
             <option value="ruby">Ruby (Ruby)</option>
             <option value="quickjs">JavaScript (QuickJS)</option>
+            <option value="php-cgi">PHP (CGI)</option>
             <option value="sqlite">SQL (SQLite)</option>
             <option value="clang">C (clang)</option>
             <option value="clangpp">C++ (clang)</option>

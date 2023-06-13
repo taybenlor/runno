@@ -4,6 +4,7 @@ import { python } from "@codemirror/lang-python";
 import { ruby } from "runno-codemirror-lang-ruby";
 import { sql } from "@codemirror/lang-sql";
 import { cpp } from "@codemirror/lang-cpp";
+import { php } from "@codemirror/lang-php";
 import { HighlightStyle, tags as t } from "@codemirror/highlight";
 import { Runtime, Syntax, runtimeToSyntax } from "@runno/host";
 import { elementCodeContent } from "./helpers";
@@ -75,20 +76,19 @@ const theme = EditorView.theme({
 });
 
 function syntaxToExtensions(syntax: Syntax) {
-  if (syntax == "python") {
-    return [basicSetup, theme, highlightStyle, python()];
-  }
-  if (syntax == "ruby") {
-    return [basicSetup, theme, highlightStyle, ruby()];
-  }
-  if (syntax == "js") {
-    return [basicSetup, theme, highlightStyle, javascript()];
-  }
-  if (syntax == "sql") {
-    return [basicSetup, theme, highlightStyle, sql()];
-  }
-  if (syntax == "cpp") {
-    return [basicSetup, theme, highlightStyle, cpp()];
+  switch (syntax) {
+    case "python":
+      return [basicSetup, theme, highlightStyle, python()];
+    case "ruby":
+      return [basicSetup, theme, highlightStyle, ruby()];
+    case "js":
+      return [basicSetup, theme, highlightStyle, javascript()];
+    case "sql":
+      return [basicSetup, theme, highlightStyle, sql()];
+    case "cpp":
+      return [basicSetup, theme, highlightStyle, cpp()];
+    case "php":
+      return [basicSetup, theme, highlightStyle, php()];
   }
   return [basicSetup, theme, highlightStyle];
 }

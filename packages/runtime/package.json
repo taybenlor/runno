@@ -54,6 +54,7 @@
     "@codemirror/lang-javascript": "^0.19.1",
     "@codemirror/lang-python": "^0.19.2",
     "@codemirror/lang-sql": "^0.19.3",
+    "@codemirror/lang-php": "0.19.1",
     "@runno/host": "^0.4.3",
     "@runno/wasi": "^0.4.3",
     "js-untar": "^2.0.0",

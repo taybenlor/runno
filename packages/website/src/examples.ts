@@ -1,4 +1,5 @@
 import { Runtime } from "@runno/host";
+import { assertUnreachable } from "./helpers";
 
 // const fortran77 = `
 //     PROGRAM HELLO
@@ -60,30 +61,30 @@ SELECT "Hello, World!";
 SELECT "G'day, welcome to Runno.";
 `.trimStart();
 
+const php = `
+<?php
+print "Hello, World!\\n";
+print "G'day, welcome to Runno.\\n";
+?>
+`.trimStart();
+
 export function exampleForRuntime(name: Runtime): string {
-  if (name == "sqlite") {
-    return sqlite;
+  switch (name) {
+    case "ruby":
+      return ruby;
+    case "python":
+      return python;
+    case "clangpp":
+      return cpp;
+    case "clang":
+      return c;
+    case "quickjs":
+      return quickjs;
+    case "sqlite":
+      return sqlite;
+    case "php-cgi":
+      return php;
+    default:
+      return assertUnreachable(name, `Unknown runtime ${name}.`);
   }
-
-  if (name == "quickjs") {
-    return quickjs;
-  }
-
-  if (name == "clang") {
-    return c;
-  }
-
-  if (name == "clangpp") {
-    return cpp;
-  }
-
-  if (name == "python") {
-    return python;
-  }
-
-  if (name == "ruby") {
-    return ruby;
-  }
-
-  return "";
 }
