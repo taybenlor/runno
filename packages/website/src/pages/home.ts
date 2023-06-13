@@ -197,9 +197,9 @@ export class PageHome extends TailwindElement {
             </p>
             <pre><code>name = input("What's your name? ")
 if "i" in name.lower():
-print("You've got an I in your name, how selfish.")
+  print("You've got an I in your name, how selfish.")
 else:
-print("There's no I in your name.")
+  print("There's no I in your name.")
 </code></pre>
 
             <p>
@@ -209,13 +209,13 @@ print("There's no I in your name.")
             </p>
 
             <pre><code>&lt;p&gt;
-Here's an example of an if statement:
+  Here's an example of an if statement:
 &lt;/p&gt;
 
 &lt;iframe src="&hellip;" crossorigin allow="cross-origin-isolated" width="640" height="320" frameBorder="0"&gt;&lt;/iframe&gt;
 
 &lt;p&gt;
-You can use an if statement to&hellip;
+  You can use an if statement to&hellip;
 &lt;/p&gt;
 </code></pre>
 
@@ -257,9 +257,9 @@ An infinite loop runs forever:
 &lt;/p&gt;
 
 &lt;runno-run runtime="quickjs" editor controls&gt;
-while (true) {
-console.log("Help I'm trapped in a code factory!");
-}
+  while (true) {
+    console.log("Help I'm trapped in a code factory!");
+  }
 &lt;/runno-run&gt;
 
 &lt;p&gt;

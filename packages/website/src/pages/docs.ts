@@ -141,9 +141,9 @@ export class PageDocs extends TailwindElement {
             </p>
             <pre><code>name = input("What's your name? ")
 if "i" in name.lower():
-print("You've got an I in your name, how selfish.")
+  print("You've got an I in your name, how selfish.")
 else:
-print("There's no I in your name.")
+  print("There's no I in your name.")
 </code></pre>
 
             <p>
@@ -153,13 +153,13 @@ print("There's no I in your name.")
             </p>
 
             <pre><code>&lt;p&gt;
-Here's an example of an if statement:
+  Here's an example of an if statement:
 &lt;/p&gt;
 
 &lt;iframe src="&hellip;" crossorigin allow="cross-origin-isolated" width="640" height="320" frameBorder="0"&gt;&lt;/iframe&gt;
 
 &lt;p&gt;
-You can use an if statement to&hellip;
+  You can use an if statement to&hellip;
 &lt;/p&gt;
 </code></pre>
 
@@ -202,7 +202,7 @@ An infinite loop runs forever:
 
 &lt;runno-run runtime="quickjs" editor controls&gt;
 while (true) {
-console.log("Help I'm trapped in a code factory!");
+  console.log("Help I'm trapped in a code factory!");
 }
 &lt;/runno-run&gt;
 
@@ -609,14 +609,14 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
 
             <h4><code>generateEmbedURL</code></h4>
             <pre><code>export function generateEmbedURL(
-code: string,
-runtime: string,
-options?: {
-showControls?: boolean; // Default: true
-showEditor?: boolean; // Default: true
-autorun?: boolean; // Default: false
-baseUrl?: string; // Default: "https://runno.run/"
-}
+  code: string,
+  runtime: string,
+  options?: {
+    showControls?: boolean; // Default: true
+    showEditor?: boolean; // Default: true
+    autorun?: boolean; // Default: false
+    baseUrl?: string; // Default: "https://runno.run/"
+  }
 ): URL</code></pre>
             <p>
               Generates a URL that can be used as the <code>src</code> of an
@@ -633,7 +633,7 @@ baseUrl?: string; // Default: "https://runno.run/"
 
             <h4><code>ConnectRunno</code></h4>
             <pre><code>export async function ConnectRunno(
-iframe: HTMLIFrameElement
+  iframe: HTMLIFrameElement
 ): Promise&lt;RunnoHost&gt;</code></pre>
             <p>
               Connects to the Runno instance in the passed iframe. Returns a
@@ -666,9 +666,9 @@ iframe: HTMLIFrameElement
 
             <h4><code>setEditorProgram</code></h4>
             <pre><code>setEditorProgram(
-syntax: Syntax,
-runtime: Runtime,
-code: string
+  syntax: Syntax,
+  runtime: Runtime,
+  code: string
 ): Promise&lt;void&gt;</code></pre>
             <p>
               Sets the program in the editor, how to highlight it, and how to
@@ -690,9 +690,9 @@ code: string
 
             <h4><code>interactiveRunFS</code></h4>
             <pre><code>interactiveRunFS(
-runtime: Runtime,
-entryPath: string,
-fs: FS
+  runtime: Runtime,
+  entryPath: string,
+  fs: FS
 ): Promise&lt;RunResult&gt;</code></pre>
             <p>
               Runs a filesystem object interactively using the given
@@ -711,9 +711,9 @@ fs: FS
 
             <h4><code>headlessRunCode</code></h4>
             <pre><code>headlessRunCode(
-runtime: Runtime,
-code: string,
-stdin?: string
+  runtime: Runtime,
+  code: string,
+  stdin?: string
 ): Promise&lt;RunResult&gt;</code></pre>
             <p>
               Runs code headlessly. The user will not have an opportunity to
@@ -724,10 +724,10 @@ stdin?: string
 
             <h4><code>headlessRunFS</code></h4>
             <pre><code>headlessRunFS(
-runtime: Runtime,
-entryPath: string,
-fs: FS,
-stdin?: string
+  runtime: Runtime,
+  entryPath: string,
+  fs: FS,
+  stdin?: string
 ): Promise&lt;RunResult&gt;</code></pre>
             <p>
               Corresponding headless version of running with an FS. See:
@@ -744,43 +744,69 @@ stdin?: string
             <pre><code>export type Syntax = "python" | "js" | "sql" | "cpp" | "ruby" | "php" | undefined;</code></pre>
             <p>Syntax highlighting options that the Runno editor supports.</p>
 
-            <h4><code>CommandResult</code></h4>
-            <pre><code>export type CommandResult = {
-stdin: string;
-stdout: string;
-stderr: string;
-tty: string;
-fs: FS;
-exit: number;
-};</code></pre>
-            <p>The result from running a command.</p>
-
             <h4><code>RunResult</code></h4>
-            <pre><code>export type RunResult = {
-result?: CommandResult;
-prepare?: CommandResult;
+            <pre><code>export type RunResult = CompleteResult | CrashResult | TerminatedResult;</code></pre>
+
+            <h4><code>CompleteResult</code></h4>
+            <pre><code>export type CompleteResult = {
+  resultType: "complete";
+  stdin: string;
+  stdout: string;
+  stderr: string;
+  tty: string;
+  fs: WASIFS;
+  exitCode: number;
 };</code></pre>
             <p>
-              The result from running using Runno. If the runtime has a
-              compilation or other type of preparation then the output from this
-              step will be in the optional <code>prepare</code> field.
+              If running completes, it will return a
+              <code>CompleteResult</code>. Even if the exit code is not 0.
             </p>
 
-            <h4><code>FS</code></h4>
-            <pre><code>export type FS = {
-[name: string]: File;
+            <h4><code>CrashResult</code></h4>
+            <pre><code>export type CrashResult = {
+  resultType: "crash";
+  error: {
+    message: string;
+    type: string;
+  };
+};</code></pre>
+            <p>The result returned if running raises an error.</p>
+
+            <h4><code>TerminatedResult</code></h4>
+            <pre><code>export type TerminatedResult = {
+  resultType: "terminated";
+};</code></pre>
+            <p>The result returned if running is terminated manually.</p>
+
+            <h4><code>WASIFS</code></h4>
+            <pre><code>export type WASIFS = {
+  [path: WASIPath]: WASIFile;
 };</code></pre>
             <p>
               A snapshot of a filesystem that can be passed to Runno. If folders
               are necessary the slashes should be part of the <code>name</code>.
             </p>
 
-            <h4><code>File</code></h4>
-            <pre><code>export type File = {
-name: string;
-content: string | Uint8Array;
-};</code></pre>
-            <p>A snapshot of a file that can be passed to Runno.</p>
+            <h4><code>WASIFile</code></h4>
+            <pre><code>export type WASIFile = {
+  path: WASIPath;
+  timestamps: WASITimestamps;
+} & (
+  | {
+      mode: "string";
+      content: string;
+    }
+  | {
+      mode: "binary";
+      content: Uint8Array;
+    }
+);</code></pre>
+            <p>
+              A snapshot of a file that can be passed to Runno. It can either be
+              string or binary contents. String contents is useful for passing
+              directly from JS. Binary contents is more useful if loading an
+              external file.
+            </p>
           </section>
 
           <section class="flow-root mt-16">
