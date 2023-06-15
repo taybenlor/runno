@@ -245,7 +245,7 @@ export class WebsitePlayground extends TailwindElement {
       return;
     }
 
-    const newFiles: File[] = [];
+    let newFiles: File[] = [];
 
     for (const file of Array.from(inputFiles)) {
       if (file.name.endsWith(".tar.gz")) {
@@ -259,6 +259,15 @@ export class WebsitePlayground extends TailwindElement {
         newFiles.push(file);
       }
     }
+
+    // Make sure input file names start with a slash
+    newFiles = newFiles.map(
+      (file) =>
+        new File([file], `/${file.name}`.replaceAll("//", "/"), {
+          type: file.type,
+          lastModified: file.lastModified,
+        })
+    );
 
     this.files = [...newFiles, ...this.files];
     inputElement.files = null;

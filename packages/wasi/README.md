@@ -10,7 +10,7 @@ filesystem. If the binary receives calls to stdin/out/err then you get callbacks
 you'll need to handle. In future there may be other callbacks to intercept
 interesting system level events, or hooks into the filesystem.
 
-## Usage
+## Quickstart
 
 There are two parts to running a WASI binary with Runno. The `WASI` instance
 which does the actual running and the `WASIContext` which sets up an environment
@@ -31,8 +31,8 @@ const context = new WASIContext({
   stderr: (err) => console.error("stderr", err),
   stdin: () => prompt("stdin:"),
   fs: {
-    "some-file.txt": {
-      path: "some-file.txt",
+    "/some-file.txt": {
+      path: "/some-file.txt",
       timestamps: {
         access: new Date(),
         change: new Date(),
@@ -76,8 +76,8 @@ const workerHost = new WASIWorkerHost(binaryURL, {
   stdout: (out) => console.log("stdout", out),
   stderr: (err) => console.error("stderr", err),
   fs: {
-    "some-file.txt": {
-      path: "some-file.txt",
+    "/some-file.txt": {
+      path: "/some-file.txt",
       timestamps: {
         access: new Date(),
         change: new Date(),
@@ -116,7 +116,38 @@ Cross-Origin-Embedder-Policy: require-corp
 You can test that your page is Cross-Origin Isolated by opening the browser
 console and checking `crossOriginIsolated` (see: [mdn docs](https://developer.mozilla.org/en-US/docs/Web/API/crossOriginIsolated)).
 
-## Run Tests
+## The filesystem
+
+`@runno/wasi` internally emulates a unix-like filesystem (FS) from a flat
+structure. All files must start with a `/` to indicate they are in the root
+directory. The `/` directory is preopened by `@runno/wasi` for your WASI binary
+to use.
+
+Paths provided to the FS can include directory names `/like/this.png`. The FS
+will treat files with the same prefix `/like/so.png` as if they are in the same
+folder. Any folders created will contain an empty `.runno` file `/like/.runno`
+as a placeholder.
+
+WASI has a complex permissions system that is entirely ignored. All files you
+provide can be accessed by the WASI binary, with all permissions.
+
+## Which WASI standards are supported?
+
+Currently `@runno/wasi` supports running only `unstable` and `snapshot-preview1`
+WASI binaries. The `snapshot-preview1` standard is more recent, and preferred.
+Additionally its likely some details of `unstable` have been missed. If you spot
+these, please file a bug.
+
+Other extension standards like WASMEdge, and WASIX are currently not supported,
+but could be. WASI Modules are also not supported, but I'm interested in
+learning more about them.
+
+# Contributing
+
+The most useful way to contribute to `@runno/wasi` is to add tests. Particularly
+if you find something that doesn't work!
+
+## Running Tests
 
 If this is the first time running tests, please run the prepare script first.
 This will build the test programs and download existing test suites.
