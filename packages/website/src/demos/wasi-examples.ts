@@ -31,7 +31,7 @@ To finish entering text press ctrl+d.`,
 
 export const CAT: WASIExample = {
   binary: `${import.meta.env.VITE_HOST}wasi-demos/cat.wasi.wasm`,
-  files: [new File(["G'day WASI!"], "gday.txt")],
+  files: [new File(["G'day WASI!"], "/gday.txt")],
   args: ["gday.txt"],
   env: ``,
   title: "cat",
