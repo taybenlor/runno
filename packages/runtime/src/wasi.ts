@@ -6,7 +6,46 @@ import { FitAddon } from "xterm-addon-fit";
 import { WASIFS, WASIWorkerHost, WASIWorkerHostKilledError } from "@runno/wasi";
 import { makeRunnoError } from "./helpers";
 
-export class TerminalElement extends HTMLElement {
+const ATTRIBUTE_MAP = {
+  src: "src",
+  name: "name",
+  args: "args",
+  "disable-echo": "disableEcho",
+  "disable-tty": "disableTTY",
+  controls: "controls",
+  autorun: "autorun",
+} as const;
+
+const BOOLEAN_ATTRIBUTES = [
+  "disable-echo",
+  "disable-tty",
+  "controls",
+  "autorun",
+] as const;
+
+type BooleanAttribute = "disable-echo" | "disable-tty" | "controls" | "autorun";
+
+function isBooleanAttribute(key: string): key is BooleanAttribute {
+  return key in BOOLEAN_ATTRIBUTES;
+}
+
+export class WASIElement extends HTMLElement {
+  static get observedAttributes() {
+    return Object.keys(ATTRIBUTE_MAP);
+  }
+
+  src: string = "";
+  name: string = "program";
+  args: string[] = [];
+  env: Record<string, string> = {};
+  fs: WASIFS = {};
+
+  // Boolean controls
+  disableEcho: boolean = false;
+  disableTTY: boolean = false;
+  controls: boolean = false;
+  autorun: boolean = false;
+
   // Terminal Display
   terminal: Terminal = new Terminal({
     convertEol: true,
@@ -15,13 +54,12 @@ export class TerminalElement extends HTMLElement {
   fitAddon: FitAddon = new FitAddon();
   resizeObserver: ResizeObserver;
 
-  // Configuration Options
-  echoStdin: boolean = true;
-
   // Runtime State
   workerHost?: WASIWorkerHost;
   stdinHistory: string = "";
   ttyHistory: string = "";
+
+  private hasRun = false;
 
   constructor() {
     super();
@@ -35,7 +73,9 @@ export class TerminalElement extends HTMLElement {
     this.shadowRoot!.innerHTML = `
     <style>
       :host {
+        display: block;
         position: relative;
+        min-height: 140px;
       }
 
       * {
@@ -58,6 +98,9 @@ export class TerminalElement extends HTMLElement {
         left: 0;
         right: 0;
         padding: 0.5em;
+        background: black;
+        height: var(--runno-terminal-height, auto);
+        min-height: var(--runno-terminal-min-height, 4rem);
       }
     </style>
     <div id="container"></div>
@@ -68,13 +111,9 @@ export class TerminalElement extends HTMLElement {
   // Public Helpers
   //
 
-  async run(
-    binaryPath: string,
-    binaryName: string,
-    fs: WASIFS,
-    args: string[],
-    env: { [key: string]: string }
-  ): Promise<RunResult> {
+  async run(): Promise<RunResult> {
+    this.hasRun = true;
+
     if (this.workerHost) {
       this.workerHost.kill();
     }
@@ -86,10 +125,10 @@ export class TerminalElement extends HTMLElement {
       let stdout = "";
       let stderr = "";
 
-      this.workerHost = new WASIWorkerHost(binaryPath, {
-        args: [binaryName, ...args],
-        env,
-        fs,
+      this.workerHost = new WASIWorkerHost(this.src, {
+        args: [this.name, ...this.args],
+        env: this.env,
+        fs: this.fs,
         isTTY: true,
         stdout: (out) => {
           stdout += out;
@@ -146,6 +185,27 @@ export class TerminalElement extends HTMLElement {
     this.resizeObserver.unobserve(this);
   }
 
+  attributeChangedCallback(
+    name: keyof typeof ATTRIBUTE_MAP,
+    _: string,
+    newValue: string
+  ) {
+    if (name === "args") {
+      this.args = newValue.trim() ? newValue.trim().split(" ") : [];
+      return;
+    }
+
+    if (name === "autorun" && !this.hasRun) {
+      this.run();
+    }
+
+    if (isBooleanAttribute(name)) {
+      this[ATTRIBUTE_MAP[name]] = true;
+    } else {
+      this[ATTRIBUTE_MAP[name]] = newValue;
+    }
+  }
+
   //
   // Events
   //
@@ -159,7 +219,7 @@ export class TerminalElement extends HTMLElement {
       data = "\n";
     }
 
-    if (this.echoStdin) {
+    if (!this.disableEcho) {
       // TODO: Parse backspace etc
       this.terminal.write(data);
     }
@@ -203,4 +263,4 @@ export class TerminalElement extends HTMLElement {
   }
 }
 
-customElements.define("runno-terminal", TerminalElement);
+customElements.define("runno-wasi", WASIElement);

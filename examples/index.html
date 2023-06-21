@@ -32,8 +32,37 @@
   </head>
   <body>
     <main class="">
-      <article class="prose container mx-auto my-16">
+      <div class="prose container mx-auto my-16">
         <h1>Runno Examples</h1>
+
+        <p>
+          Runno is all about running stuff in the browser. Whether that's coding
+          examples, user provided code, or compiled binaries. Runno provides three
+          packages each for a different layer of abstraction:
+        </p>
+
+        <ol>
+          <li>
+            <code>@runno/host</code> - control an embedded Runno iframe from JavaScript
+          </li>
+          <li>
+            <code>@runno/runtime</code> - runs interactive code, headless code, and
+            interactive WASI binaries using Web Components. This is probably the
+            one you want.
+          </li>
+          <li>
+            <code>@runno/wasi</code> - provides a low-level interface for running WASI
+            binaries.
+          </li>
+        </ol>
+
+        <p>
+          The visual components are all provided by `@runno/runtime`. And in most
+          cases this is the package you'll be using. If you'd prefer to embed an
+          iframe then `@runno/host` can help you. If you need a low-level
+          interface to directly interact with a WASI binary, then reach for
+          `@runno/wasi`.
+        </p>
 
         <p>
           These examples are best used while also reading
@@ -49,6 +78,32 @@
           from the server. In this example directory you can find those headers
           in <code>vite.config.js</code>.
         </p>
+
+        <p>
+          Jump to:
+        </p>
+
+        <menu>
+          <li>
+            <a href="#programming-examples">
+              Visual Coding Examples
+            </a>
+          </li>
+          <li>
+            <a href="#wasi-examples">
+              Visual WASI Examples
+            </a>
+          </li>
+          <li>
+            <a href="#headless-examples">
+              Headless Examples
+            </a>
+          </li>
+        </menu>
+      </div>
+      
+      <article class="prose container mx-auto my-16">
+        <h1 id="programming-examples">Programming Examples</h1>
 
         <h2>Running code</h2>
 
@@ -212,6 +267,33 @@ runno-run {
             </cs-stdout>
           </cs-check>
         </cs-requirements>
+      </article>
+
+      <article class="prose container mx-auto my-16">
+        <h1 id="wasi-examples">WASI Examples</h1>
+
+        <p>
+          Using a <code>runno-wasi</code> element you can run any program
+          compiled to WASI. It can take <code>args</code> as an HTML attribute.
+          <code>env</code> and <code>fs</code> can be set as properties on the
+          element (you'll need to get a handle to it, e.g. with
+          <code>querySelector</code>).
+        </p>
+
+        <runno-wasi src="https://assets.runno.dev/ffmpeg/ffmpeg.wasm" autorun></runno-wasi>
+
+        <p>
+          This element is running an ffmpeg binary with no arguments. You could
+          customise this to run it against particular files by setting the FS.
+        </p>
+      </article>
+
+      <article class="prose container mx-auto my-16">
+        <h1 id="headless-examples">Headless Examples</h1>
+
+        <p>
+          TODO 
+        </p>
       </article>
     </main>
   </body>
