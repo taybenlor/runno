@@ -1,5 +1,3 @@
-import { html, css, LitElement, unsafeCSS } from "lit";
-import { property } from "lit/decorators.js";
 import type { RunResult } from "@runno/host";
 import xtermcss from "xterm/css/xterm.css";
 import { Terminal } from "xterm";
@@ -8,27 +6,45 @@ import { FitAddon } from "xterm-addon-fit";
 import { WASIFS, WASIWorkerHost, WASIWorkerHostKilledError } from "@runno/wasi";
 import { makeRunnoError } from "./helpers";
 
-export class WASIElement extends LitElement {
-  @property()
+const ATTRIBUTE_MAP = {
+  src: "src",
+  name: "name",
+  args: "args",
+  "disable-echo": "disableEcho",
+  "disable-tty": "disableTTY",
+  controls: "controls",
+  autorun: "autorun",
+} as const;
+
+const BOOLEAN_ATTRIBUTES = [
+  "disable-echo",
+  "disable-tty",
+  "controls",
+  "autorun",
+] as const;
+
+type BooleanAttribute = "disable-echo" | "disable-tty" | "controls" | "autorun";
+
+function isBooleanAttribute(key: string): key is BooleanAttribute {
+  return key in BOOLEAN_ATTRIBUTES;
+}
+
+export class WASIElement extends HTMLElement {
+  static get observedAttributes() {
+    return Object.keys(ATTRIBUTE_MAP);
+  }
+
   src: string = "";
-
-  @property()
   name: string = "program";
+  args: string[] = [];
+  env: Record<string, string> = {};
+  fs: WASIFS = {};
 
-  @property({ type: String, attribute: "args-json" })
-  argsJSON?: string;
-
-  @property({ type: String, attribute: "env-json" })
-  envJSON?: string;
-
-  @property({ type: Boolean, attribute: "disable-echo" })
+  // Boolean controls
   disableEcho: boolean = false;
-
-  @property({ type: Boolean, attribute: "disable-tty" })
   disableTTY: boolean = false;
-
-  @property({ type: Boolean })
   controls: boolean = false;
+  autorun: boolean = false;
 
   // Terminal Display
   terminal: Terminal = new Terminal({
@@ -43,57 +59,7 @@ export class WASIElement extends LitElement {
   stdinHistory: string = "";
   ttyHistory: string = "";
 
-  get args(): string[] {
-    if (!this.argsJSON) {
-      return [];
-    }
-
-    try {
-      return JSON.parse(this.argsJSON);
-    } catch (e) {
-      return [];
-    }
-  }
-
-  get env(): Record<string, string> {
-    if (!this.envJSON) {
-      return {};
-    }
-
-    try {
-      return JSON.parse(this.envJSON);
-    } catch (e) {
-      return {};
-    }
-  }
-
-  static styles = css`
-    :host {
-      position: relative;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    ${unsafeCSS(xtermcss)}
-
-    .xterm,
-    .xterm-viewport,
-    .xterm-screen {
-      width: 100%;
-      height: 100%;
-    }
-
-    #container {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 0.5em;
-    }
-  `;
+  private hasRun = false;
 
   constructor() {
     super();
@@ -102,23 +68,52 @@ export class WASIElement extends LitElement {
     this.terminal.onKey(this.onTerminalKey);
 
     this.resizeObserver = new ResizeObserver(this.onResize);
-  }
 
-  render() {
-    return html`<div id="container"></div>`;
+    this.attachShadow({ mode: "open" });
+    this.shadowRoot!.innerHTML = `
+    <style>
+      :host {
+        display: block;
+        position: relative;
+        min-height: 140px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      ${xtermcss}
+      
+      .xterm,
+      .xterm-viewport,
+      .xterm-screen {
+        width: 100%;
+        height: 100%;
+      }
+
+      #container {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 0.5em;
+        background: black;
+        height: var(--runno-terminal-height, auto);
+        min-height: var(--runno-terminal-min-height, 4rem);
+      }
+    </style>
+    <div id="container"></div>
+    `;
   }
 
   //
   // Public Helpers
   //
 
-  async run(
-    binaryPath: string,
-    binaryName: string,
-    fs: WASIFS,
-    args: string[],
-    env: { [key: string]: string }
-  ): Promise<RunResult> {
+  async run(): Promise<RunResult> {
+    this.hasRun = true;
+
     if (this.workerHost) {
       this.workerHost.kill();
     }
@@ -130,10 +125,10 @@ export class WASIElement extends LitElement {
       let stdout = "";
       let stderr = "";
 
-      this.workerHost = new WASIWorkerHost(binaryPath, {
-        args: [binaryName, ...args],
-        env,
-        fs,
+      this.workerHost = new WASIWorkerHost(this.src, {
+        args: [this.name, ...this.args],
+        env: this.env,
+        fs: this.fs,
         isTTY: true,
         stdout: (out) => {
           stdout += out;
@@ -190,6 +185,27 @@ export class WASIElement extends LitElement {
     this.resizeObserver.unobserve(this);
   }
 
+  attributeChangedCallback(
+    name: keyof typeof ATTRIBUTE_MAP,
+    _: string,
+    newValue: string
+  ) {
+    if (name === "args") {
+      this.args = newValue.trim() ? newValue.trim().split(" ") : [];
+      return;
+    }
+
+    if (name === "autorun" && !this.hasRun) {
+      this.run();
+    }
+
+    if (isBooleanAttribute(name)) {
+      this[ATTRIBUTE_MAP[name]] = true;
+    } else {
+      this[ATTRIBUTE_MAP[name]] = newValue;
+    }
+  }
+
   //
   // Events
   //
@@ -203,7 +219,7 @@ export class WASIElement extends LitElement {
       data = "\n";
     }
 
-    if (this.echoStdin) {
+    if (!this.disableEcho) {
       // TODO: Parse backspace etc
       this.terminal.write(data);
     }
