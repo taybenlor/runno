@@ -59,7 +59,7 @@ export function elementCodeContent(element: HTMLElement): string {
  *
  * @param fsURL The URL of the filesystem to fetch
  */
-export async function fetchWASIFS(fsURL: `${string}.tar.gz`) {
+export async function fetchWASIFS(fsURL: string) {
   const response = await fetch(fsURL);
   const buffer = await response.arrayBuffer();
   const files = await extractTarGz(new Uint8Array(buffer));

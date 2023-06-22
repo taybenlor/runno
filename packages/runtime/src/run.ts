@@ -13,7 +13,7 @@ import { EditorElement } from "./editor";
 import { ControlsElement } from "./controls";
 import { TerminalElement } from "./terminal";
 import { RunnoProvider } from "./provider";
-import { elementCodeContent } from "./helpers";
+import { elementCodeContent, fetchWASIFS } from "./helpers";
 
 export class RunElement extends LitElement implements RuntimeMethods {
   static styles = css`
@@ -45,6 +45,7 @@ export class RunElement extends LitElement implements RuntimeMethods {
   @property({ type: String }) runtime: string = "python";
   @property({ type: String }) syntax?: string;
   @property({ type: String }) code?: string;
+  @property({ type: String, attribute: "fs-url" }) fsURL?: string;
   @property({ type: Boolean, reflect: true }) editor: boolean = false;
   @property({ type: Boolean, reflect: true }) controls: boolean = false;
 
@@ -66,7 +67,25 @@ export class RunElement extends LitElement implements RuntimeMethods {
       throw new Error("The editor has no runtime");
     }
 
-    return this.interactiveRunCode(editor.runtime, editor.program);
+    if (this.fsURL) {
+      const baseFS = await fetchWASIFS(this.fsURL);
+      const fs: WASIFS = {
+        ...baseFS,
+        "/program": {
+          path: "program",
+          content: editor.program,
+          mode: "string",
+          timestamps: {
+            access: new Date(),
+            modification: new Date(),
+            change: new Date(),
+          },
+        },
+      };
+      return this.interactiveRunFS(editor.runtime, "/program", fs);
+    } else {
+      return this.interactiveRunCode(editor.runtime, editor.program);
+    }
   }
 
   public stop() {
