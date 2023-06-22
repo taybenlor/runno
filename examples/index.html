@@ -202,6 +202,24 @@ runno-run {
           these. Particularly <code>packages/runtime/src/run.ts</code>.
         </p>
 
+        <h3>Including Files</h3>
+        <p>
+          You can install files into the filesystem with the <code>fs-url</code>
+          attribute. The URL should be a <code>.tar.gz</code> file that includes
+          the files you want. This is useful for including packages that can
+          then be imported and run as part of the example.
+        </p>
+
+        <runno-run runtime="python" fs-url="/python-package.tar.gz" controls editor>
+          from package import say_hello
+          say_hello()
+          
+          print('------')
+          
+          import os
+          print("/package contains", os.listdir('/package'))
+        </runno-run>
+
         <h2>Extending Runno to Mark Code</h2>
 
         <p>
