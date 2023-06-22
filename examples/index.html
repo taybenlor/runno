@@ -220,6 +220,28 @@ runno-run {
           print("/package contains", os.listdir('/package'))
         </runno-run>
 
+        <p>
+          You can also add files directly in HTML with the
+          <code>runno-file</code> element. The file content will have any shared
+          leading whitespace stripped.
+        </p>
+
+        <runno-run runtime="python" controls editor>
+          print('file.txt contains:')
+          print(open("file.txt").read())
+          print('----')
+          print('other-file.txt contains:')
+          print(open("other-file.txt").read())
+
+          <runno-file path="/file.txt">
+            G'day world.
+            Welcome to Runno.
+          </runno-file>
+          <runno-file path="/other-file.txt">
+            Another file.
+          </runno-file>
+        </runno-run>
+
         <h2>Extending Runno to Mark Code</h2>
 
         <p>

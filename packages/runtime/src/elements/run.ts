@@ -12,8 +12,9 @@ import {
 import { EditorElement } from "./editor";
 import { ControlsElement } from "./controls";
 import { TerminalElement } from "./terminal";
-import { RunnoProvider } from "./provider";
-import { elementCodeContent, fetchWASIFS } from "./helpers";
+import { RunnoProvider } from "../provider";
+import { elementCodeContent, fetchWASIFS } from "../helpers";
+import { FileElement } from "./file";
 
 export class RunElement extends LitElement implements RuntimeMethods {
   static styles = css`
@@ -67,25 +68,35 @@ export class RunElement extends LitElement implements RuntimeMethods {
       throw new Error("The editor has no runtime");
     }
 
+    let fs: WASIFS = {};
+
     if (this.fsURL) {
       const baseFS = await fetchWASIFS(this.fsURL);
-      const fs: WASIFS = {
-        ...baseFS,
-        "/program": {
-          path: "program",
-          content: editor.program,
-          mode: "string",
-          timestamps: {
-            access: new Date(),
-            modification: new Date(),
-            change: new Date(),
-          },
-        },
-      };
-      return this.interactiveRunFS(editor.runtime, "/program", fs);
-    } else {
-      return this.interactiveRunCode(editor.runtime, editor.program);
+      fs = baseFS;
     }
+
+    const fileElements = Array.from(
+      this.querySelectorAll<FileElement>("runno-file")
+    );
+    for (const el of fileElements) {
+      fs[el.path] = el.getFile();
+    }
+
+    fs = {
+      ...fs,
+      "/program": {
+        path: "program",
+        content: editor.program,
+        mode: "string",
+        timestamps: {
+          access: new Date(),
+          modification: new Date(),
+          change: new Date(),
+        },
+      },
+    };
+
+    return this.interactiveRunFS(editor.runtime, "/program", fs);
   }
 
   public stop() {
@@ -176,10 +187,16 @@ export class RunElement extends LitElement implements RuntimeMethods {
 
     setTimeout(() => {
       if (!this.code) {
+        // Prevent file elements from impacting extracting code content
+        const fileElements = Array.from(this.querySelectorAll("runno-file"));
+        fileElements.forEach((el) => el.remove());
+
         const code = elementCodeContent(this);
         if (code.trim() != "") {
           this.code = code;
         }
+
+        this.append(...fileElements);
       }
     }, 0);
   }

@@ -7,7 +7,7 @@ import { cpp } from "@codemirror/lang-cpp";
 import { php } from "@codemirror/lang-php";
 import { HighlightStyle, tags as t } from "@codemirror/highlight";
 import { Runtime, Syntax, runtimeToSyntax } from "@runno/host";
-import { elementCodeContent } from "./helpers";
+import { elementCodeContent } from "../helpers";
 
 // This is just the one-dark theme colors
 // adjusted for a light background
