@@ -65,7 +65,8 @@ export class FileElement extends HTMLElement {
     };
 
     if (this.url) {
-      const data = await (await fetch(this.url)).arrayBuffer();
+      const url = new URL(this.url, window.location.origin);
+      const data = await (await fetch(url)).arrayBuffer();
       return {
         path: this.path,
         mode: "binary",

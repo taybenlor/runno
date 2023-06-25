@@ -358,7 +358,8 @@ runno-run {
 
         <p>
           You can also use <code>runno-file</code> elements to create plaintext
-          files straight in the HTML.
+          files straight in the HTML. Or use the <code>url</code> attribute to
+          point to a file.
         </p>
 
         <pre><code>&lt;runno-wasi
@@ -372,23 +373,19 @@ runno-run {
     G'day world.
     Welcome to Runno.
   &lt;/runno-file&gt;
-  &lt;runno-file path="/other-file.txt"&gt;
-    Another file.
-  &lt;/runno-file&gt;
+  &lt;runno-file path="/test.txt" url="/test.txt"&gt;&lt;/runno-file&gt;
 &lt;/runno-wasi&gt;</code></pre>
 
         <runno-wasi
           src="/cat.wasi.wasm"
-          args="/file.txt"
+          args="/file.txt /test.txt"
           controls
         >
           <runno-file path="/file.txt">
             G'day world.
             Welcome to Runno.
           </runno-file>
-          <runno-file path="/other-file.txt">
-            Another file.
-          </runno-file>
+          <runno-file path="/test.txt" url="/test.txt"></runno-file>
         </runno-wasi>
       </article>
 
