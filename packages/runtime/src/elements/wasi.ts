@@ -70,7 +70,6 @@ export class WASIElement extends HTMLElement {
   }
 
   set controls(value: boolean) {
-    console.log("setting controls", value);
     this._controls = value;
 
     const el =
@@ -247,7 +246,6 @@ export class WASIElement extends HTMLElement {
     _: string,
     newValue: string
   ) {
-    console.log("attribute changed", name, _, newValue);
     if (name === "args") {
       this.args = newValue.trim() ? newValue.trim().split(" ") : [];
       return;
@@ -258,10 +256,8 @@ export class WASIElement extends HTMLElement {
     }
 
     if (isBooleanAttribute(name)) {
-      console.log("boolean", name);
       this[ATTRIBUTE_MAP[name]] = newValue !== null;
     } else {
-      console.log("not boolean", name);
       this[ATTRIBUTE_MAP[name]] = newValue;
     }
   }
