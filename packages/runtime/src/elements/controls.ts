@@ -14,10 +14,11 @@ export class ControlsElement extends LitElement {
       border: none;
       color: black;
       padding: 8px;
-      margin: 8px;
+      margin: var(--runno-controls-margin, 8px);
       display: inline-flex;
       align-items: center;
       height: 36px;
+      cursor: pointer;
     }
 
     #run svg {
@@ -31,10 +32,11 @@ export class ControlsElement extends LitElement {
       background: #d0d0d0;
       color: black;
       padding: 0px;
-      margin: 8px;
+      margin: var(--runno-controls-margin, 8px);
       display: inline-flex;
       align-items: center;
       height: 36px;
+      cursor: pointer;
     }
 
     #stop span {

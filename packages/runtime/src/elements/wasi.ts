@@ -4,7 +4,9 @@ import { Terminal } from "xterm";
 import { WebLinksAddon } from "xterm-addon-web-links";
 import { FitAddon } from "xterm-addon-fit";
 import { WASIFS, WASIWorkerHost, WASIWorkerHostKilledError } from "@runno/wasi";
-import { makeRunnoError } from "../helpers";
+import { fetchWASIFS, makeRunnoError } from "../helpers";
+import { FileElement } from "./file";
+import { ControlsElement } from "./controls";
 
 const ATTRIBUTE_MAP = {
   src: "src",
@@ -14,6 +16,7 @@ const ATTRIBUTE_MAP = {
   "disable-tty": "disableTTY",
   controls: "controls",
   autorun: "autorun",
+  "fs-url": "fsURL",
 } as const;
 
 const BOOLEAN_ATTRIBUTES = [
@@ -21,12 +24,12 @@ const BOOLEAN_ATTRIBUTES = [
   "disable-tty",
   "controls",
   "autorun",
-] as const;
+];
 
 type BooleanAttribute = "disable-echo" | "disable-tty" | "controls" | "autorun";
 
 function isBooleanAttribute(key: string): key is BooleanAttribute {
-  return key in BOOLEAN_ATTRIBUTES;
+  return BOOLEAN_ATTRIBUTES.includes(key);
 }
 
 export class WASIElement extends HTMLElement {
@@ -39,11 +42,12 @@ export class WASIElement extends HTMLElement {
   args: string[] = [];
   env: Record<string, string> = {};
   fs: WASIFS = {};
+  fsURL: string = "";
 
   // Boolean controls
   disableEcho: boolean = false;
   disableTTY: boolean = false;
-  controls: boolean = false;
+  _controls: boolean = false;
   autorun: boolean = false;
 
   // Terminal Display
@@ -60,6 +64,26 @@ export class WASIElement extends HTMLElement {
   ttyHistory: string = "";
 
   private hasRun = false;
+
+  get controls() {
+    return this._controls;
+  }
+
+  set controls(value: boolean) {
+    this._controls = value;
+
+    const el =
+      this.shadowRoot!.querySelector<ControlsElement>("runno-controls");
+    if (!el) {
+      return;
+    }
+
+    if (value) {
+      el.removeAttribute("hidden");
+    } else {
+      el.setAttribute("hidden", "");
+    }
+  }
 
   constructor() {
     super();
@@ -102,7 +126,17 @@ export class WASIElement extends HTMLElement {
         height: var(--runno-terminal-height, auto);
         min-height: var(--runno-terminal-min-height, 4rem);
       }
+
+      runno-controls {
+        position: absolute;
+        top: 0;
+        right: 0;
+        border: 0.5em solid black;
+        z-index: 5; /* In front of container */
+        --runno-controls-margin: 0px;
+      }
     </style>
+    <runno-controls hidden></runno-controls>
     <div id="container"></div>
     `;
   }
@@ -121,14 +155,30 @@ export class WASIElement extends HTMLElement {
     this.terminal.reset();
     this.terminal.focus();
 
+    let fs: WASIFS = this.fs;
+
+    if (this.fsURL) {
+      const baseFS = await fetchWASIFS(this.fsURL);
+      fs = { ...baseFS, ...fs };
+    }
+
+    const fileElements = Array.from(
+      this.querySelectorAll<FileElement>("runno-file")
+    );
+    const files = await Promise.all(fileElements.map((f) => f.getFile()));
+    for (const file of files) {
+      fs[file.path] = file;
+    }
+
     try {
       let stdout = "";
       let stderr = "";
 
-      this.workerHost = new WASIWorkerHost(this.src, {
+      const url = new URL(this.src, window.location.origin);
+      this.workerHost = new WASIWorkerHost(url.toString(), {
         args: [this.name, ...this.args],
         env: this.env,
-        fs: this.fs,
+        fs,
         isTTY: true,
         stdout: (out) => {
           stdout += out;
@@ -178,11 +228,17 @@ export class WASIElement extends HTMLElement {
 
     window.addEventListener("resize", this.onResize);
     this.resizeObserver.observe(this);
+
+    this.addEventListener("runno-run", this.onRunEvent);
+    this.addEventListener("runno-stop", this.onStopEvent);
   }
 
   disconnectedCallback() {
     window.removeEventListener("resize", this.onResize);
     this.resizeObserver.unobserve(this);
+
+    this.removeEventListener("runno-run", this.onRunEvent);
+    this.removeEventListener("runno-stop", this.onStopEvent);
   }
 
   attributeChangedCallback(
@@ -200,7 +256,7 @@ export class WASIElement extends HTMLElement {
     }
 
     if (isBooleanAttribute(name)) {
-      this[ATTRIBUTE_MAP[name]] = true;
+      this[ATTRIBUTE_MAP[name]] = newValue !== null;
     } else {
       this[ATTRIBUTE_MAP[name]] = newValue;
     }
@@ -243,6 +299,14 @@ export class WASIElement extends HTMLElement {
 
   onResize = () => {
     this.fitAddon.fit();
+  };
+
+  onRunEvent = () => {
+    this.run();
+  };
+
+  onStopEvent = () => {
+    this.stop();
   };
 
   //

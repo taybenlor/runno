@@ -320,12 +320,73 @@ runno-run {
           <code>querySelector</code>).
         </p>
 
-        <runno-wasi src="https://assets.runno.dev/ffmpeg/ffmpeg.wasm" autorun></runno-wasi>
+        <pre><code>&lt;runno-wasi src="https://assets.runno.dev/ffmpeg/ffmpeg.wasm" autorun&gt;
+&lt;/runno-wasi&gt;</code></pre>
+
+        <runno-wasi src="/ffmpeg.wasm" autorun></runno-wasi>
 
         <p>
           This element is running an ffmpeg binary with no arguments. You could
-          customise this to run it against particular files by setting the FS.
+          customise this to run it against particular files by configuring the
+          filesystem. Either via the filesystem attributes below, or the
+          <code>fs</code> property on the DOM node.
         </p>
+
+        <h2>Customising the Filesystem</h2>
+
+        <p>
+          Just like <code>runno-run</code> elements, <code>runno-wasi</code>
+          elements can have the filesystem configured through HTML elements and
+          attributes.
+        </p>
+
+        <pre><code>&lt;runno-wasi
+  src=&quot;/cat.wasi.wasm&quot;
+  fs-url=&quot;/python-package.tar.gz&quot; 
+  args=&quot;/package/__init__.py&quot;
+  controls
+&gt;
+&lt;/runno-wasi&gt;</code></pre>
+
+        <runno-wasi
+          src="/cat.wasi.wasm"
+          fs-url="/python-package.tar.gz"
+          args="/package/__init__.py"
+          controls
+        >
+        </runno-wasi>
+
+        <p>
+          You can also use <code>runno-file</code> elements to create plaintext
+          files straight in the HTML. Or use the <code>url</code> attribute to
+          point to a file.
+        </p>
+
+        <pre><code>&lt;runno-wasi
+  src=&quot;/cat.wasi.wasm&quot;
+  name=&quot;cat&quot;
+  args=&quot;/package/__init__.py&quot;
+  fs-url=&quot;/python-package.tar.gz&quot;
+  controls
+&gt;
+  &lt;runno-file path="/file.txt"&gt;
+    G'day world.
+    Welcome to Runno.
+  &lt;/runno-file&gt;
+  &lt;runno-file path="/test.txt" url="/test.txt"&gt;&lt;/runno-file&gt;
+&lt;/runno-wasi&gt;</code></pre>
+
+        <runno-wasi
+          src="/cat.wasi.wasm"
+          args="/file.txt /test.txt"
+          controls
+        >
+          <runno-file path="/file.txt">
+            G'day world.
+            Welcome to Runno.
+          </runno-file>
+          <runno-file path="/test.txt" url="/test.txt"></runno-file>
+        </runno-wasi>
       </article>
 
       <article class="prose container mx-auto my-16">

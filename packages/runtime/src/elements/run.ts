@@ -50,6 +50,8 @@ export class RunElement extends LitElement implements RuntimeMethods {
   @property({ type: Boolean, reflect: true }) editor: boolean = false;
   @property({ type: Boolean, reflect: true }) controls: boolean = false;
 
+  fs: WASIFS = {};
+
   editorRef: Ref<EditorElement> = createRef();
   controlsRef: Ref<ControlsElement> = createRef();
   terminalRef: Ref<TerminalElement> = createRef();
@@ -68,18 +70,19 @@ export class RunElement extends LitElement implements RuntimeMethods {
       throw new Error("The editor has no runtime");
     }
 
-    let fs: WASIFS = {};
+    let fs: WASIFS = this.fs;
 
     if (this.fsURL) {
       const baseFS = await fetchWASIFS(this.fsURL);
-      fs = baseFS;
+      fs = { ...baseFS, ...fs };
     }
 
     const fileElements = Array.from(
       this.querySelectorAll<FileElement>("runno-file")
     );
-    for (const el of fileElements) {
-      fs[el.path] = el.getFile();
+    const files = await Promise.all(fileElements.map((f) => f.getFile()));
+    for (const file of files) {
+      fs[file.path] = file;
     }
 
     fs = {

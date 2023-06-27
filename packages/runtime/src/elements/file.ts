@@ -2,9 +2,15 @@ import { WASIFile } from "@runno/wasi";
 import { elementCodeContent } from "../helpers";
 
 type DateAttribute = "access" | "modification" | "change";
-type Attribute = "path" | DateAttribute;
+type Attribute = "path" | "url" | DateAttribute;
 
-const ATTRIBUTES: Attribute[] = ["path", "access", "modification", "change"];
+const ATTRIBUTES: Attribute[] = [
+  "path",
+  "url",
+  "access",
+  "modification",
+  "change",
+];
 const DATE_ATTRIBUTES: DateAttribute[] = ["access", "modification", "change"];
 
 function isDateAttribute(name: string): name is DateAttribute {
@@ -21,6 +27,8 @@ export class FileElement extends HTMLElement {
   access: Date = new Date();
   modification: Date = new Date();
   change: Date = new Date();
+
+  url: string = "";
 
   _content: string = "";
   get content() {
@@ -49,17 +57,30 @@ export class FileElement extends HTMLElement {
   // Public Helpers
   //
 
-  getFile(): WASIFile {
-    return {
-      path: this.path,
-      mode: "string",
-      content: this.content,
-      timestamps: {
-        access: this.access,
-        modification: this.modification,
-        change: this.change,
-      },
+  async getFile(): Promise<WASIFile> {
+    const timestamps = {
+      access: this.access,
+      modification: this.modification,
+      change: this.change,
     };
+
+    if (this.url) {
+      const url = new URL(this.url, window.location.origin);
+      const data = await (await fetch(url)).arrayBuffer();
+      return {
+        path: this.path,
+        mode: "binary",
+        content: new Uint8Array(data),
+        timestamps,
+      };
+    } else {
+      return {
+        path: this.path,
+        mode: "string",
+        content: this.content,
+        timestamps,
+      };
+    }
   }
 
   //
