@@ -1,7 +1,7 @@
 import { html, css } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 
-import { generateEmbedURL } from "@runno/host";
+import { Runtime } from "@runno/host";
 
 import { TailwindElement } from "../lib/tailwind";
 
@@ -19,36 +19,41 @@ export class PageHome extends TailwindElement {
     TailwindElement.styles,
     css`
       .bg-sunset {
-        background: linear-gradient(0deg, #030052, #06004f 70%, #330b24);
+        background: linear-gradient(180deg, #030052, #06004f 70%, #70164e);
       }
     `,
   ];
 
   @state()
-  embedURL: URL = generateEmbedURL(exampleForRuntime("python"), "python", {
-    showEditor: true,
-    autorun: false,
-    baseUrl: import.meta.env.VITE_RUNTIME,
-  });
+  runtime: Runtime = "python";
+
+  @state()
+  code: string = exampleForRuntime(this.runtime);
+
+  @state()
+  controls: boolean = false;
+
+  @state()
+  editor: boolean = false;
 
   @query("website-form", true)
   _form!: WebsiteForm;
 
-  @query("iframe", true)
-  _iframe!: HTMLIFrameElement;
-
-  onFormInput() {
-    this.embedURL = this._form.embedURL;
-  }
-
-  updated() {
-    // This can't be set by lit for some reason
-    this._iframe.src = this.embedURL.toString();
-  }
+  onFormInput = () => {
+    this.runtime = this._form.runtime;
+    this.code = this._form.code;
+    this.controls = this._form.controls;
+    this.editor = this._form.showEditor;
+  };
 
   firstUpdated() {
     // TODO: It's weird but lit won't let me listen to this event from the template
-    this._form.addEventListener("form-input", this.onFormInput.bind(this));
+    this._form.addEventListener("form-input", this.onFormInput);
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback();
+    this._form.removeEventListener("form-input", this.onFormInput);
   }
 
   render() {
@@ -59,7 +64,7 @@ export class PageHome extends TailwindElement {
         </website-starfield>
         <website-header></website-header>
 
-        <img class="absolute bottom-0 right-0" src="/images/sun.svg" />
+        <img class="absolute bottom-0 right-0 w-1/5" src="/images/sun.svg" />
         <div class="container mx-auto relative p-4 sm:p-0">
           <h1
             class="
@@ -68,51 +73,58 @@ export class PageHome extends TailwindElement {
               md:text-5xl
               font-bold
               text-center
-              mt-10
-              mb-8
+              mt-16
+              mb-6
             "
           >
-            Make your code samples Runno.
+            Run code examples on your website
           </h1>
           <div class="w-1/3 mx-auto">
             <hr class="border-t border-yellow my-2 h-0" />
             <hr class="w-4/5 border-t border-yellow my-2 h-0 mx-auto" />
             <hr class="w-3/5 border-t border-yellow my-2 h-0 mx-auto" />
-            <hr class="w-2/5 border-t border-yellow my-2 h-0 mx-auto" />
           </div>
 
-          <div class="flex flex-wrap items-stretch py-16 font-mono">
-            <website-form @form-input=${this.onFormInput}></website-form>
+          <div class="flex justify-center mt-12 mb-32">
+            <pre
+              class="border border-yellow bg-black p-2 px-3"
+            ><code>$ npm install @runno/runtime</code></pre>
+          </div>
+        </div>
+      </div>
 
+      <!-- Runno below the fold -->
+      <div class="bg-white">
+        <div class="container mx-auto">
+          <div class="flex flex-wrap items-stretch py-16 font-mono -mt-28">
+            <website-form></website-form>
             <div
-              class="flex-grow flex flex-col items-stretch w-1/3 h-80 lg:h-auto"
+              class="rounded-lg overflow-clip flex-grow bg-white drop-shadow-2xl shadow-2xl"
             >
-              <div class="bg-lightBlue py-2 text-center relative">
-                <span class="absolute left-4">
-                  <span
-                    class="rounded-full bg-navy w-3 h-3 inline-block"
-                  ></span>
-                  <span
-                    class="rounded-full bg-navy w-3 h-3 inline-block"
-                  ></span>
-                  <span
-                    class="rounded-full bg-navy w-3 h-3 inline-block"
-                  ></span>
-                </span>
-                <label class="bg-navy py-1 px-8 text-yellow text-sm">
-                  Preview
-                </label>
+              <div
+                class="flex justify-center border-b border-b-lightGrey rounded"
+              >
+                <span class="text-black bg-lightGrey px-8 m-2">Preview</span>
               </div>
-              <iframe
-                ?crossorigin=${true}
-                allow="cross-origin-isolated"
-                class="flex-grow"
-              ></iframe>
+              <!-- <runno-run
+                class="w-full h-full"
+                runtime="python"
+                controls
+                editor
+              ></runno-run> -->
+              <runno-run
+                class="w-full h-full"
+                runtime="python"
+                .code=${this.code}
+                ?controls=${this.controls}
+                ?editor=${this.editor}
+              ></runno-run>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Runno dark background -->
       <div class="relative">
         <img class="absolute top-0 right-0" src="/images/sun-reflection.svg" />
       </div>

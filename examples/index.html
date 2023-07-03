@@ -33,18 +33,15 @@
   <body>
     <main class="">
       <div class="prose container mx-auto my-16">
-        <h1>Runno Examples</h1>
+        <h1>Getting to know Runno</h1>
 
         <p>
           Runno is all about running stuff in the browser. Whether that's coding
-          examples, user provided code, or compiled binaries. Runno provides three
-          packages each for a different layer of abstraction:
+          examples, user provided code, or compiled binaries. Runno provides two
+          packages to help you do that.
         </p>
 
         <ol>
-          <li>
-            <code>@runno/host</code> - control an embedded Runno iframe from JavaScript
-          </li>
           <li>
             <code>@runno/runtime</code> - runs interactive code, headless code, and
             interactive WASI binaries using Web Components. This is probably the
@@ -57,16 +54,15 @@
         </ol>
 
         <p>
-          The visual components are all provided by `@runno/runtime`. And in most
-          cases this is the package you'll be using. If you'd prefer to embed an
-          iframe then `@runno/host` can help you. If you need a low-level
+          The visual components are all provided by <code>@runno/runtime</code>. And in most
+          cases this is the package you'll be using. If you need a low-level
           interface to directly interact with a WASI binary, then reach for
-          `@runno/wasi`.
+          <code>@runno/wasi</code>.
         </p>
 
         <p>
           These examples are best used while also reading
-          <a target="_blank" href="https://runno.dev/#web-components">
+          <a target="_blank" href="https://runno.dev/docs">
             the documentation </a
           >. To get the best results with Runno make sure you set the
           <a

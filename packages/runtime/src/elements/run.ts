@@ -1,5 +1,5 @@
 import { html, css, LitElement } from "lit";
-import { property, state } from "lit/decorators.js";
+import { customElement, property, state } from "lit/decorators.js";
 import { createRef, Ref, ref } from "lit/directives/ref.js";
 
 import {
@@ -16,6 +16,7 @@ import { RunnoProvider } from "../provider";
 import { elementCodeContent, fetchWASIFS } from "../helpers";
 import { FileElement } from "./file";
 
+@customElement("runno-run")
 export class RunElement extends LitElement implements RuntimeMethods {
   static styles = css`
     :host {
@@ -49,6 +50,7 @@ export class RunElement extends LitElement implements RuntimeMethods {
   @property({ type: String, attribute: "fs-url" }) fsURL?: string;
   @property({ type: Boolean, reflect: true }) editor: boolean = false;
   @property({ type: Boolean, reflect: true }) controls: boolean = false;
+  @property({ type: Boolean, reflect: true }) autorun: boolean = false;
 
   fs: WASIFS = {};
 
@@ -69,6 +71,8 @@ export class RunElement extends LitElement implements RuntimeMethods {
     if (!editor.runtime) {
       throw new Error("The editor has no runtime");
     }
+
+    this._running = true;
 
     let fs: WASIFS = this.fs;
 
@@ -217,13 +221,25 @@ export class RunElement extends LitElement implements RuntimeMethods {
     this.dispatchEvent(event);
   }
 
+  attributeChangedCallback(
+    name: string,
+    _old: string | null,
+    value: string | null
+  ): void {
+    super.attributeChangedCallback(name, _old, value);
+
+    if (name === "autorun" && value !== null) {
+      setTimeout(this.run);
+    }
+  }
+
   render() {
     return html`
       <runno-editor
+        ${ref(this.editorRef)}
         runtime=${this.runtime}
         syntax=${this.syntax}
         code=${this.code}
-        ${ref(this.editorRef)}
         ?hidden=${!this.editor}
       ></runno-editor>
       <runno-controls
@@ -238,5 +254,3 @@ export class RunElement extends LitElement implements RuntimeMethods {
     `;
   }
 }
-
-customElements.define("runno-run", RunElement);

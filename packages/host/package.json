@@ -2,7 +2,7 @@
   "name": "@runno/host",
   "version": "0.5.0",
   "author": "Ben Taylor <runno@taybenlor.com>",
-  "description": "iframe host for @runno",
+  "description": "DEPRECATED iframe host for @runno",
   "website": "https://runno.dev",
   "repository": {
     "type": "git",

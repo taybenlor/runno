@@ -65,6 +65,13 @@ export class WebsiteHeader extends TailwindElement {
             Docs
           </a>
           <a
+            href="https://www.npmjs.com/package/@runno/runtime"
+            class="inline-flex font-medium hover:text-yellow group"
+          >
+            <!-- TODO: NPM Logo -->
+            NPM
+          </a>
+          <a
             target="_blank"
             href="https://github.com/taybenlor/runno"
             class="inline-flex font-medium hover:text-yellow group"

@@ -58,7 +58,7 @@
     "@runno/host": "^0.5.0",
     "@runno/wasi": "^0.5.0",
     "js-untar": "^2.0.0",
-    "lit": "^2.0.0",
+    "lit": "^2.7.5",
     "pako": "^1.0.11",
     "runno-codemirror-lang-ruby": "^0.0.2",
     "xterm": "^4.12.0",
