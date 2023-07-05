@@ -15,6 +15,7 @@ module.exports = {
       darkPink: "#330B24",
       red: "#eb4950",
       lightGrey: "#ececec",
+      teal: "#2ad8a4",
     },
     fontFamily: {
       sans: [
@@ -55,23 +56,23 @@ module.exports = {
         DEFAULT: {
           css: {
             lineHeight: "1.6",
-            color: "#FFFFFF",
+            color: "#2d2d2d",
             a: {
-              color: "#FFE234",
+              color: "#008c9d",
             },
             h1: {
-              color: "#FFE234",
+              color: "#2ad8a4",
               lineHeight: "1.35",
             },
             "h2, h3, h4": {
-              color: "#FFFFFF",
+              color: "#2d2d2d",
             },
             "p, li": {
               fontFamily:
                 '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"',
             },
             "li::marker": {
-              color: "#FFE234",
+              color: "#2ad8a4",
             },
             code: {
               color: "#ff2ea8",
@@ -81,17 +82,6 @@ module.exports = {
             },
             "code::after": {
               content: "",
-            },
-            blockquote: {
-              color: "#FFFFFF",
-            },
-            aside: {
-              borderLeft: "4px solid #FFE234",
-              paddingLeft: "2rem",
-              fontSize: "0.95em",
-              "h1, h2, h3": {
-                color: "#FFE234",
-              },
             },
           },
         },

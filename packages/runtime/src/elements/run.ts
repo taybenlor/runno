@@ -221,17 +221,17 @@ export class RunElement extends LitElement implements RuntimeMethods {
     this.dispatchEvent(event);
   }
 
-  attributeChangedCallback(
-    name: string,
-    _old: string | null,
-    value: string | null
-  ): void {
-    super.attributeChangedCallback(name, _old, value);
+  // attributeChangedCallback(
+  //   name: string,
+  //   _old: string | null,
+  //   value: string | null
+  // ): void {
+  //   super.attributeChangedCallback(name, _old, value);
 
-    if (name === "autorun" && value !== null) {
-      setTimeout(this.run);
-    }
-  }
+  //   if (name === "autorun" && value !== null) {
+  //     setTimeout(this.run);
+  //   }
+  // }
 
   render() {
     return html`

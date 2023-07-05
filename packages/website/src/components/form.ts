@@ -54,7 +54,7 @@ export class WebsiteForm extends TailwindElement {
 
   render() {
     return html`<form
-      class="flex flex-col flex-grow w-full mb-8 rounded-lg bg-black drop-shadow-2xl shadow-2xl lg:w-auto lg:mr-8 lg:mb-0"
+      class="flex flex-col flex-grow rounded-lg font-mono text-white bg-black drop-shadow-2xl shadow-2xl"
     >
       <div class="relative">
         <pre class="py-3 px-4"><code>&lt;runno-run runtime=<select
