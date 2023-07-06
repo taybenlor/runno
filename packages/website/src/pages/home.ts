@@ -153,14 +153,12 @@ export class PageHome extends TailwindElement {
                 >
                   <title>That's all in the browser!</title>
                   <g
-                    id="browser-text"
                     stroke="none"
                     stroke-width="1"
                     fill="none"
                     fill-rule="evenodd"
                   >
                     <g
-                      id="That's-all-in-the-br"
                       transform="translate(276.809566, 37.344850) rotate(-4.000000) translate(-276.809566, -37.344850) translate(134.429566, 24.184850)"
                       fill="#3D3D3D"
                       fill-rule="nonzero"
@@ -270,8 +268,32 @@ export class PageHome extends TailwindElement {
 
       <!-- Runno grey -->
       <div class="bg-gradient-to-b from-white to-lightGrey text-black">
-        <div class="container mx-auto h-64">
-          <h1 class="text-xl font-bold">Supported languages</h1>
+        <div class="container mx-auto pb-16">
+          <h1 class="text-xl font-bold mb-4">Supported languages</h1>
+          <div class="flex">
+            <div class="w-1/2 flex flex-wrap justify-between gap-8">
+              <img
+                class="h-16"
+                src="/images/languages/python.svg"
+                alt="Python"
+              />
+              <img class="h-12" src="/images/languages/ruby.svg" alt="Ruby" />
+              <img
+                class="h-16 -top-2 relative"
+                src="/images/languages/sqlite.svg"
+                alt="SQLite"
+              />
+              <img class="h-20" src="/images/languages/php.svg" alt="PHP" />
+              <img
+                class="h-20"
+                src="/images/languages/javascript.svg"
+                alt="JavaScript"
+              />
+              <img class="h-20" src="/images/languages/c.svg" alt="C" />
+              <img class="h-20" src="/images/languages/cpp.svg" alt="C++" />
+            </div>
+            <div class="w-1/2"></div>
+          </div>
         </div>
       </div>
 
