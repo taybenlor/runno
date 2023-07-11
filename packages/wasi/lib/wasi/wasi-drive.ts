@@ -511,7 +511,7 @@ class OpenFile {
   }
 
   pread(bytes: number, offset: number) {
-    return this.buffer.subarray(offset, this.offset + bytes);
+    return this.buffer.subarray(offset, offset + bytes);
   }
 
   write(data: Uint8Array) {
