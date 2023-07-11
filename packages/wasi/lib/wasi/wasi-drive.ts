@@ -505,13 +505,13 @@ class OpenFile {
   }
 
   read(bytes: number) {
-    const ret = this.buffer.slice(this.offset, bytes);
+    const ret = this.buffer.subarray(this.offset, this.offset + bytes);
     this._offset += BigInt(ret.length);
     return ret;
   }
 
   pread(bytes: number, offset: number) {
-    return this.buffer.slice(offset, bytes);
+    return this.buffer.subarray(offset, this.offset + bytes);
   }
 
   write(data: Uint8Array) {
@@ -637,7 +637,7 @@ class OpenFile {
     let underBuffer: ArrayBuffer;
 
     if (this.buffer.buffer.byteLength === 0) {
-      underBuffer = new ArrayBuffer(1024);
+      underBuffer = new ArrayBuffer(requiredBytes < 1024 ? 1024 : requiredBytes * 2);
     } else if (requiredBytes > this.buffer.buffer.byteLength * 2) {
       underBuffer = new ArrayBuffer(requiredBytes * 2);
     } else {
