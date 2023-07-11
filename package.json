@@ -13,7 +13,7 @@
   "scripts": {
     "prepare": "npx husky install",
     "bootstrap": "npm install",
-    "dev": "echo TODO dev command, for now just use dev in client and website",
+    "dev": "npm run dev --workspace=@runno/website",
     "publish": "npm run build && npx lerna publish",
     "build:host": "cd packages/host && npm run build",
     "build:client": "cd packages/client && npm run build",

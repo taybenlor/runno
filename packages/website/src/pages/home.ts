@@ -92,7 +92,7 @@ export class PageHome extends TailwindElement {
           <div class="flex justify-center mt-12 mb-32">
             <pre
               class="border border-yellow bg-black p-2 px-3"
-            ><code>$ npm install @runno/runtime</code></pre>
+            ><code><span class="text-yellow">$</span> npm install @runno/runtime</code></pre>
           </div>
         </div>
       </div>
@@ -269,7 +269,7 @@ export class PageHome extends TailwindElement {
       <!-- Runno grey -->
       <div class="bg-gradient-to-b from-white to-lightGrey text-black">
         <div class="container mx-auto pb-16">
-          <h1 class="text-xl font-bold mb-4">Supported languages</h1>
+          <h1 class="text-xl font-bold mb-8">Supported languages</h1>
           <div class="flex">
             <div class="w-1/2 flex flex-wrap justify-between gap-8">
               <img
@@ -292,7 +292,23 @@ export class PageHome extends TailwindElement {
               <img class="h-20" src="/images/languages/c.svg" alt="C" />
               <img class="h-20" src="/images/languages/cpp.svg" alt="C++" />
             </div>
-            <div class="w-1/2"></div>
+            <div class="w-1/2 flex justify-center ">
+              <div
+                class="outline-2 outline-dashed outline-navy bg-white rounded p-8 flex-shrink"
+              >
+                <p class="text-2xl font-bold font-sans w-64 mb-8">
+                  Contribute your own language runtime.
+                </p>
+                <a
+                  target="_blank"
+                  class="flex justify-center text-center font-sans bg-blue hover:bg-navy shadow-lg text-white font-bold p-4 text-lg rounded-lg"
+                  href="https://github.com/taybenlor/runno/issues"
+                >
+                  <img src="/images/github-light.png" class="w-7 h-7 mr-3" />
+                  View Issues
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -320,10 +336,10 @@ export class PageHome extends TailwindElement {
               <a href="#know-runno">Getting to know Runno</a>
             </li>
             <li class="pl-4">
-              <a href="#using-runno">Using Runno</a>
+              <a href="#about-runno">About Runno</a>
             </li>
             <li class="pl-4">
-              <a href="#examples">Examples</a>
+              <a href="#quickstart">Quickstart</a>
             </li>
             <li class="pl-4">
               <a href="#thanks">Thanks to</a>
@@ -342,7 +358,7 @@ export class PageHome extends TailwindElement {
         >
           <section>
             <h1 id="know-runno">Getting to know Runno</h1>
-            <h2 id="using-runno">Using Runno</h2>
+            <h2 id="about-runno">About Runno</h2>
             <p>
               Runno helps you make runnable code examples that can be embedded
               in web pages. This is very handy for educational tools, it means:
@@ -351,7 +367,7 @@ export class PageHome extends TailwindElement {
             <ul>
               <li>
                 You can make code examples that don't need users to install
-                complex tools.
+                scary tools.
               </li>
               <li>
                 No need to run a server, it all runs client-side in the browser.
@@ -359,60 +375,100 @@ export class PageHome extends TailwindElement {
               <li>
                 Your users can edit and re-run any code examples you make.
               </li>
-              <li>All examples are extremely customisable.</li>
+              <li>
+                The examples are extremely customisable with HTML, CSS and
+                JavaScript!
+              </li>
             </ul>
 
-            <p>
-              For advanced uses, the iframe can be controlled with the
-              <a href="/docs#host-api">host API</a>. With the host API you can
-              pass files, collect <code>STDOUT</code> and automate running in
-              both interactive and headless modes. Or bake Runno into your app
-              with the
-              <a href="/docs#web-components">runtime web components</a>.
-            </p>
-
-            <h2 id="examples">Examples</h2>
+            <h2 id="quickstart">Quickstart</h2>
             <p>
               Lets say you're writing a blog post and want to explain how an
-              <code>if</code> statement works. You've written a code sample like
-              this:
+              <code>if</code> statement works. You come to this website (👋 hi)
+              to add Runno to your blog.
             </p>
-            <pre><code>name = input("What's your name? ")
-if "i" in name.lower():
-  print("You've got an I in your name, how selfish.")
-else:
-  print("There's no I in your name.")
-</code></pre>
+
+            <h3>Install &amp; Configure</h3>
+            <p>
+              First you'll need to install the <code>@runno/runtime</code>
+              package:
+            </p>
+
+            <pre><code><span class="text-yellow">$</span> npm install @runno/runtime</code></pre>
 
             <p>
-              You can take that snippet to Runno, select the <code>python</code>
-              runtime and paste in your code. Then you can select the embed
-              field and copy the generated iframe. Paste it into your blog like:
+              Then add the Runno Web Components to your JavaScript with an
+              import:
+            </p>
+
+            <pre><code>import "@runno/runtime"</code></pre>
+
+            <p>
+              Once imported Runno will define all the Web Components necessary
+              for it to work.
+            </p>
+
+            <p>
+              Runno uses <code>SharedArrayBuffer</code> under the hood. For it
+              to work, you need to provide a
+              <a href="https://web.dev/cross-origin-isolation-guide/">
+                Cross-Origin Isolated context </a
+              >. That means you'll need to change some HTTP headers on your web
+              server. Depending on your language, framework, and hosting this
+              will be different (I recommend a google). The headers you need to
+              set are:
+            </p>
+
+            <pre><code>Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp</code></pre>
+
+            <h3>Using Runno on your page</h3>
+
+            <p>
+              Now you've done all the setup you can add a runnable snippet into
+              your post! Just write HTML however you like to write HTML.
             </p>
 
             <pre><code>&lt;p&gt;
-  Here's an example of an if statement:
+  You can use if statements to run different code depending on a decision:
 &lt;/p&gt;
 
-&lt;iframe src="&hellip;" crossorigin allow="cross-origin-isolated" width="640" height="320" frameBorder="0"&gt;&lt;/iframe&gt;
+&lt;runno-run runtime="python" editor controls&gt;
+  name = input("What's your name? ")
+  if "i" in name:
+    print("You've got an I in your name, how selfish.")
+  else:
+    print("There's no I in your name.")
+&lt;/runno-run&gt;
 
 &lt;p&gt;
-  You can use an if statement to&hellip;
+  Try out the example with different names!
 &lt;/p&gt;
-</code></pre>
+        </code></pre>
 
             <p>And it would work something like:</p>
 
-            <div class="bg-white px-4 flow-root rounded text-black">
-              <p>Here's an example of an if statement:</p>
-              <iframe
-                src="https://runno.run/?editor=1&amp;runtime=python&amp;code=bmFtZSA9IGlucHV0KCJXaGF0J3MgeW91ciBuYW1lPyAiKQppZiAiaSIgaW4gbmFtZS5sb3dlcigpOgogIHByaW50KCJZb3UndmUgZ290IGFuIEkgaW4geW91ciBuYW1lLCBob3cgc2VsZmlzaC4iKQplbHNlOgogIHByaW50KCJUaGVyZSdzIG5vIEkgaW4geW91ciBuYW1lLiIp"
-                crossorigin
-                allow="cross-origin-isolated"
-                height="320"
-                class="w-full p-1.5 bg-black rounded"
-              ></iframe>
-              <p>You can use an if statement to&hellip;</p>
+            <div class="bg-lightGrey px-4 flow-root rounded text-black">
+              <p>
+                You can use if statements to run different code depending on a
+                decision:
+              </p>
+
+              <!-- prettier-ignore -->
+              <runno-run
+                runtime="python"
+                editor
+                controls
+                class="w-full text-sm"
+              >
+                name = input("What's your name? ")
+                if "i" in name:
+                  print("You've got an I in your name, how selfish.")
+                else:
+                  print("There's no I in your name.")
+              </runno-run>
+
+              <p>Try out the example with different names!</p>
             </div>
 
             <p>
@@ -420,18 +476,9 @@ else:
               edit it and check they understand how it works!
             </p>
 
-            <p>
-              If you find you're using Runno a lot on your blog, you can use the
-              Runno Web Components (<a href="#web-components">documentation</a
-              >). First follow the
-              <a href="#component-quickstart">quickstart guide</a> to make sure
-              it's set up correctly.
-            </p>
-
-            <p>
-              Once you've got Runno installed you can use the same features
-              without needing to use an iframe. Lets say you were explaining how
-              infinite loops work in JavaScript:
+            <!-- <p>
+              Runno supports a bunch of programming languages, and won't freeze
+              the page if you create an infinite loop.
             </p>
 
             <pre><code>&lt;p&gt;
@@ -447,25 +494,7 @@ An infinite loop runs forever:
 &lt;p&gt;
 Try changing the text to your own example!
 &lt;/p&gt;
-        </code></pre>
-
-            <p>And it would work in the same way as the iframe:</p>
-
-            <div class="bg-white px-4 flow-root rounded text-black">
-              <p>An infinite loop runs forever:</p>
-              <!-- prettier-ignore -->
-              <runno-run
-            runtime="quickjs"
-            editor
-            controls
-            class="w-full bg-black p-1.5 rounded text-sm"
-          >
-            while (true) {
-              console.log("Help I'm trapped in a code factory!");
-            }
-          </runno-run>
-              <p>Try changing the text to your own example!</p>
-            </div>
+        </code></pre> -->
 
             <h2 id="thanks">Big thanks to</h2>
 
@@ -475,23 +504,22 @@ Try changing the text to your own example!
             </p>
             <ul>
               <li>
-                Wasmer, WAPM, and WebAssembly.sh - the Wasmer team have built a
-                lot of great tools for running Web Assembly. WAPM, the Web
-                Assembly Package Manager is key to how Runno works.
-                WebAssembly.sh was a great inspiration and starting point.
-              </li>
-              <li>
                 WASI and Web Assembly - a bunch of people from various working
                 groups and especially the Bytecode Alliance have been involved
-                in making WASM and WASI what it is today.
+                in making WASM and WASI the portable platform it is.
               </li>
               <li>
                 XTerm.js - a fully featured terminal that can be run in the
-                browser
+                browser.
               </li>
               <li>
                 CodeMirror - a great web-based code editor that's always a
-                delight to integrate
+                delight to integrate.
+              </li>
+              <li>
+                Wasmer - the Wasmer team have built a lot of great tools for
+                running Web Assembly. WebAssembly.sh was a great inspiration and
+                starting point.
               </li>
               <li>
                 The extensive work by many in the web development community on
