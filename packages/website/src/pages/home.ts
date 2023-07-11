@@ -35,10 +35,10 @@ export class PageHome extends TailwindElement {
   code: string = exampleForRuntime(this.runtime);
 
   @state()
-  controls: boolean = false;
+  controls: boolean = true;
 
   @state()
-  editor: boolean = false;
+  editor: boolean = true;
 
   @query("website-form", true)
   _form!: WebsiteForm;
@@ -48,6 +48,13 @@ export class PageHome extends TailwindElement {
     this.code = this._form.code;
     this.controls = this._form.controls;
     this.editor = this._form.showEditor;
+
+    console.log("FORM INPUT", this._form, {
+      runtime: this.runtime,
+      code: this.code,
+      controls: this.controls,
+      editor: this.editor,
+    });
   };
 
   firstUpdated() {
@@ -61,6 +68,7 @@ export class PageHome extends TailwindElement {
   }
 
   render() {
+    console.log("Hello", { controls: this.controls, runtime: this.runtime });
     return html`
       <div class="bg-sunset pb-8 relative text-white">
         <website-starfield class="pointer-events-none">
@@ -132,16 +140,10 @@ export class PageHome extends TailwindElement {
                 <runno-run
                   class="w-full"
                   runtime="python"
-                  controls
-                  editor
+                  .code=${this.code}
+                  ?controls=${this.controls}
+                  ?editor=${this.editor}
                 ></runno-run>
-                <!-- <runno-run
-                class="w-full h-full"
-                runtime="python"
-                .code=${this.code}
-                ?controls=${this.controls}
-                ?editor=${this.editor}
-              ></runno-run> -->
               </div>
               <div>
                 <svg
@@ -453,9 +455,9 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
                 You can use if statements to run different code depending on a
                 decision:
               </p>
-
+              <!-- TODO: UNCOMMENT THIS -->
               <!-- prettier-ignore -->
-              <runno-run
+              <!-- <runno-run
                 runtime="python"
                 editor
                 controls
@@ -466,7 +468,7 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
                   print("You've got an I in your name, how selfish.")
                 else:
                   print("There's no I in your name.")
-              </runno-run>
+              </runno-run> -->
 
               <p>Try out the example with different names!</p>
             </div>

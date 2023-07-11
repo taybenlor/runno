@@ -6,14 +6,19 @@ export type Runtime =
   | "clangpp"
   | "ruby"
   | "php-cgi";
-export type Syntax =
-  | "python"
-  | "js"
-  | "sql"
-  | "cpp"
-  | "ruby"
-  | "php"
-  | undefined;
+export type Syntax = "python" | "js" | "sql" | "cpp" | "ruby" | "php";
+
+export const RUNTIMES: Runtime[] = [
+  "python",
+  "quickjs",
+  "sqlite",
+  "clang",
+  "clangpp",
+  "ruby",
+  "php-cgi",
+];
+
+export const SYNTAXES: Syntax[] = ["python", "js", "sql", "cpp", "ruby", "php"];
 
 export type CrashResult = {
   resultType: "crash";

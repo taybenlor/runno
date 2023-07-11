@@ -216,7 +216,7 @@ Try changing the text to your own example!
             <div class="bg-white px-4 flow-root rounded text-black">
               <p>An infinite loop runs forever:</p>
               <!-- prettier-ignore -->
-              <runno-run
+              <!-- <runno-run
             runtime="quickjs"
             editor
             controls
@@ -225,7 +225,7 @@ Try changing the text to your own example!
             while (true) {
               console.log("Help I'm trapped in a code factory!");
             }
-          </runno-run>
+          </runno-run> -->
               <p>Try changing the text to your own example!</p>
             </div>
 
@@ -849,9 +849,9 @@ print('Hello, World!')
 
             <p>Which would render as:</p>
 
-            <runno-run runtime="python" editor controls>
+            <!-- <runno-run runtime="python" editor controls>
               print('Hello, World!')
-            </runno-run>
+            </runno-run> -->
 
             <h2 id="component-how">How it works</h2>
             <p>

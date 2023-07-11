@@ -75,9 +75,9 @@ kind of like calling `Math.floor` on the number but you're doing it in a way
 that's confusing instead of a way that makes sense. Here's a demo (you can
 edit it):
 
-<runno-run runtime="quickjs" editor controls>
+<!-- <runno-run runtime="quickjs" editor controls>
 console.log(1.5 | 0);
-</runno-run>
+</runno-run> -->
 
 What does this have to do with WebAssembly? Well back in like 2013 Alon Zakai
 realised that you could make a kind of rudimentary "assembly" language by using

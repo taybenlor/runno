@@ -37,7 +37,9 @@ export function generateEmbedHTML(url: URL): string {
   return `<iframe src="${url}" crossorigin allow="cross-origin-isolated" width="640" height="320" frameBorder="0"></iframe>`;
 }
 
-export function runtimeToSyntax(runtime: string | undefined | null): Syntax {
+export function runtimeToSyntax(
+  runtime: string | undefined | null
+): Syntax | undefined {
   switch (runtime) {
     case "python":
       return "python";

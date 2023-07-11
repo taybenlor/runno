@@ -1,78 +1,188 @@
-import { html, css, LitElement } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
-import { createRef, Ref, ref } from "lit/directives/ref.js";
+import type { RunResult, Runtime, RuntimeMethods, Syntax } from "@runno/host";
 
-import {
-  Runtime,
-  RuntimeMethods,
-  Syntax,
-  RunResult,
-  WASIFS,
-} from "@runno/host";
-import { EditorElement } from "./editor";
+import { RUNTIMES, SYNTAXES } from "@runno/host";
+import { WASIFS } from "@runno/wasi";
+import { fetchWASIFS } from "../helpers";
+import { FileElement } from "./file";
 import { ControlsElement } from "./controls";
+import { EditorElement } from "./editor";
 import { TerminalElement } from "./terminal";
 import { RunnoProvider } from "../provider";
-import { elementCodeContent, fetchWASIFS } from "../helpers";
-import { FileElement } from "./file";
 
-@customElement("runno-run")
-export class RunElement extends LitElement implements RuntimeMethods {
-  static styles = css`
-    :host {
-      display: flex;
-      flex-direction: column;
-      min-height: 140px;
-    }
+const ATTRIBUTE_MAP = {
+  runtime: "runtime",
+  syntax: "syntax",
+  code: "code",
+  "fs-url": "fsURL",
+  editor: "editor",
+  controls: "controls",
+  autorun: "autorun",
+} as const;
 
-    runno-editor {
-      background: white;
-      color: black;
-      height: var(--runno-editor-height, auto);
-      max-height: var(--runno-editor-max-height, 60%);
-    }
+const BOOLEAN_ATTRIBUTES = ["controls", "autorun", "editor"];
 
-    runno-controls {
-      flex-shrink: 0;
-    }
+type BooleanAttribute = "controls" | "autorun" | "editor";
 
-    runno-terminal {
-      background: black;
-      flex-grow: 1;
-      height: var(--runno-terminal-height, auto);
-      min-height: var(--runno-terminal-min-height, 4rem);
-    }
-  `;
+function isBooleanAttribute(key: string): key is BooleanAttribute {
+  return BOOLEAN_ATTRIBUTES.includes(key);
+}
 
-  @property({ type: String }) runtime: string = "python";
-  @property({ type: String }) syntax?: string;
-  @property({ type: String }) code?: string;
-  @property({ type: String, attribute: "fs-url" }) fsURL?: string;
-  @property({ type: Boolean, reflect: true }) editor: boolean = false;
-  @property({ type: Boolean, reflect: true }) controls: boolean = false;
-  @property({ type: Boolean, reflect: true }) autorun: boolean = false;
+function isRuntime(value: string): value is Runtime {
+  return RUNTIMES.includes(value as Runtime);
+}
 
+function isSyntax(value: string): value is Syntax {
+  return SYNTAXES.includes(value as Syntax);
+}
+
+export class RunElement extends HTMLElement {
+  static get observedAttributes() {
+    return Object.keys(ATTRIBUTE_MAP);
+  }
+
+  private _runtime?: Runtime;
+  private _syntax?: Syntax;
+  private _code?: string;
   fs: WASIFS = {};
+  fsURL?: string;
 
-  editorRef: Ref<EditorElement> = createRef();
-  controlsRef: Ref<ControlsElement> = createRef();
-  terminalRef: Ref<TerminalElement> = createRef();
+  // Boolean controls
+  _editor: boolean = false;
+  _controls: boolean = false;
+  autorun: boolean = false;
 
-  @state() private _running: Boolean = false;
-
+  private hasRun = false;
+  private _running = false;
   private _provider!: RuntimeMethods;
 
-  public get running() {
+  get running() {
     return this._running;
   }
 
+  private set running(value: boolean) {
+    this._running = value;
+
+    const el =
+      this.shadowRoot!.querySelector<ControlsElement>("runno-controls");
+
+    if (value) {
+      el?.removeAttribute("running");
+    } else {
+      el?.setAttribute("running", "");
+    }
+  }
+
+  get controls() {
+    return this._controls;
+  }
+
+  set controls(value: boolean) {
+    this._controls = value;
+
+    const el =
+      this.shadowRoot!.querySelector<ControlsElement>("runno-controls");
+
+    if (value) {
+      el?.removeAttribute("hidden");
+    } else {
+      el?.setAttribute("hidden", "");
+    }
+  }
+
+  get editor() {
+    return this._editor;
+  }
+
+  set editor(value: boolean) {
+    this._editor = value;
+
+    const el = this.shadowRoot!.querySelector<EditorElement>("runno-editor");
+
+    if (value) {
+      el?.removeAttribute("hidden");
+    } else {
+      el?.setAttribute("hidden", "");
+    }
+  }
+
+  get runtime() {
+    return this._runtime;
+  }
+
+  set runtime(value: Runtime | undefined) {
+    this._runtime = value;
+    this.shadowRoot!.querySelector<EditorElement>("runno-editor")!.runtime =
+      value;
+  }
+
+  get syntax() {
+    return this._syntax;
+  }
+
+  set syntax(value: Syntax | undefined) {
+    this._syntax = value;
+    this.shadowRoot!.querySelector<EditorElement>("runno-editor")!.syntax =
+      value;
+  }
+
+  get code() {
+    return this._code;
+  }
+
+  set code(value: string | undefined) {
+    this._code = value;
+    this.shadowRoot!.querySelector<EditorElement>("runno-editor")!.code = value;
+  }
+
+  constructor() {
+    super();
+
+    this.attachShadow({ mode: "open" });
+    this.shadowRoot!.innerHTML = `
+    <style>
+      :host {
+        display: flex;
+        flex-direction: column;
+        min-height: 140px;
+      }
+  
+      runno-editor {
+        background: white;
+        color: black;
+        height: var(--runno-editor-height, auto);
+        max-height: var(--runno-editor-max-height, 60%);
+      }
+  
+      runno-controls {
+        flex-shrink: 0;
+      }
+  
+      runno-terminal {
+        background: black;
+        flex-grow: 1;
+        height: var(--runno-terminal-height, auto);
+        min-height: var(--runno-terminal-min-height, 4rem);
+      }
+    </style>
+    <runno-editor hidden></runno-editor>
+    <runno-controls hidden></runno-controls>
+    <runno-terminal></runno-terminal>
+    <pre hidden><slot></slot></pre>
+    `;
+  }
+
+  //
+  // Public Helpers
+  //
+
   public async run(): Promise<RunResult> {
-    const editor = this.editorRef.value!;
+    const editor =
+      this.shadowRoot!.querySelector<EditorElement>("runno-editor")!;
     if (!editor.runtime) {
       throw new Error("The editor has no runtime");
     }
 
-    this._running = true;
+    this.running = true;
 
     let fs: WASIFS = this.fs;
 
@@ -106,41 +216,62 @@ export class RunElement extends LitElement implements RuntimeMethods {
     return this.interactiveRunFS(editor.runtime, "/program", fs);
   }
 
-  public stop() {
-    return this.interactiveStop();
+  //
+  // Lifecycle Methods
+  //
+
+  connectedCallback() {
+    this.addEventListener("runno-run", this.onRunEvent);
+    this.addEventListener("runno-stop", this.onStopEvent);
+
+    this._provider = new RunnoProvider(
+      this.shadowRoot!.querySelector<TerminalElement>("runno-terminal")!,
+      this.shadowRoot!.querySelector<EditorElement>("runno-editor")!
+    );
   }
 
-  public setProgram(syntax: Syntax, runtime: Runtime, code: string) {
-    this.editorRef.value!.setProgram(syntax, runtime, code);
+  disconnectedCallback() {
+    this.removeEventListener("runno-run", this.onRunEvent);
+    this.removeEventListener("runno-stop", this.onStopEvent);
+  }
+
+  attributeChangedCallback(
+    name: keyof typeof ATTRIBUTE_MAP,
+    _: string,
+    newValue: string
+  ) {
+    if (name === "autorun" && !this.hasRun) {
+      this.run();
+    }
+
+    console.log("attribute changed callback", { name, _, newValue });
+
+    if (isBooleanAttribute(name)) {
+      this[ATTRIBUTE_MAP[name]] = newValue !== null;
+    } else if (name === "runtime") {
+      this[ATTRIBUTE_MAP[name]] = isRuntime(newValue) ? newValue : undefined;
+    } else if (name === "syntax") {
+      this[ATTRIBUTE_MAP[name]] = isSyntax(newValue) ? newValue : undefined;
+    } else {
+      this[ATTRIBUTE_MAP[name]] = newValue;
+    }
   }
 
   //
-  // Runtime Methods
+  // Events
   //
 
-  showControls() {
-    this.controls = true;
-  }
+  onRunEvent = () => {
+    this.run();
+  };
 
-  hideControls() {
-    this.controls = false;
-  }
+  onStopEvent = () => {
+    this.interactiveStop();
+  };
 
-  showEditor() {
-    this.editor = true;
-  }
-
-  hideEditor() {
-    this.editor = false;
-  }
-
-  setEditorProgram(syntax: Syntax, runtime: Runtime, code: string) {
-    return this._provider.setEditorProgram(syntax, runtime, code);
-  }
-
-  getEditorProgram() {
-    return this._provider.getEditorProgram();
-  }
+  //
+  // Helpers
+  //
 
   async interactiveRunCode(runtime: Runtime, code: string): Promise<RunResult> {
     this._running = true;
@@ -184,73 +315,6 @@ export class RunElement extends LitElement implements RuntimeMethods {
   ): Promise<RunResult> {
     return this._provider.headlessRunFS(runtime, entryPath, fs, stdin);
   }
-
-  //
-  // Lifecycle
-  //
-
-  connectedCallback() {
-    super.connectedCallback();
-
-    setTimeout(() => {
-      if (!this.code) {
-        // Prevent file elements from impacting extracting code content
-        const fileElements = Array.from(this.querySelectorAll("runno-file"));
-        fileElements.forEach((el) => el.remove());
-
-        const code = elementCodeContent(this);
-        if (code.trim() != "") {
-          this.code = code;
-        }
-
-        this.append(...fileElements);
-      }
-    }, 0);
-  }
-
-  firstUpdated() {
-    this._provider = new RunnoProvider(
-      this.terminalRef.value!,
-      this.editorRef.value!
-    );
-
-    const event = new Event("runno-ready", {
-      bubbles: true,
-      composed: true,
-    });
-    this.dispatchEvent(event);
-  }
-
-  // attributeChangedCallback(
-  //   name: string,
-  //   _old: string | null,
-  //   value: string | null
-  // ): void {
-  //   super.attributeChangedCallback(name, _old, value);
-
-  //   if (name === "autorun" && value !== null) {
-  //     setTimeout(this.run);
-  //   }
-  // }
-
-  render() {
-    return html`
-      <runno-editor
-        ${ref(this.editorRef)}
-        runtime=${this.runtime}
-        syntax=${this.syntax}
-        code=${this.code}
-        ?hidden=${!this.editor}
-      ></runno-editor>
-      <runno-controls
-        ${ref(this.controlsRef)}
-        ?hidden=${!this.controls}
-        ?running=${this._running}
-        @runno-run=${this.run}
-        @runno-stop=${this.stop}
-      ></runno-controls>
-      <runno-terminal ${ref(this.terminalRef)}></runno-terminal>
-      <pre hidden><slot></slot></pre>
-    `;
-  }
 }
+
+customElements.define("runno-run", RunElement);

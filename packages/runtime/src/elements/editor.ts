@@ -75,7 +75,7 @@ const theme = EditorView.theme({
   },
 });
 
-function syntaxToExtensions(syntax: Syntax) {
+function syntaxToExtensions(syntax: Syntax | undefined) {
   switch (syntax) {
     case "python":
       return [basicSetup, theme, highlightStyle, python()];
@@ -152,11 +152,14 @@ export class EditorElement extends HTMLElement {
     }
   }
 
-  setProgram(syntax: Syntax, runtime: Runtime, code: string) {
+  setProgram(_syntax: Syntax | undefined, runtime: Runtime, code: string) {
     this.runtime = runtime;
 
-    if (!syntax) {
-      syntax = runtimeToSyntax(runtime);
+    let syntax: Syntax;
+    if (_syntax) {
+      syntax = _syntax;
+    } else {
+      syntax = runtimeToSyntax(runtime) ?? "python";
     }
 
     // TODO: The way I'm doing this is a bit of a weird hack
