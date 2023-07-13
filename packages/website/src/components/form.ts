@@ -59,7 +59,7 @@ export class WebsiteForm extends TailwindElement {
       <div class="relative">
         <pre class="py-3 px-4"><code>&lt;runno-run runtime=<select
   id="runtime-select"
-  class="bg-black border border-yellow p-1"
+  class="bg-black border border-yellow py-1 px-2 mr-1 rounded"
   @input=${this.onSelectInput}
 >
   <option value="python" selected default>"python"</option>
@@ -81,7 +81,13 @@ export class WebsiteForm extends TailwindElement {
               type="checkbox"
               .checked=${this.showEditor}
               @input=${this.onShowEditorInput}
-            />editor</label>&gt;${this.code}&lt;/runno-run&gt;
+            />editor</label> <label><input
+              id="autorun-checkbox"
+              class="mr-1"
+              type="checkbox"
+              .checked=${this.autorun}
+              @input=${this.onAutorunInput}
+            />autorun</label>&gt;${"\n"}${this.code}${"\n"}&lt;/runno-run&gt;
 </code></pre>
       </div>
     </form>`;

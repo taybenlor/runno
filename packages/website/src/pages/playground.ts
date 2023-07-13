@@ -20,31 +20,41 @@ export class PagePlayground extends TailwindElement {
 
   render() {
     return html`
-      <div class="bg-navy pb-8 relative">
+      <div class="bg-navy pb-8 relative text-white">
         <website-header></website-header>
 
-        <div class="container mx-auto relative p-4 sm:p-0">
+        <div class="container mx-auto relative p-4 sm:p-0 ">
+          <div class="flex flex-col items-center">
+            <h1 class="
+                text-center
+                text-4xl
+                font-bold
+                mt-14
+                mb-8
+                w-1/2
+              ">
+              Run WebAssembly made for outside the browser, inside the browser.
+            </h1>
+
+            <div class="flex justify-center mb-12">
+              <pre
+                class="border border-yellow bg-black p-2 px-3"
+              ><code><span class="text-yellow">$</span> npm install <a class="hover:underline" target="_blank" href="https://www.npmjs.com/package/@runno/wasi">@runno/wasi</a></code></pre>
+            </div>
+
+          </div>
+          
           <h1
             class="
               text-yellow
-              text-center
-              text-3xl
-              font-bold
-              mt-14
-              mb-4
-            "
-          >
-            WASI Playground
-          </h1>
-          <h2 class="
-              text-center
               text-2xl
               font-bold
-              mt-4
-              mb-10
-            ">
-            Run WebAssembly made for outside the browser, inside your browser.
-          </h2>
+              mt-14
+              mb-8
+            "
+          >
+            Use the WASI Playground to try it out.
+          </h1>
           <website-playground class="pb-16 font-mono"></website-playground>
           
           <h1 class="text-xl my-12 mb-4 pb-2 border-b border-lightBlue text-yellow">
@@ -97,7 +107,7 @@ export class PagePlayground extends TailwindElement {
           lg:w-auto lg:columns-1
         "
           >
-            <li class="text-yellow">
+            <li class="text-teal">
               <a href="#playground">Runno WASI Playground</a>
             </li>
             <li class="pl-4">

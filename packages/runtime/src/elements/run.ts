@@ -1,6 +1,7 @@
 import { html, css, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { createRef, Ref, ref } from "lit/directives/ref.js";
+import { ifDefined } from "lit/directives/if-defined.js";
 
 import {
   Runtime,
@@ -44,8 +45,8 @@ export class RunElement extends LitElement implements RuntimeMethods {
     }
   `;
 
-  @property({ type: String }) runtime: string = "python";
-  @property({ type: String }) syntax?: string;
+  @property({ type: String }) runtime: Runtime = "python";
+  @property({ type: String }) syntax?: Syntax;
   @property({ type: String }) code?: string;
   @property({ type: String, attribute: "fs-url" }) fsURL?: string;
   @property({ type: Boolean, reflect: true }) editor: boolean = false;
@@ -58,7 +59,7 @@ export class RunElement extends LitElement implements RuntimeMethods {
   controlsRef: Ref<ControlsElement> = createRef();
   terminalRef: Ref<TerminalElement> = createRef();
 
-  @state() private _running: Boolean = false;
+  @state() private _running: boolean = false;
 
   private _provider!: RuntimeMethods;
 
@@ -221,25 +222,19 @@ export class RunElement extends LitElement implements RuntimeMethods {
     this.dispatchEvent(event);
   }
 
-  // attributeChangedCallback(
-  //   name: string,
-  //   _old: string | null,
-  //   value: string | null
-  // ): void {
-  //   super.attributeChangedCallback(name, _old, value);
-
-  //   if (name === "autorun" && value !== null) {
-  //     setTimeout(this.run);
-  //   }
-  // }
+  updated(changedProperties: Map<string, any>): void {
+    if (changedProperties.has("autorun") && this.autorun) {
+      this.run();
+    }
+  }
 
   render() {
     return html`
       <runno-editor
         ${ref(this.editorRef)}
-        runtime=${this.runtime}
-        syntax=${this.syntax}
-        code=${this.code}
+        runtime=${ifDefined(this.runtime)}
+        syntax=${ifDefined(this.syntax)}
+        code=${ifDefined(this.code)}
         ?hidden=${!this.editor}
       ></runno-editor>
       <runno-controls
