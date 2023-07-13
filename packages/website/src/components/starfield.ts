@@ -45,8 +45,10 @@ export class StarfieldElement extends HTMLElement {
     const template = this.firstElementChild!;
     this.removeChild(template);
 
+    const count = window.innerWidth / 16;
+
     const seen: Array<[number, number]> = [];
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < count; i++) {
       const clone = template.cloneNode(true) as HTMLElement;
       clone.style.position = "absolute";
 
