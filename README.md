@@ -22,66 +22,127 @@ Runno also ships its own WASI runtime ([`@runno/wasi`](https://github.com/tayben
 Runno under the hood. It can be used independently to run WASI binaries in the
 browser.
 
-# Using Runno
+## Two parts to Runno
 
-Runno is hosted publicly at:
+There are two main parts to runno:
 
-- [https://runno.dev](https://runno.dev) - Website / Host
-- [https://runno.run](https://runno.run) - Client
+1. `@runno/runtime` - web components and headless tools for running code examples in the browser.
+2. `@runno/wasi` - an implementation of WASI made for the browser.
 
-## Client
+The `@runno/runtime` is built on top of the primitives provided by `@runno/wasi`.
 
-The client is the virtual terminal application which pulls down packages and
-runs code. You can pass query params to it:
+# Using `@runno/runtime`
 
-- `code` - Some code to run (encoded as [url safe base64](https://www.npmjs.com/package/url-safe-base64))
-- `runtime` - The runtime to use (e.g. python)
-- `editor` - Whether to show an editor (default false)
-- `command` - A raw command to execute. Text passed as `code` will be available in the file `code` e.g. `cat code`
+## Quickstart
 
-e.g.
+Start by adding `@runno/runtime` to your package:
 
 ```
-https://runno.run/?runtime=python&code=<base64>print("hello world")
+$ npm install @runno/runtime
 ```
 
-The runtime also supports being embedded as an iframe. For best results the host should use the following headers:
+Import `@runno/runtime` in whatever place you'll be using the runno elements.
+The simplest is in your entrypoint file (e.g. `main.ts` or `index.ts`).
+
+```
+import '@runno/runtime';
+```
+
+Once you've imported them you can use runno elements on the page.
+
+```
+<runno-run runtime="python" editor controls>
+print('Hello, World!')
+</runno-run>
+```
+
+For the code to run though, you'll need to set some HTTP headers:
 
 ```HTTP
 Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
 ```
 
-These create a [cross-origin isolated context](https://web.dev/cross-origin-isolation-guide/) which allows the use of `SharedArrayBuffer` used to implement STDIN. Without this Runno will still work using a fallback hack that isn't guaranteed to work into the future.
-
-To control the runtime when it is embedded as an iframe you can use the `@runno/host` package. A simple example would be:
-
-```js
-import { ConnectRunno } from "@runno/host";
-
-const runno = await ConnectRunno(runtimeIframe);
-const { tty } = await runno.interactiveRunCode("python", code);
-```
-
-You can see the full API available by looking at `@runno/host`. You can see more examples by looking at `@runno/website`.
-
-## Website
-
-The website helps users make use of Runno. It provides a helper for generating embeds, along with documentation.
+These create a [cross-origin isolated context](https://web.dev/cross-origin-isolation-guide/) which allows the use of `SharedArrayBuffer` used to implement STDIN.
 
 ## Supported Runtimes
 
 The system supports a number of runtimes based on existing packages published to WAPM. These runtimes are tied to Runno and will be supported by Runno going forward.
 
 - `python` - Runs python3 code, not pinned to a particular version but is at least `3.6`
+- `ruby` - Runs standard Ruby, not pinned but is at least `3.2.0`
 - `quickjs` - Runs JavaScript code using the [QuickJS](https://bellard.org/quickjs/) engine
 - `sqlite` - Runs SQLite commands
 - `clang` - Compiles and runs C code
 - `clangpp` - Compiles and runs C++ code
+- `php-cgi` - Runs PHP CGI compiled by VMWare
 
-## Raw Commands
+## Running WASI binaries
 
-Raw commands can be run on the shell to be executed without using the existing runtimes. You should only use this if you know what you're doing. This will allow you to execute arbitrary commands from WAPM within the shell. This works similarly to how [WebAssembly.sh](https://webassembly.sh) works.
+The runtime also provides a component for running WASI binaries directly.
+
+```
+<runno-wasi src="/ffmpeg.wasm" autorun></runno-wasi>
+```
+
+## Examples
+
+There are more examples for how to use Runno in the `examples` directory in this
+repo. It includes practical ways you can use Runno, and how to configure it to
+run.
+
+# Full documentation
+
+Visit [`@runno/runtime`](https://github.com/taybenlor/runno/tree/main/packages/runtime) to read the full documentation.
+
+# Using `@runno/wasi`
+
+## Quickstart
+
+There are two parts to running a WASI binary with Runno. The `WASI` instance
+which does the actual running and the `WASIContext` which sets up an environment
+to run the binary in.
+
+Be aware that this will run on the main thread, not inside a worker. So you will
+interrupt any interactive use of the browser until it completes.
+
+```js
+import { WASI, WASIContext } from "@runno/wasi";
+
+//...
+
+const context = new WASIContext({
+  args: ["binary-name", "--do-something", "some-file.txt"],
+  env: { SOME_KEY: "some value" },
+  stdout: (out) => console.log("stdout", out),
+  stderr: (err) => console.error("stderr", err),
+  stdin: () => prompt("stdin:"),
+  fs: {
+    "/some-file.txt": {
+      path: "/some-file.txt",
+      timestamps: {
+        access: new Date(),
+        change: new Date(),
+        modification: new Date(),
+      },
+      mode: "string",
+      content: "Some content for the file.",
+    },
+  },
+});
+
+const result = WASI.start(fetch("/binary.wasm"), context);
+```
+
+You can see a more complete example in `src/main.ts`.
+
+_Note: The `args` should start with the name of the binary. Like when you run
+a terminal command, you write `cat somefile` the name of the binary is `cat`._
+
+# Full documentation
+
+Visit [`@runno/wasi`](https://github.com/taybenlor/runno/tree/main/packages/wasi) to read the full documentation including instructions for running inside a worker, and how the
+virtual file-system works.
 
 # Development
 
@@ -90,10 +151,10 @@ Raw commands can be run on the shell to be executed without using the existing r
 This repo is broken down into a few packages using [lerna](https://lerna.js.org/):
 
 - `website` - the runno website that includes instructions and examples
-- `client` - a static website that exposes the runno runtime to be embedded as an iframe
-- `host` - helpers for running code on the client from another website
 - `runtime` - a library that provides web components and helpers that can be bundled into your own project for using runno without an iframe
 - `wasi` - a library for running WASI binaries in the browser
+- `client` - **DEPRECATED** a static website that exposes the runno runtime to be embedded as an iframe
+- `host` - **DEPRECATED** helpers for running code on the client from another website
 
 ## Running locally
 
@@ -130,10 +191,6 @@ If you edit `host`, `terminal`, `wasi` or `runtime` you will need to re-build th
 ## Testing
 
 Coming soon!
-
-## Runtime / Host binding
-
-The runtime exposes methods to the host using [`post-me`](https://github.com/alesgenova/post-me). These are then connected at the other end. You can find the two ends of these connections in `client/src/messaging.ts` and `host/src/index.ts`.
 
 # About Runno
 
