@@ -31,6 +31,15 @@ print('Hello, World!')
 </runno-run>
 ```
 
+For the code to run though, you'll need to set some HTTP headers:
+
+```HTTP
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
+```
+
+These create a [cross-origin isolated context](https://web.dev/cross-origin-isolation-guide/) which allows the use of `SharedArrayBuffer` used to implement STDIN.
+
 ## Headless Usage
 
 Runno supports a headless API.
