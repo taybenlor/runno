@@ -76,10 +76,12 @@ export class PageHome extends TailwindElement {
 
       <!-- Runno grey -->
       <div class="bg-gradient-to-b from-white to-lightGrey text-black">
-        <div class="container mx-auto pb-16">
+        <div class="container mx-auto pb-16 px-4 md:px-0">
           <h1 class="text-xl font-bold mb-8">Supported languages</h1>
-          <div class="flex">
-            <div class="w-1/2 flex flex-wrap justify-between gap-8">
+          <div class="flex flex-wrap md:flex-nowrap gap-8">
+            <div
+              class="w-full md:w-2/3 lg:w-1/2 flex flex-wrap justify-between gap-8"
+            >
               <img
                 class="h-16"
                 src="/images/languages/python.svg"
@@ -100,11 +102,11 @@ export class PageHome extends TailwindElement {
               <img class="h-20" src="/images/languages/c.svg" alt="C" />
               <img class="h-20" src="/images/languages/cpp.svg" alt="C++" />
             </div>
-            <div class="w-1/2 flex justify-center ">
+            <div class="w-full md:w-1/3 lg:w-1/2 flex justify-center">
               <div
-                class="outline-2 outline-dashed outline-navy bg-white rounded p-8 flex-shrink"
+                class="w-full lg:w-auto outline-2 outline-dashed outline-navy bg-white rounded p-8 flex-shrink"
               >
-                <p class="text-2xl font-bold font-sans w-64 mb-8">
+                <p class="text-2xl font-bold font-sans lg:w-64 mb-8">
                   Contribute your own language runtime.
                 </p>
                 <a

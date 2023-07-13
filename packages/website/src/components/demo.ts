@@ -50,9 +50,9 @@ export class WebsiteDemo extends TailwindElement {
 
   render() {
     return html`
-      <div class="container mx-auto">
+      <div class="container mx-auto px-4 md:px-0">
         <div class="flex flex-wrap gap-8 items-stretch py-16 -mt-28">
-          <div class="w-1/2">
+          <div class="w-full lg:w-1/2">
             <website-form @form-input=${this.onFormInput}></website-form>
             <div class="text-black mt-8">
               <!-- "marketing" copy -->
@@ -71,7 +71,7 @@ export class WebsiteDemo extends TailwindElement {
                 >
               </div>
               <runno-run
-                class="w-full h-full"
+                class="w-full"
                 .runtime=${this.runtime}
                 .code=${this.code}
                 ?controls=${this.controls}
@@ -81,7 +81,7 @@ export class WebsiteDemo extends TailwindElement {
             </div>
             <div>
               <svg
-                class="w-1/2 ml-12 mt-4"
+                class="w-2/3 md:w-1/2 ml-12 mt-4"
                 viewBox="0 0 422 68"
                 version="1.1"
                 xmlns="http://www.w3.org/2000/svg"
