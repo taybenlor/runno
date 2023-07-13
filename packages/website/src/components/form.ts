@@ -57,9 +57,11 @@ export class WebsiteForm extends TailwindElement {
       class="flex flex-col flex-grow rounded-lg font-mono text-white bg-black drop-shadow-2xl shadow-2xl"
     >
       <div class="relative">
-        <pre class="py-3 px-4"><code>&lt;runno-run runtime=<select
+        <pre
+          class="py-3 px-4 whitespace-pre-wrap text-sm"
+        ><code>&lt;runno-run runtime=<select
   id="runtime-select"
-  class="bg-black border border-yellow py-1 px-2 mr-1 rounded"
+  class="bg-black border border-yellow py-1 px-2 rounded whitespace-nowrap"
   @input=${this.onSelectInput}
 >
   <option value="python" selected default>"python"</option>
@@ -69,19 +71,19 @@ export class WebsiteForm extends TailwindElement {
   <option value="sqlite">"sqlite"</option>
   <option value="clang">"clang"</option>
   <option value="clangpp">"clangpp"</option>
-</select> <label class="mr-4"><input
+</select> <label class="ml-2 whitespace-nowrap"><input
               id="controls-checkbox"
               class="mr-1"
               type="checkbox"
               .checked=${this.controls}
               @input=${this.onControlsInput}
-            />controls</label> <label><input
+            />controls</label> <label class="ml-2 whitespace-nowrap"><input
               id="editor-checkbox"
               class="mr-1"
               type="checkbox"
               .checked=${this.showEditor}
               @input=${this.onShowEditorInput}
-            />editor</label> <label><input
+            />editor</label> <label class="ml-2 whitespace-nowrap"><input
               id="autorun-checkbox"
               class="mr-1"
               type="checkbox"
