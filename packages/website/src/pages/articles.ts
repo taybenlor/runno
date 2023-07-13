@@ -32,7 +32,9 @@ const articles = [
 export class PageArticles extends TailwindElement {
   render() {
     return html`
-      <website-header></website-header>
+      <div class="bg-navy text-white pb-3">
+        <website-header></website-header>
+      </div>
       <website-route route="^/articles$">
         <div class="prose mx-auto my-12">
           <h1>Articles</h1>

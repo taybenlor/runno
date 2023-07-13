@@ -6,3 +6,4 @@ export { WASIElement } from "./elements/wasi";
 export { FileElement } from "./elements/file";
 export { RunnoProvider } from "./provider";
 export { headlessRunCode, headlessRunFS } from "./headless";
+export { stripWhitespace, fetchWASIFS, elementCodeContent } from "./helpers";

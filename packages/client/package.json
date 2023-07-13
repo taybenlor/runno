@@ -2,7 +2,7 @@
   "private": "true",
   "name": "@runno/client",
   "author": "Ben Taylor <runno@taybenlor.com>",
-  "description": "iframe client for @runno",
+  "description": "DEPRECATED frame client for @runno",
   "website": "https://runno.run",
   "repository": {
     "type": "git",

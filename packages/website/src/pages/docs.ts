@@ -9,9 +9,8 @@ import "../components/header";
 export class PageDocs extends TailwindElement {
   render() {
     return html`
-      <website-header></website-header>
-      <div class="relative">
-        <img class="absolute top-0 right-0" src="/images/sun-reflection.svg" />
+      <div class="bg-navy text-white pb-3">
+        <website-header></website-header>
       </div>
       <div class="flex flex-wrap container mx-auto my-16 relative">
         <runno-scroll-highlight
@@ -19,7 +18,7 @@ export class PageDocs extends TailwindElement {
         >
           <nav
             class="
-          border border-lightBlue
+          border border-lightGrey
           mr-8
           p-2
           list-none
@@ -31,7 +30,7 @@ export class PageDocs extends TailwindElement {
           lg:w-auto lg:columns-1
         "
           >
-            <li class="text-yellow">
+            <li class="text-teal">
               <a href="#know-runno">Getting to know Runno</a>
             </li>
             <li class="pl-4">
@@ -55,7 +54,7 @@ export class PageDocs extends TailwindElement {
             <li class="pl-4">
               <a href="#thanks">Thanks to</a>
             </li>
-            <li class="text-yellow mt-2">
+            <li class="text-teal mt-2">
               <a href="#host-api">Host API</a>
             </li>
             <li class="pl-4">
@@ -76,7 +75,7 @@ export class PageDocs extends TailwindElement {
             <li class="pl-4">
               <a href="#host-methods">Methods</a>
             </li>
-            <li class="text-yellow mt-2">
+            <li class="text-teal mt-2">
               <a href="#web-components">Web Components</a>
             </li>
             <li class="pl-4">

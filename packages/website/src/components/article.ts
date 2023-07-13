@@ -75,7 +75,7 @@ export class WebsiteArticle extends TailwindElement {
           >
             <nav
               class="
-          border border-lightBlue
+          border border-lightGrey
           mr-8
           p-2
           list-none
@@ -96,9 +96,7 @@ export class WebsiteArticle extends TailwindElement {
                 }
                 return html`
                   <li
-                    class=${token.depth === 1
-                      ? "text-yellow my-1"
-                      : "pl-4 my-1"}
+                    class=${token.depth === 1 ? "text-teal my-1" : "pl-4 my-1"}
                   >
                     <a href="#${slugify(token.text)}"
                       >${unsafeHTML(marked.parseInline(token.text))}</a
@@ -109,11 +107,11 @@ export class WebsiteArticle extends TailwindElement {
             </nav>
           </runno-scroll-highlight>
           <article class="prose">
-            <p class="text-right">
-              <time datetime="${this.published.toISOString()}"
+            <p class="text-right text-pink">
+              <time class="font-bold" datetime="${this.published.toISOString()}"
                 >${this.published.toDateString()}</time
               >
-              by ${this.author}
+              by <span class="font-bold">${this.author}</span>
             </p>
 
             ${unsafeHTML(marked.parse(this.markdown))}

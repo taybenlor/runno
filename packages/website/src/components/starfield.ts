@@ -16,7 +16,9 @@ function avoidPosition(position: [number, number]) {
   const [x, y] = position;
   //     Avoid logo            Avoid nav             Avoid title text
   return (
-    (x < 20 && y < 25) || (x > 80 && y < 25) || (x > 30 && x < 70 && y > 30)
+    (x < 30 && y < 10) ||
+    (x > 80 && y < 25) ||
+    (x > 20 && x < 80 && y > 15 && y < 50)
   );
 }
 
@@ -33,7 +35,7 @@ export class StarfieldElement extends HTMLElement {
             top: 0px;
             left: 0px;
             right: 0px;
-            height: 30%;
+            height: 100%;
             z-index: 0;
             overflow: hidden;
         }
@@ -44,7 +46,7 @@ export class StarfieldElement extends HTMLElement {
     this.removeChild(template);
 
     const seen: Array<[number, number]> = [];
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 80; i++) {
       const clone = template.cloneNode(true) as HTMLElement;
       clone.style.position = "absolute";
 

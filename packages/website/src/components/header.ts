@@ -50,7 +50,7 @@ export class WebsiteHeader extends TailwindElement {
             href="/wasi"
             class="inline-flex font-medium hover:text-yellow group"
           >
-            WASI Playground
+            WASI
           </a>
           <a
             href="/articles"
@@ -63,6 +63,13 @@ export class WebsiteHeader extends TailwindElement {
             class="inline-flex font-medium hover:text-yellow group"
           >
             Docs
+          </a>
+          <a
+            href="https://www.npmjs.com/package/@runno/runtime"
+            class="inline-flex font-medium hover:text-yellow group"
+          >
+            <!-- TODO: NPM Logo -->
+            NPM
           </a>
           <a
             target="_blank"
