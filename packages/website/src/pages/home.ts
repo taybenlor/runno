@@ -287,8 +287,12 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
             </p>
 
             <p>
-              For a more complete set of examples, check out the [examples on
-              GitHub](https://github.com/taybenlor/runno/tree/main/examples).
+              For a more complete set of examples, check out the
+              <a
+                target="_blank"
+                href="https://github.com/taybenlor/runno/tree/main/examples"
+                >examples on GitHub</a
+              >.
             </p>
 
             <h2 id="thanks">Big thanks to</h2>
