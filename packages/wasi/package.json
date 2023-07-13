@@ -1,6 +1,6 @@
 {
   "name": "@runno/wasi",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "author": "Ben Taylor <runno@taybenlor.com>",
   "description": "Browser-only WASI implementation",
   "website": "https://runno.dev",
