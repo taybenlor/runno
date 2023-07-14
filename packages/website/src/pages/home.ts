@@ -211,7 +211,7 @@ export class PageHome extends TailwindElement {
               import:
             </p>
 
-            <runno-code syntax="js" class="text-sm p-2 bg-darkSlate rounded-lg"
+            <runno-code syntax="js" class="text-sm p-3 bg-darkSlate rounded-lg"
               >import "@runno/runtime"</runno-code
             >
 
@@ -231,8 +231,10 @@ export class PageHome extends TailwindElement {
               set are:
             </p>
 
-            <pre><code>Cross-Origin-Opener-Policy: same-origin
-Cross-Origin-Embedder-Policy: require-corp</code></pre>
+            <runno-code class="text-sm p-3 bg-darkSlate rounded-lg">
+              Cross-Origin-Opener-Policy: same-origin
+              Cross-Origin-Embedder-Policy: require-corp
+            </runno-code>
 
             <h3>Using Runno on your page</h3>
 
@@ -242,7 +244,7 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
             </p>
 
             <!-- prettier-ignore -->
-            <runno-code syntax="html" class="text-sm p-2 bg-darkSlate rounded-lg">
+            <runno-code syntax="html" class="text-sm p-3 bg-darkSlate rounded-lg">
               &lt;p&gt;
                 You can use if statements to run different code
                 depending on a decision:

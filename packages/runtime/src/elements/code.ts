@@ -5,7 +5,6 @@ import { syntaxToExtensions } from "./shared/codemirror";
 
 import { highlightSpecialChars, drawSelection } from "@codemirror/view";
 
-import { lineNumbers } from "@codemirror/gutter";
 import { rectangularSelection } from "@codemirror/rectangular-selection";
 import {
   HighlightStyle,
@@ -14,7 +13,7 @@ import {
 } from "@codemirror/highlight";
 
 const chalky = "#D3C101",
-  coral = "#E3439D",
+  coral = "#ff34b1",
   cyan = "#2CB2C3",
   invalid = "#000000",
   ivory = "#8A909C",
@@ -73,7 +72,7 @@ export const highlightStyle = HighlightStyle.define([
 
 const theme = EditorView.theme({
   ".cm-gutters": {
-    backgroundColor: "#212936",
+    backgroundColor: "var(--runno-code-background, #24292f)",
     border: "none",
   },
   "&.cm-focused .cm-selectionBackground, ::selection": {
@@ -113,7 +112,7 @@ export class CodeElement extends HTMLElement {
     this.shadowRoot!.innerHTML = `
     <style>
       .cm-editor {
-        background: #212936;
+        background: var(--runno-code-background, #24292f);
         height: 100%;
         outline: none !important;
       }

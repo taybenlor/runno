@@ -1,12 +1,21 @@
-import { html } from "lit";
+import { html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { TailwindElement } from "../lib/tailwind";
 
-import { Runtime } from "@runno/host";
+import { Runtime, runtimeToSyntax } from "@runno/host";
 import { exampleForRuntime } from "../examples";
 
 @customElement("website-form")
 export class WebsiteForm extends TailwindElement {
+  static styles = [
+    TailwindElement.styles,
+    css`
+      .special-code {
+        --runno-code-background: black;
+      }
+    `,
+  ];
+
   @property({ type: String })
   runtime: Runtime = "python";
 
@@ -59,9 +68,10 @@ export class WebsiteForm extends TailwindElement {
       <div class="relative">
         <pre
           class="py-3 px-4 whitespace-pre-wrap text-sm"
-        ><code>&lt;runno-run runtime=<select
+        ><code>&lt;<span class="text-yellow">runno-run</span> <span class="text-pink">runtime</span><span style="color: #2CB2C3">=</span><select
   id="runtime-select"
-  class="bg-black border border-yellow py-1 px-2 rounded whitespace-nowrap"
+  class="bg-black border border-yellow py-1 px-2 rounded whitespace-nowrap cursor-pointer"
+  style="color: #77CA3B"
   @input=${this.onSelectInput}
 >
   <option value="python" selected default>"python"</option>
@@ -71,25 +81,33 @@ export class WebsiteForm extends TailwindElement {
   <option value="sqlite">"sqlite"</option>
   <option value="clang">"clang"</option>
   <option value="clangpp">"clangpp"</option>
-</select> <label class="ml-2 whitespace-nowrap"><input
+</select> <label class="ml-2 whitespace-nowrap text-pink cursor-pointer"><input
               id="controls-checkbox"
               class="mr-1"
               type="checkbox"
               .checked=${this.controls}
               @input=${this.onControlsInput}
-            />controls</label> <label class="ml-2 whitespace-nowrap"><input
+            />controls</label> <label class="ml-2 whitespace-nowrap text-pink cursor-pointer"><input
               id="editor-checkbox"
               class="mr-1"
               type="checkbox"
               .checked=${this.showEditor}
               @input=${this.onShowEditorInput}
-            />editor</label> <label class="ml-2 whitespace-nowrap"><input
+            />editor</label> <label class="ml-2 whitespace-nowrap text-pink cursor-pointer"><input
               id="autorun-checkbox"
               class="mr-1"
               type="checkbox"
               .checked=${this.autorun}
               @input=${this.onAutorunInput}
-            />autorun</label>&gt;${"\n"}${this.code}${"\n"}&lt;/runno-run&gt;
+            />autorun</label>&gt;</code></pre>
+        <runno-code
+          syntax=${runtimeToSyntax(this.runtime)!}
+          class="ml-4 special-code"
+          code=${this.code}
+        ></runno-code>
+        <pre
+          class="py-3 px-4 whitespace-pre-wrap text-sm"
+        ><code>&lt;/<span class="text-yellow">runno-run</span>&gt;
 </code></pre>
       </div>
     </form>`;
