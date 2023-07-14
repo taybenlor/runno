@@ -239,22 +239,25 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
               your post! Just write HTML however you like to write HTML.
             </p>
 
-            <pre><code>&lt;p&gt;
-  You can use if statements to run different code depending on a decision:
-&lt;/p&gt;
+            <!-- prettier-ignore -->
+            <runno-code syntax="html" class="text-sm">
+              &lt;p&gt;
+                You can use if statements to run different code
+                depending on a decision:
+              &lt;/p&gt;
 
-&lt;runno-run runtime="python" editor controls&gt;
-  name = input("What's your name? ")
-  if "i" in name:
-    print("You've got an I in your name, how selfish.")
-  else:
-    print("There's no I in your name.")
-&lt;/runno-run&gt;
+              &lt;runno-run runtime="python" editor controls&gt;
+                name = input("What's your name? ")
+                if "i" in name:
+                  print("You've got an I in your name, how selfish.")
+                else:
+                  print("There's no I in your name.")
+              &lt;/runno-run&gt;
 
-&lt;p&gt;
-  Try out the example with different names!
-&lt;/p&gt;
-        </code></pre>
+              &lt;p&gt;
+                Try out the example with different names!
+              &lt;/p&gt;
+            </runno-code>
 
             <p>And it would work something like:</p>
 

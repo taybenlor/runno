@@ -1,17 +1,37 @@
-import { EditorState, EditorView, basicSetup } from "@codemirror/basic-setup";
-
-import { Runtime, Syntax, runtimeToSyntax } from "@runno/host";
+import { EditorState, EditorView } from "@codemirror/basic-setup";
+import { Syntax } from "@runno/host";
 import { elementCodeContent } from "../helpers";
-import { highlightStyle, syntaxToExtensions, theme } from "./shared/codemirror";
+import { highlightStyle, syntaxToExtensions } from "./shared/codemirror";
 
-const baseExtensions = [basicSetup, theme, highlightStyle];
+import { highlightSpecialChars, drawSelection } from "@codemirror/view";
 
-export class EditorElement extends HTMLElement {
+import { lineNumbers } from "@codemirror/gutter";
+import { rectangularSelection } from "@codemirror/rectangular-selection";
+import { defaultHighlightStyle } from "@codemirror/highlight";
+
+const theme = EditorView.theme({
+  ".cm-gutters": {
+    backgroundColor: "#212936",
+    border: "none",
+  },
+});
+
+const baseExtensions = [
+  lineNumbers(),
+  highlightSpecialChars(),
+  drawSelection(),
+  defaultHighlightStyle.fallback,
+  rectangularSelection(),
+  theme,
+  highlightStyle,
+  EditorState.readOnly.of(true),
+];
+
+export class CodeElement extends HTMLElement {
   static get observedAttributes() {
-    return ["runtime", "syntax", "code"];
+    return ["syntax", "code"];
   }
 
-  runtime?: Runtime;
   syntax?: Syntax;
   code?: string;
 
@@ -29,9 +49,12 @@ export class EditorElement extends HTMLElement {
     this.shadowRoot!.innerHTML = `
     <style>
       .cm-editor {
-        background: white;
+        background: #212936;
         height: 100%;
         outline: none !important;
+      }
+      :host {
+        color: white;
       }
     </style>
     <pre hidden><slot></slot></pre>
@@ -53,6 +76,7 @@ export class EditorElement extends HTMLElement {
         const code = elementCodeContent(this);
         if (code.trim() != "") {
           this.code = code;
+          this.setProgram(this.syntax, this.code);
         }
       }
     }, 0);
@@ -61,18 +85,12 @@ export class EditorElement extends HTMLElement {
   attributeChangedCallback(name: string, oldValue: any, newValue: any) {
     (this as any)[name] = newValue;
 
-    if (oldValue != newValue && this.runtime) {
-      this.setProgram(this.syntax, this.runtime, this.code || this.program);
+    if (oldValue != newValue) {
+      this.setProgram(this.syntax, this.code || this.program);
     }
   }
 
-  setProgram(syntax: Syntax, runtime: Runtime, code: string) {
-    this.runtime = runtime;
-
-    if (!syntax) {
-      syntax = runtimeToSyntax(runtime);
-    }
-
+  setProgram(syntax: Syntax, code: string) {
     // TODO: The way I'm doing this is a bit of a weird hack
     this.code = undefined; // Editor is source of truth from now on
     this.view.setState(
@@ -82,14 +100,6 @@ export class EditorElement extends HTMLElement {
       })
     );
   }
-
-  show() {
-    this.hidden = false;
-  }
-
-  hide() {
-    this.hidden = true;
-  }
 }
 
-customElements.define("runno-editor", EditorElement);
+customElements.define("runno-code", CodeElement);

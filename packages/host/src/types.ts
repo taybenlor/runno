@@ -13,6 +13,7 @@ export type Syntax =
   | "cpp"
   | "ruby"
   | "php"
+  | "html"
   | undefined;
 
 export type CrashResult = {
