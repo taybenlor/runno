@@ -103,7 +103,7 @@ export class WebsiteForm extends TailwindElement {
         <runno-code
           syntax=${runtimeToSyntax(this.runtime)!}
           class="ml-4 special-code"
-          code=${this.code}
+          code=${this.code.replace(/^\n/, "").replace(/\n$/, "")}
         ></runno-code>
         <pre
           class="py-3 px-4 whitespace-pre-wrap text-sm"
