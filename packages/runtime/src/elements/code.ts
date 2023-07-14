@@ -76,7 +76,7 @@ const theme = EditorView.theme({
     border: "none",
   },
   "&.cm-focused .cm-selectionBackground, ::selection": {
-    backgroundColor: "#030052",
+    backgroundColor: "#302AA9",
   },
 });
 
