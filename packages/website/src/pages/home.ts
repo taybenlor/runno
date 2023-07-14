@@ -211,7 +211,9 @@ export class PageHome extends TailwindElement {
               import:
             </p>
 
-            <pre><code>import "@runno/runtime"</code></pre>
+            <runno-code syntax="js" class="text-sm p-2 bg-darkSlate rounded-lg"
+              >import "@runno/runtime"</runno-code
+            >
 
             <p>
               Once imported Runno will define all the Web Components necessary
@@ -240,7 +242,7 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
             </p>
 
             <!-- prettier-ignore -->
-            <runno-code syntax="html" class="text-sm">
+            <runno-code syntax="html" class="text-sm p-2 bg-darkSlate rounded-lg">
               &lt;p&gt;
                 You can use if statements to run different code
                 depending on a decision:
