@@ -211,7 +211,9 @@ export class PageHome extends TailwindElement {
               import:
             </p>
 
-            <pre><code>import "@runno/runtime"</code></pre>
+            <runno-code syntax="js" class="text-sm p-3 bg-darkSlate rounded-lg"
+              >import "@runno/runtime"</runno-code
+            >
 
             <p>
               Once imported Runno will define all the Web Components necessary
@@ -229,8 +231,10 @@ export class PageHome extends TailwindElement {
               set are:
             </p>
 
-            <pre><code>Cross-Origin-Opener-Policy: same-origin
-Cross-Origin-Embedder-Policy: require-corp</code></pre>
+            <runno-code class="text-sm p-3 bg-darkSlate rounded-lg">
+              Cross-Origin-Opener-Policy: same-origin
+              Cross-Origin-Embedder-Policy: require-corp
+            </runno-code>
 
             <h3>Using Runno on your page</h3>
 
@@ -239,22 +243,25 @@ Cross-Origin-Embedder-Policy: require-corp</code></pre>
               your post! Just write HTML however you like to write HTML.
             </p>
 
-            <pre><code>&lt;p&gt;
-  You can use if statements to run different code depending on a decision:
-&lt;/p&gt;
+            <!-- prettier-ignore -->
+            <runno-code syntax="html" class="text-sm p-3 bg-darkSlate rounded-lg">
+              &lt;p&gt;
+                You can use if statements to run different code
+                depending on a decision:
+              &lt;/p&gt;
 
-&lt;runno-run runtime="python" editor controls&gt;
-  name = input("What's your name? ")
-  if "i" in name:
-    print("You've got an I in your name, how selfish.")
-  else:
-    print("There's no I in your name.")
-&lt;/runno-run&gt;
+              &lt;runno-run runtime="python" editor controls&gt;
+                name = input("What's your name? ")
+                if "i" in name:
+                  print("You've got an I in your name, how selfish.")
+                else:
+                  print("There's no I in your name.")
+              &lt;/runno-run&gt;
 
-&lt;p&gt;
-  Try out the example with different names!
-&lt;/p&gt;
-        </code></pre>
+              &lt;p&gt;
+                Try out the example with different names!
+              &lt;/p&gt;
+            </runno-code>
 
             <p>And it would work something like:</p>
 

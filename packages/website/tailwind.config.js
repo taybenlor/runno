@@ -17,6 +17,7 @@ module.exports = {
       red: "#eb4950",
       lightGrey: "#ececec",
       teal: "#2ad8a4",
+      darkSlate: "#24292f",
     },
     fontFamily: {
       sans: [
@@ -74,6 +75,9 @@ module.exports = {
             },
             "li::marker": {
               color: "#2ad8a4",
+            },
+            pre: {
+              background: "#24292f",
             },
             code: {
               color: "#ff2ea8",

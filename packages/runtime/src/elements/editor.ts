@@ -1,97 +1,10 @@
 import { EditorState, EditorView, basicSetup } from "@codemirror/basic-setup";
-import { javascript } from "@codemirror/lang-javascript";
-import { python } from "@codemirror/lang-python";
-import { ruby } from "runno-codemirror-lang-ruby";
-import { sql } from "@codemirror/lang-sql";
-import { cpp } from "@codemirror/lang-cpp";
-import { php } from "@codemirror/lang-php";
-import { HighlightStyle, tags as t } from "@codemirror/highlight";
+
 import { Runtime, Syntax, runtimeToSyntax } from "@runno/host";
 import { elementCodeContent } from "../helpers";
+import { highlightStyle, syntaxToExtensions, theme } from "./shared/codemirror";
 
-// This is just the one-dark theme colors
-// adjusted for a light background
-//
-const chalky = "#D3C101",
-  coral = "#E3439D",
-  cyan = "#2CB2C3",
-  invalid = "#000000",
-  ivory = "#8A909C",
-  stone = "#B0B9C8",
-  malibu = "#008CFF",
-  sage = "#77CA3B",
-  whiskey = "#E38730",
-  violet = "#C067DA";
-
-export const highlightStyle = HighlightStyle.define([
-  { tag: t.keyword, color: violet },
-  {
-    tag: [t.name, t.deleted, t.character, t.propertyName, t.macroName],
-    color: coral,
-  },
-  { tag: [t.function(t.variableName), t.labelName], color: malibu },
-  { tag: [t.color, t.constant(t.name), t.standard(t.name)], color: whiskey },
-  { tag: [t.definition(t.name), t.separator], color: ivory },
-  {
-    tag: [
-      t.typeName,
-      t.className,
-      t.number,
-      t.changed,
-      t.annotation,
-      t.modifier,
-      t.self,
-      t.namespace,
-    ],
-    color: chalky,
-  },
-  {
-    tag: [
-      t.operator,
-      t.operatorKeyword,
-      t.url,
-      t.escape,
-      t.regexp,
-      t.link,
-      t.special(t.string),
-    ],
-    color: cyan,
-  },
-  { tag: [t.meta, t.comment], color: stone },
-  { tag: t.strong, fontWeight: "bold" },
-  { tag: t.emphasis, fontStyle: "italic" },
-  { tag: t.strikethrough, textDecoration: "line-through" },
-  { tag: t.link, color: stone, textDecoration: "underline" },
-  { tag: t.heading, fontWeight: "bold", color: coral },
-  { tag: [t.atom, t.bool, t.special(t.variableName)], color: whiskey },
-  { tag: [t.processingInstruction, t.string, t.inserted], color: sage },
-  { tag: t.invalid, color: invalid },
-]);
-
-const theme = EditorView.theme({
-  ".cm-gutters": {
-    backgroundColor: "white",
-    border: "none",
-  },
-});
-
-function syntaxToExtensions(syntax: Syntax) {
-  switch (syntax) {
-    case "python":
-      return [basicSetup, theme, highlightStyle, python()];
-    case "ruby":
-      return [basicSetup, theme, highlightStyle, ruby()];
-    case "js":
-      return [basicSetup, theme, highlightStyle, javascript()];
-    case "sql":
-      return [basicSetup, theme, highlightStyle, sql()];
-    case "cpp":
-      return [basicSetup, theme, highlightStyle, cpp()];
-    case "php":
-      return [basicSetup, theme, highlightStyle, php()];
-  }
-  return [basicSetup, theme, highlightStyle];
-}
+const baseExtensions = [basicSetup, theme, highlightStyle];
 
 export class EditorElement extends HTMLElement {
   static get observedAttributes() {
@@ -118,6 +31,7 @@ export class EditorElement extends HTMLElement {
       .cm-editor {
         background: white;
         height: 100%;
+        outline: none !important;
       }
     </style>
     <pre hidden><slot></slot></pre>
@@ -126,7 +40,7 @@ export class EditorElement extends HTMLElement {
     this.view = new EditorView({
       state: EditorState.create({
         doc: this.code,
-        extensions: syntaxToExtensions(undefined),
+        extensions: [...baseExtensions, ...syntaxToExtensions(undefined)],
       }),
       root: this.shadowRoot!,
       parent: this.shadowRoot!,
@@ -164,7 +78,7 @@ export class EditorElement extends HTMLElement {
     this.view.setState(
       EditorState.create({
         doc: code,
-        extensions: syntaxToExtensions(syntax),
+        extensions: [...baseExtensions, ...syntaxToExtensions(syntax)],
       })
     );
   }
