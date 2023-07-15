@@ -18,10 +18,10 @@ const chalky = "#D3C101",
   invalid = "#000000",
   ivory = "#8A909C",
   stone = "#B0B9C8",
-  malibu = "#008CFF",
+  malibu = "#2A9FFF",
   sage = "#77CA3B",
   whiskey = "#E38730",
-  violet = "#C067DA",
+  violet = "#BC53DB",
   yellow = "#FFE234";
 
 export const highlightStyle = HighlightStyle.define([
