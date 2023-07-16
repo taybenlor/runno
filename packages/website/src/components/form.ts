@@ -63,11 +63,11 @@ export class WebsiteForm extends TailwindElement {
 
   render() {
     return html`<form
-      class="flex flex-col flex-grow rounded-lg font-mono text-white bg-black drop-shadow-2xl shadow-2xl"
+      class="flex flex-col flex-grow rounded-lg font-mono text-white bg-black drop-shadow-2xl shadow-2xl w-full"
     >
-      <div class="relative">
+      <div class="relative w-full">
         <pre
-          class="py-3 px-4 whitespace-pre-wrap text-sm"
+          class="py-3 px-4 whitespace-pre-wrap text-sm w-full"
         ><code>&lt;<span class="text-yellow">runno-run</span> <label for="runtime-select"><span class="text-pink">runtime</span></label><span style="color: #2CB2C3">=</span><span class="relative"><img
                 class="absolute block bottom-full right-0 mb-4 mr-12 max-w-none w-60"
                 src="/images/try-changing-runtime.svg"
@@ -106,7 +106,7 @@ export class WebsiteForm extends TailwindElement {
             />autorun</label>&gt;</code></pre>
         <runno-code
           syntax=${runtimeToSyntax(this.runtime)!}
-          class="ml-4 special-code"
+          class="pl-4 special-code max-w-full"
           code=${this.code.replace(/^\n/, "").replace(/\n$/, "")}
         ></runno-code>
         <pre

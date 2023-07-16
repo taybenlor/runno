@@ -51,7 +51,9 @@ export class WebsiteDemo extends TailwindElement {
   render() {
     return html`
       <div class="container mx-auto px-4 md:px-0">
-        <div class="grid lg:grid-cols-2 gap-8 items-stretch py-16 -mt-28">
+        <div
+          class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch py-16 -mt-28"
+        >
           <div class="w-full lg:w-auto">
             <website-form @form-input=${this.onFormInput}></website-form>
             <div class="text-black mt-8">
