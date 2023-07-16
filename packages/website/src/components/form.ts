@@ -68,7 +68,11 @@ export class WebsiteForm extends TailwindElement {
       <div class="relative">
         <pre
           class="py-3 px-4 whitespace-pre-wrap text-sm"
-        ><code>&lt;<span class="text-yellow">runno-run</span> <span class="text-pink">runtime</span><span style="color: #2CB2C3">=</span><select
+        ><code>&lt;<span class="text-yellow">runno-run</span> <label for="runtime-select"><span class="text-pink">runtime</span></label><span style="color: #2CB2C3">=</span><span class="relative"><img
+                class="absolute block bottom-full right-0 mb-4 mr-12 max-w-none w-60"
+                src="/images/try-changing-runtime.svg"
+                alt="Try changing the runtime"
+              /><select
   id="runtime-select"
   class="bg-black border border-yellow py-1 px-2 rounded whitespace-nowrap cursor-pointer"
   style="color: #77CA3B"
@@ -81,7 +85,7 @@ export class WebsiteForm extends TailwindElement {
   <option value="sqlite">"sqlite"</option>
   <option value="clang">"clang"</option>
   <option value="clangpp">"clangpp"</option>
-</select> <label class="ml-2 whitespace-nowrap text-pink cursor-pointer"><input
+</select></span> <label class="ml-2 whitespace-nowrap text-pink cursor-pointer"><input
               id="controls-checkbox"
               class="mr-1"
               type="checkbox"
