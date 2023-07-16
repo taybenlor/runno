@@ -43,38 +43,55 @@ export class WebsiteHeader extends TailwindElement {
     max-w-[50%]
   "
         >
-          <a href="/" class="inline-flex font-medium hover:text-yellow group">
+          <a href="/" class="inline-flex font-bold hover:text-yellow group">
             Home
           </a>
-          <a
-            href="/wasi"
-            class="inline-flex font-medium hover:text-yellow group"
-          >
+          <a href="/wasi" class="inline-flex font-bold hover:text-yellow group">
             WASI
           </a>
           <a
             href="/articles"
-            class="inline-flex font-medium hover:text-yellow group"
+            class="inline-flex font-bold hover:text-yellow group"
           >
             Articles
           </a>
-          <a
-            href="/docs"
-            class="inline-flex font-medium hover:text-yellow group"
-          >
+          <a href="/docs" class="inline-flex font-bold hover:text-yellow group">
             Docs
           </a>
           <a
+            target="_blank"
             href="https://www.npmjs.com/package/@runno/runtime"
-            class="inline-flex font-medium hover:text-yellow group"
+            class="inline-flex font-bold hover:text-yellow group"
           >
-            <!-- TODO: NPM Logo -->
-            NPM
+            <svg
+              class="w-10 h-8 -mt-0.5"
+              version="1.1"
+              id="npm"
+              xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink"
+              x="0px"
+              y="0px"
+              viewBox="0 0 780 250"
+              style="enable-background:new 0 0 780 250;"
+              xml:space="preserve"
+            >
+              <title>NPM</title>
+              <style type="text/css">
+                .st0 {
+                  fill: currentColor;
+                }
+              </style>
+              <path
+                class="st0"
+                d="M240,250h100v-50h100V0H240V250z M340,50h50v100h-50V50z M480,0v200h100V50h50v150h50V50h50v150h50V0H480z
+	 M0,200h100V50h50v150h50V0H0V200z"
+              />
+            </svg>
           </a>
           <a
             target="_blank"
             href="https://github.com/taybenlor/runno"
-            class="inline-flex font-medium hover:text-yellow group"
+            class="inline-flex font-bold hover:text-yellow group"
           >
             <img
               src="/images/github-light.png"
