@@ -13,6 +13,7 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "experimentalDecorators": true,
+    "useDefineForClassFields": false,
     "declaration": true,
     "skipLibCheck": true
   },

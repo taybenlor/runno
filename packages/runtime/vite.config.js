@@ -1,9 +1,12 @@
 import typescript from "@rollup/plugin-typescript";
+import { resolve } from "path";
 
-export default {
+import { defineConfig } from "vite";
+
+export default defineConfig({
   build: {
     lib: {
-      entry: "src/main.ts",
+      entry: resolve(__dirname, "src/main.ts"),
       name: "@runno/runtime",
     },
   },
@@ -13,4 +16,4 @@ export default {
       apply: "build",
     },
   ],
-};
+});
