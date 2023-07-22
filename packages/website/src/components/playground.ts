@@ -1,7 +1,7 @@
 import { html, css, unsafeCSS } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
 
-import xtermcss from "xterm/css/xterm.css";
+import xtermcss from "xterm/css/xterm.css?inline";
 import { Terminal } from "xterm";
 import { WebLinksAddon } from "xterm-addon-web-links";
 import { FitAddon } from "xterm-addon-fit";
