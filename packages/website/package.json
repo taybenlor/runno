@@ -17,7 +17,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build:package": "tsc && vite build",
+    "build": "npm run build:package",
     "serve": "vite preview"
   },
   "devDependencies": {

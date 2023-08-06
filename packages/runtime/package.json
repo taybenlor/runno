@@ -30,7 +30,9 @@
   "scripts": {
     "dev": "vite",
     "watch": "vite build --watch",
-    "build": "tsc && vite build",
+    "build:docs": "typedoc --options typedoc.config.cjs",
+    "build:package": "tsc && vite build",
+    "build": "npm run build:docs && npm run build:package",
     "serve": "vite preview",
     "lint": "npx eslint src"
   },

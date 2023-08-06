@@ -43,9 +43,6 @@ export class WebsiteHeader extends TailwindElement {
     max-w-[50%]
   "
         >
-          <a href="/" class="inline-flex font-bold hover:text-yellow group">
-            Home
-          </a>
           <a href="/wasi" class="inline-flex font-bold hover:text-yellow group">
             WASI
           </a>

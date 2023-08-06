@@ -31,13 +31,22 @@ export class PageDocs extends TailwindElement {
         "
           >
             <li class="text-teal">
-              <a href="#know-runno">Getting to know Runno</a>
+              <a href="#api-docs">API Docs</a>
+            </li>
+            <li class="pl-4 text-pink font-mono text-sm">
+              <a href="/docs/runtime/">@runno/runtime</a>
+            </li>
+            <li class="pl-4 pb-2 text-pink font-mono text-sm">
+              <a href="/docs/runtime/">@runno/wasi</a>
+            </li>
+            <li class="text-teal">
+              <a href="#know-runno">Quickstart</a>
             </li>
             <li class="pl-4">
-              <a href="#using-runno">Using Runno</a>
+              <a href="#install">Install &amp; configure</a>
             </li>
             <li class="pl-4">
-              <a href="#examples">Examples</a>
+              <a href="#using">Using Runno</a>
             </li>
             <li class="pl-4">
               <a href="#how-it-works">How it works</a>
@@ -54,21 +63,6 @@ export class PageDocs extends TailwindElement {
             <li class="pl-4">
               <a href="#thanks">Thanks to</a>
             </li>
-            <li class="text-teal mt-2">
-              <a href="#web-components">Web Components</a>
-            </li>
-            <li class="pl-4">
-              <a href="#component-quickstart">Quickstart</a>
-            </li>
-            <li class="pl-4">
-              <a href="#component-how">How it works</a>
-            </li>
-            <li class="pl-4">
-              <a href="#component-elements">Elements</a>
-            </li>
-            <li class="pl-4">
-              <a href="#component-helpers">Helpers</a>
-            </li>
           </nav>
         </runno-scroll-highlight>
 
@@ -82,77 +76,112 @@ export class PageDocs extends TailwindElement {
       "
         >
           <section>
-            <h1 id="know-runno">Getting to know Runno</h1>
-            <h2 id="using-runno">Using Runno</h2>
-            <p>
-              Runno helps you make runnable code examples that can be embedded
-              in web pages. This is very handy for educational tools, it means:
-            </p>
-
-            <ul>
-              <li>
-                You can make code examples that don't need users to install
-                complex tools.
+            <h1 id="api-docs">API Docs</h1>
+            <p>Reference generated docs for the two Runno packages:</p>
+            <ul class="pb-8 ml-0" style="padding-left: 0px">
+              <li class="list-none">
+                <a href="/docs/runtime/">@runno/runtime</a>
               </li>
-              <li>
-                No need to run a server, it all runs client-side in the browser.
+              <li class="list-none">
+                <a href="/docs/runtime/">@runno/wasi</a>
               </li>
-              <li>
-                Your users can edit and re-run any code examples you make.
-              </li>
-              <li>All examples are extremely customisable.</li>
             </ul>
+            <h1 id="know-runno">Quickstart</h1>
 
-            <p>
-              For advanced uses, the iframe can be controlled with the
-              <a href="#host-api">host API</a>. With the host API you can pass
-              files, collect <code>STDOUT</code> and automate running in both
-              interactive and headless modes. Or bake Runno into your app with
-              the <a href="#web-components">runtime web components</a>.
-            </p>
-
-            <h2 id="examples">Examples</h2>
             <p>
               Lets say you're writing a blog post and want to explain how an
-              <code>if</code> statement works. You've written a code sample like
-              this:
+              <code>if</code> statement works. You come to this website (👋 hi)
+              to add Runno to your blog.
             </p>
-            <pre><code>name = input("What's your name? ")
-if "i" in name.lower():
-  print("You've got an I in your name, how selfish.")
-else:
-  print("There's no I in your name.")
-</code></pre>
+
+            <h2 id="install">Install &amp; Configure</h2>
+            <p>
+              First you'll need to install the <code>@runno/runtime</code>
+              package:
+            </p>
+
+            <pre><code><span class="text-yellow">$</span> npm install @runno/runtime</code></pre>
 
             <p>
-              You can take that snippet to Runno, select the <code>python</code>
-              runtime and paste in your code. Then you can select the embed
-              field and copy the generated iframe. Paste it into your blog like:
+              Then add the Runno Web Components to your JavaScript with an
+              import:
             </p>
 
-            <pre><code>&lt;p&gt;
-  Here's an example of an if statement:
-&lt;/p&gt;
+            <runno-code syntax="js" class="text-sm p-3 bg-darkSlate rounded-lg"
+              >import "@runno/runtime"</runno-code
+            >
 
-&lt;iframe src="&hellip;" crossorigin allow="cross-origin-isolated" width="640" height="320" frameBorder="0"&gt;&lt;/iframe&gt;
+            <p>
+              Once imported Runno will define all the Web Components necessary
+              for it to work.
+            </p>
 
-&lt;p&gt;
-  You can use an if statement to&hellip;
-&lt;/p&gt;
-</code></pre>
+            <p>
+              Runno uses <code>SharedArrayBuffer</code> under the hood. For it
+              to work, you need to provide a
+              <a href="https://web.dev/cross-origin-isolation-guide/">
+                Cross-Origin Isolated context </a
+              >. That means you'll need to change some HTTP headers on your web
+              server. Depending on your language, framework, and hosting this
+              will be different (I recommend a google). The headers you need to
+              set are:
+            </p>
+
+            <runno-code class="text-sm p-3 bg-darkSlate rounded-lg">
+              Cross-Origin-Opener-Policy: same-origin
+              Cross-Origin-Embedder-Policy: require-corp
+            </runno-code>
+
+            <h2 id="using">Using Runno on your page</h2>
+
+            <p>
+              Now you've done all the setup you can add a runnable snippet into
+              your post! Just write HTML however you like to write HTML.
+            </p>
+
+            <!-- prettier-ignore -->
+            <runno-code syntax="html" class="text-sm p-3 bg-darkSlate rounded-lg">
+              &lt;p&gt;
+                You can use if statements to run different code
+                depending on a decision:
+              &lt;/p&gt;
+
+              &lt;runno-run runtime="python" editor controls&gt;
+                name = input("What's your name? ")
+                if "i" in name:
+                  print("You've got an I in your name, how selfish.")
+                else:
+                  print("There's no I in your name.")
+              &lt;/runno-run&gt;
+
+              &lt;p&gt;
+                Try out the example with different names!
+              &lt;/p&gt;
+            </runno-code>
 
             <p>And it would work something like:</p>
 
-            <div class="bg-white px-4 flow-root rounded text-black">
-              <p>Here's an example of an if statement:</p>
-              <iframe
-                src="https://runno.run/?editor=1&amp;runtime=python&amp;code=bmFtZSA9IGlucHV0KCJXaGF0J3MgeW91ciBuYW1lPyAiKQppZiAiaSIgaW4gbmFtZS5sb3dlcigpOgogIHByaW50KCJZb3UndmUgZ290IGFuIEkgaW4geW91ciBuYW1lLCBob3cgc2VsZmlzaC4iKQplbHNlOgogIHByaW50KCJUaGVyZSdzIG5vIEkgaW4geW91ciBuYW1lLiIp"
-                crossorigin
-                allow="cross-origin-isolated"
-                height="320"
-                class="w-full p-1.5 bg-black rounded"
-              ></iframe>
-              <p>You can use an if statement to&hellip;</p>
+            <div class="bg-lightGrey px-4 flow-root rounded text-black">
+              <p>
+                You can use if statements to run different code depending on a
+                decision:
+              </p>
+
+              <!-- prettier-ignore -->
+              <runno-run
+                runtime="python"
+                editor
+                controls
+                class="overflow-hidden"
+              >
+                name = input("What's your name? ")
+                if "i" in name:
+                  print("You've got an I in your name, how selfish.")
+                else:
+                  print("There's no I in your name.")
+              </runno-run>
+
+              <p>Try out the example with different names!</p>
             </div>
 
             <p>
@@ -161,51 +190,13 @@ else:
             </p>
 
             <p>
-              If you find you're using Runno a lot on your blog, you can use the
-              Runno Web Components (<a href="#web-components">documentation</a
-              >). First follow the
-              <a href="#component-quickstart">quickstart guide</a> to make sure
-              it's set up correctly.
+              For a more complete set of examples, check out the
+              <a
+                target="_blank"
+                href="https://github.com/taybenlor/runno/tree/main/examples"
+                >examples on GitHub</a
+              >.
             </p>
-
-            <p>
-              Once you've got Runno installed you can use the same features
-              without needing to use an iframe. Lets say you were explaining how
-              infinite loops work in JavaScript:
-            </p>
-
-            <pre><code>&lt;p&gt;
-An infinite loop runs forever:
-&lt;/p&gt;
-
-&lt;runno-run runtime="quickjs" editor controls&gt;
-while (true) {
-  console.log("Help I'm trapped in a code factory!");
-}
-&lt;/runno-run&gt;
-
-&lt;p&gt;
-Try changing the text to your own example!
-&lt;/p&gt;
-        </code></pre>
-
-            <p>And it would work in the same way as the iframe:</p>
-
-            <div class="bg-white px-4 flow-root rounded text-black">
-              <p>An infinite loop runs forever:</p>
-              <!-- prettier-ignore -->
-              <runno-run
-            runtime="quickjs"
-            editor
-            controls
-            class="w-full bg-black p-1.5 rounded text-sm"
-          >
-            while (true) {
-              console.log("Help I'm trapped in a code factory!");
-            }
-          </runno-run>
-              <p>Try changing the text to your own example!</p>
-            </div>
 
             <h2 id="how-it-works">How it works</h2>
             <p>
@@ -217,11 +208,10 @@ Try changing the text to your own example!
             </p>
             <p>
               When you click run on a Runno example the web assembly binary for
-              that programming language is collected from
-              <a target="_blank" href="https://wapm.io">WAPM</a> (the Web
-              Assembly Package Manager). It's then run in a Web Worker, inside a
-              sandbox with an in-memory file system. It's connected up to a
-              terminal emulator and simple IO is routed back and forth.
+              that programming language is downloaded from Runno.dev. It's then
+              run using <code>@runno/wasi</code> in a sandboxed Web Worker with
+              an in-memory file system. It's connected up to a terminal emulator
+              and simple IO is routed back and forth.
             </p>
 
             <h2 id="why-browser">Why run in the browser?</h2>
@@ -248,17 +238,17 @@ Try changing the text to your own example!
             <h2 id="limitations">Limitations</h2>
             <p>
               The programming languages available are limited by what has
-              already been compiled to Web Assembly using WASI and uploaded to
-              WAPM. A great way to help more languages become available would be
-              to compile your favourite programming language tools to Web
-              Assembly and upload them to WAPM.
+              already been compiled to Web Assembly using WASI. A great way to
+              help more languages become available would be to compile your
+              favourite programming language tools to Web Assembly and file a
+              ticket on GitHub.
             </p>
             <p>
               WASI doesn't provide a full linux environment, so most system
-              based interfaces won't work. Packages and modules are also
-              difficult to install inside the Runno environment. If you want to
-              import code, you'll need to provide that code alongside your
-              example.
+              based interfaces won't work. Packages and modules are possible to
+              install inside the Runno environment, but they can't run native
+              binaries. If you want to import anything, you'll need to provide
+              it alongside your example.
             </p>
             <p>
               Runno is best for small code examples that use
@@ -283,33 +273,17 @@ Try changing the text to your own example!
               make sure Runno won't damage your clients.
             </p>
             <p>
-              There are two main layers of sandboxing that help make Runno
-              secure:
-            </p>
-            <ol>
-              <li>
-                By running as WebAssembly we create a layer of sandboxing, any
-                system resources that the binary wants have to be passed through
-                a layer of JavaScript that Runno controls.
-              </li>
-              <li>
-                By embedding Runno inside an iframe from another domain we
-                sandbox it from any secrets inside your webpage. This prevents
-                Runno from having access to cookies or from making API calls as
-                a user.
-              </li>
-            </ol>
-            <p>
-              With these two layers combined it's difficult for a user to hurt
-              themselves, for you to hurt a user, or for users to hurt each
-              other. But that doesn't mean Runno is 100% safe.
+              By running as WebAssembly, in a Web Worker, we create a layer of
+              sandboxing. The worker cannot lock up the system, and any system
+              resources (like files) that the binary uses are all emulated
+              through a layer of JavaScript that Runno controls.
             </p>
             <p>
-              Runno can quite easily be used to hog resources on a client. An
-              infinite loop can lock up a tab. Large binaries can potentially be
-              dynamically loaded from WAPM, using surprising amounts of
-              bandwidth. While not ideal, these are typical risks a user has in
-              navigating to any website.
+              With the browser sandboxing, the Web Worker sandboxing, the Web
+              Assembly sandboxing, and the in-memory file system it's difficult
+              for a user to hurt themselves, for you to hurt a user, or for
+              users to hurt each other. But that doesn't mean Runno is 100%
+              safe.
             </p>
             <p>
               The intention is for Runno to either fix security issues, or to
@@ -328,23 +302,22 @@ Try changing the text to your own example!
             </p>
             <ul>
               <li>
-                Wasmer, WAPM, and WebAssembly.sh - the Wasmer team have built a
-                lot of great tools for running Web Assembly. WAPM, the Web
-                Assembly Package Manager is key to how Runno works.
-                WebAssembly.sh was a great inspiration and starting point.
-              </li>
-              <li>
                 WASI and Web Assembly - a bunch of people from various working
                 groups and especially the Bytecode Alliance have been involved
-                in making WASM and WASI what it is today.
+                in making WASM and WASI the portable platform it is.
               </li>
               <li>
                 XTerm.js - a fully featured terminal that can be run in the
-                browser
+                browser.
               </li>
               <li>
                 CodeMirror - a great web-based code editor that's always a
-                delight to integrate
+                delight to integrate.
+              </li>
+              <li>
+                Wasmer - the Wasmer team have built a lot of great tools for
+                running Web Assembly. WebAssembly.sh was a great inspiration and
+                starting point.
               </li>
               <li>
                 The extensive work by many in the web development community on
@@ -360,264 +333,6 @@ Try changing the text to your own example!
               Also big thanks to my friends who tolerate me constantly talking
               about WASM. Thanks especially to Shelley, Katie, Jesse, Jim, Odin,
               Hailey, Sam and other Sam.
-            </p>
-          </section>
-
-          <section class="flow-root mt-16">
-            <h1 id="web-components">Web Components</h1>
-            <p>
-              The building blocks of Runno are available as Web Components that
-              can be bundled into your page. You can then use them just like
-              other HTML in your website.
-            </p>
-            <p>
-              You'll need to be using a modern web stack that includes a bundler
-              of some sort to use the web components. If you haven't used web
-              components before you can
-              <a
-                target="_blank"
-                href="https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements"
-                >learn about them on MDN</a
-              >, or dive in. They work like normal HTML elements, you can style
-              them with classes, give them ids etc - but also they have custom
-              behaviour.
-            </p>
-
-            <h2 id="component-quickstart">Quickstart</h2>
-            <p>Start by adding <code>@runno/runtime</code> to your package:</p>
-
-            <pre><code>$ npm install @runno/runtime</code></pre>
-
-            <p>Then import the package to define the elements:</p>
-
-            <pre><code>import '@runno/runtime'</code></pre>
-
-            <p>
-              Once you've imported the runtime, you can use the custom elements
-              on your page.
-            </p>
-
-            <pre><code>&lt;runno-run runtime="python" editor controls&gt;
-print('Hello, World!')
-&lt;/runno-run&gt;</code></pre>
-
-            <p>Which would render as:</p>
-
-            <runno-run runtime="python" editor controls>
-              print('Hello, World!')
-            </runno-run>
-
-            <h2 id="component-how">How it works</h2>
-            <p>
-              The Runno iframe is implemented using these web components and so
-              there is a lot of overlap in how they work. Rather than repeating
-              the documentation:
-            </p>
-            <ul>
-              <li>
-                Your webpage needs to be a
-                <a href="#host-headers">Cross-Origin Isolated context</a>.
-              </li>
-              <li>
-                The <code>runno-run</code> element implements the
-                <a href="#runno-host">
-                  <code class="!text-pink">RunnoHost</code> methods </a
-                >.
-              </li>
-              <li>
-                All the <code>Runtime</code> and <code>Syntax</code> options can
-                have the same variables.
-              </li>
-              <li>
-                The code still runs within a WebAssembly sandbox isolating it
-                from your page.
-              </li>
-            </ul>
-
-            <h2 id="component-elements">Elements</h2>
-
-            <h4><code>runno-run</code></h4>
-            <pre><code>&lt;runno-run
-syntax="Syntax" &lt;!-- optional --&gt;
-runtime="Runtime" &lt;!-- optional --&gt;
-code="string" &lt;!-- optional --&gt;
-editor &lt;!-- optional, presence displays the editor --&gt;
-controls &lt;!-- optional, presence displays the controls --&gt;
-&gt;
-&lt;!-- content is treated as code if not set as an attribute --&gt;
-&lt;/runno-run&gt;
-</code></pre>
-            <p>
-              The <code>runno-run</code> element implements all of Runno's
-              public APIs and acts as a wrapper around the editor, terminal and
-              controls. It's the main thing you should be using.
-            </p>
-
-            <p>
-              On top of the
-              <a href="#runno-host">
-                <code class="!text-pink">RunnoHost</code> methods
-              </a>
-              you can also call:
-            </p>
-            <ul>
-              <li>
-                <code>run()</code> - runs the code in the editor (needs a
-                runtime)
-              </li>
-              <li><code>stop()</code> - stops the code running</li>
-              <li>
-                <code>running</code> - property, whether the element is
-                currently running
-              </li>
-            </ul>
-
-            <p>
-              The <code>runno-run</code> element can be styled with css
-              variables to change the height of the individual
-              <code>runno-editor</code> and <code>runno-terminal</code> elements
-              inside.
-            </p>
-
-            <pre><code>runno-run {
-/* Sets a specific height for the editor */
---runno-editor-height: auto;
-
-/* Sets a maximum height for the editor */
---runno-editor-max-height: 60%;
-
-/* Sets a specific height for the terminal */
---runno-terminal-height: auto;
-
-/* Sets a minimum height for the terminal */
---runno-terminal-min-height: 4rem;
-}</code></pre>
-
-            <p>
-              By default the editor will resize to fit the content you put
-              inside it, and the terminal will be its minimum height. If you set
-              the element to be a fixed height, they will share the space so
-              that the editor gets 60% and the controls and terminal get the
-              rest.
-            </p>
-
-            <h4><code>runno-editor</code></h4>
-            <pre><code>&lt;runno-editor
-syntax="Syntax" &lt;!-- optional --&gt;
-runtime="Runtime" &lt;!-- optional --&gt;
-code="string" &lt;!-- optional --&gt;
-&gt;
-&lt;!-- content is treated as code if not set as an attribute --&gt;
-&lt;/runno-editor&gt;
-</code></pre>
-            <p>
-              The editor doesn't do much by itself, but does provide a neat
-              little instance of CodeMirror. You can also call:
-            </p>
-            <ul>
-              <li><code>program</code> - gets the current program</li>
-              <li>
-                <code
-                  >setProgram(syntax: Syntax, runtime: Runtime, code:
-                  string)</code
-                >
-                - sets the current program
-              </li>
-            </ul>
-
-            <h4><code>runno-terminal</code></h4>
-            <pre><code>&lt;runno-terminal&gt;&lt;/runno-terminal&gt;</code></pre>
-            <p>
-              The terminal is responsible for actually running the code. Without
-              a <code>runno-run</code> element to command it, it's a bit harder
-              to use. But you might find something cool to do with it!
-            </p>
-            <ul>
-              <li>
-                <code
-                  >writeFile(path: string, content: string | Buffer |
-                  Uint8Array)</code
-                >
-                - writes a file to the local file system
-              </li>
-              <li>
-                <code>stop()</code>
-                - Stops the currently running program
-              </li>
-              <li>
-                <code>focus()</code>
-                - Focuses the input
-              </li>
-              <li>
-                <code>clear()</code>
-                - Clears the terminal
-              </li>
-            </ul>
-
-            <h4><code>runno-controls</code></h4>
-            <pre><code>&lt;runno-controls
-running &lt;!-- optional, presence displays the stop button --&gt;
-&gt;&lt;/runno-controls&gt;</code></pre>
-            <p>
-              The controls don't do much without being hooked up! When the
-              buttons are clicked, they fire events:
-            </p>
-
-            <ul>
-              <li>
-                <code>runno-run</code>
-                - when the run button is clicked
-              </li>
-              <li>
-                <code>runno-stop</code>
-                - when the stop button is clicked
-              </li>
-            </ul>
-
-            <p>You can also cause these events to be triggered:</p>
-
-            <ul>
-              <li>
-                <code>run()</code>
-                - emits a run event
-              </li>
-              <li>
-                <code>stop()</code>
-                - emits a stop event
-              </li>
-            </ul>
-
-            <h2 id="component-helpers">Helpers</h2>
-
-            <h4><code>headlessRunCommand</code></h4>
-            <pre><code>headlessRunCommand(
-command: string,
-fs: FS,
-stdin?: string
-): Promise&lt;RunResult&gt;</code></pre>
-            <p>
-              Same as <code>headlessUnsafeCommand</code> in the Host API. Handy
-              if you want to use Runno's runtime without any UI.
-            </p>
-
-            <h4><code>class RunnoProvider</code></h4>
-            <pre><code>class RunnoProvider(
-terminal: TerminalElement,
-editor: EditorElement,
-controls?: ControlsElement
-)</code></pre>
-            <p>
-              If you wanted to piece together the bits of a
-              <code>runno-run</code> element, this is how you'd do it. Construct
-              a <code>RunnoProvider</code>
-              with a terminal, editor and controls then call it like it's a
-              <code>RunnoHost</code>.
-            </p>
-
-            <h2>Integration</h2>
-            <p>
-              If you'd like to do more with the web components or runtime,
-              please contact me. I'm quite interested in adding extra features!
             </p>
           </section>
         </article>
