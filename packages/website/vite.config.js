@@ -1,3 +1,7 @@
+import { resolve } from "path";
+import { globSync } from "glob";
+import { defineConfig } from "vite";
+
 const crossOriginPolicy = {
   name: "configure-server",
 
@@ -10,9 +14,17 @@ const crossOriginPolicy = {
   },
 };
 
-export default {
+export default defineConfig({
   server: {
     port: 4321,
   },
   plugins: [crossOriginPolicy],
-};
+  build: {
+    rollupOptions: {
+      input: [
+        resolve(__dirname, "index.html"),
+        ...globSync(`${__dirname}/docs/**/*.html`),
+      ],
+    },
+  },
+});

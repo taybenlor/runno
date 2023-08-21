@@ -30,7 +30,9 @@
   "scripts": {
     "dev": "vite",
     "watch": "vite build --watch",
-    "build": "tsc && vite build",
+    "build:docs": "typedoc --options typedoc.config.cjs",
+    "build:package": "tsc && vite build",
+    "build": "npm run build:docs && npm run build:package",
     "serve": "vite preview",
     "lint": "npx eslint src"
   },
@@ -39,7 +41,7 @@
     "eslint": "^7.28.0",
     "typedoc": "^0.24.8",
     "typescript": "^5.1.6",
-    "vite": "^4.4.6"
+    "vite": "^4.4.9"
   },
   "dependencies": {
     "@codemirror/basic-setup": "^0.19.0",
