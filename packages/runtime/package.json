@@ -1,5 +1,6 @@
 {
   "name": "@runno/runtime",
+  "type": "module",
   "author": "Ben Taylor <runno@taybenlor.com>",
   "description": "Runtime for @runno",
   "website": "https://runno.dev",
@@ -16,10 +17,10 @@
     "dist"
   ],
   "main": "./dist/runtime.umd.js",
-  "module": "./dist/runtime.mjs",
+  "module": "./dist/runtime.js",
   "exports": {
     ".": {
-      "import": "./dist/runtime.mjs",
+      "import": "./dist/runtime.js",
       "require": "./dist/runtime.umd.js"
     }
   },
@@ -31,7 +32,7 @@
     "dev": "vite",
     "watch": "vite build --watch",
     "build:docs": "typedoc --options typedoc.config.cjs",
-    "build:package": "tsc && vite build",
+    "build:package": "tsc --noEmit && vite build",
     "build": "npm run build:docs && npm run build:package",
     "serve": "vite preview",
     "lint": "npx eslint src"

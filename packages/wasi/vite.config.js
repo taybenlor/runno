@@ -1,4 +1,5 @@
 // vite.config.js
+import typescript from "@rollup/plugin-typescript";
 import { resolve } from "path";
 import { defineConfig } from "vite";
 
@@ -22,4 +23,10 @@ export default defineConfig({
       },
     },
   },
+  plugins: [
+    {
+      ...typescript({ outDir: "dist" }),
+      apply: "build",
+    },
+  ],
 });

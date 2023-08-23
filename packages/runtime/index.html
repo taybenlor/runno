@@ -4,18 +4,196 @@
     <meta charset="utf-8" />
 
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <script>
-      // Hacky fix for dependencies that expect node global
-      window["global"] = globalThis;
-    </script>
 
     <meta name="Description" content="Runs code in your browser" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
 
     <title>Runno</title>
   </head>
-  <body class="fullscreen">
-    <runno-run controls class="fullscreen"></runno-run>
+  <body>
+    <main>
+      <article class="prose container mx-auto my-16">
+        <h1 id="programming-examples">Programming Examples</h1>
+
+        <h2>Running code</h2>
+
+        <p>
+          You can create a block of runnable code using the
+          <code>runno-run</code> element. Set the <code>runtime</code> to one of
+          the existing runtimes.
+        </p>
+
+        <runno-run runtime="python" controls editor>
+          print("Hi there!") age = input("How old are you? ") if age == "14":
+          print("Heya, twin!") print("See ya later!")
+        </runno-run>
+
+        <p>
+          You don't have to worry about indentation, Runno will strip any of the
+          common indentation from the block of code.
+        </p>
+
+        <h3>Customising the Element</h3>
+
+        <p>
+          You can customise whether you get an <code>editor</code> and the
+          built-in <code>controls</code> with the respective attributes. This
+          element has no editor (the controls still work).
+        </p>
+
+        <runno-run runtime="python" controls>
+          print("Hi there!") age = input("How old are you? ") if age == "14":
+          print("Heya, twin!") print("See ya later!")
+        </runno-run>
+
+        <p>
+          You can also remove the controls and build your own UI. Call methods
+          directly on the <code>runno-run</code> element. In this example,
+          clicking the button will call <code>element.run()</code>.
+        </p>
+
+        <button
+          onclick="runnoElement.run()"
+          class="
+            bg-gray-300
+            px-4
+            py-2
+            hover:bg-gray-200
+            rounded
+            text-gray-800
+            font-semibold
+          "
+        >
+          My Custom Run Button
+        </button>
+
+        <runno-run id="runnoElement" runtime="python">
+          print("Hi there!") age = input("How old are you? ") if age == "14":
+          print("Heya, twin!") print("See ya later!")
+        </runno-run>
+
+        <h3>Styling</h3>
+
+        <p>TODO: Test for styling with variables</p>
+
+        <h3>Including Files</h3>
+        <p>
+          You can install files into the filesystem with the
+          <code>fs-url</code> attribute. The URL should be a
+          <code>.tar.gz</code> file that includes the files you want. This is
+          useful for including packages that can then be imported and run as
+          part of the example.
+        </p>
+
+        <runno-run
+          runtime="python"
+          fs-url="/python-package.tar.gz"
+          controls
+          editor
+        >
+          from package import say_hello say_hello() print('------') import os
+          print("/package contains", os.listdir('/package'))
+        </runno-run>
+
+        <p>
+          You can also add files directly in HTML with the
+          <code>runno-file</code> element. The file content will have any shared
+          leading whitespace stripped.
+        </p>
+
+        <runno-run runtime="python" controls editor>
+          print('file.txt contains:') print(open("file.txt").read())
+          print('----') print('other-file.txt contains:')
+          print(open("other-file.txt").read())
+
+          <runno-file path="/file.txt">
+            G'day world. Welcome to Runno.
+          </runno-file>
+          <runno-file path="/other-file.txt"> Another file. </runno-file>
+        </runno-run>
+      </article>
+
+      <article class="prose container mx-auto my-16">
+        <h1 id="wasi-examples">WASI Examples</h1>
+
+        <p>
+          Using a <code>runno-wasi</code> element you can run any program
+          compiled to WASI. It can take <code>args</code> as an HTML attribute.
+          <code>env</code> and <code>fs</code> can be set as properties on the
+          element (you'll need to get a handle to it, e.g. with
+          <code>querySelector</code>).
+        </p>
+
+        <pre><code>&lt;runno-wasi src="https://assets.runno.dev/ffmpeg/ffmpeg.wasm" autorun&gt;
+&lt;/runno-wasi&gt;</code></pre>
+
+        <runno-wasi src="/ffmpeg.wasm" autorun></runno-wasi>
+
+        <p>
+          This element is running an ffmpeg binary with no arguments. You could
+          customise this to run it against particular files by configuring the
+          filesystem. Either via the filesystem attributes below, or the
+          <code>fs</code> property on the DOM node.
+        </p>
+
+        <h2>Customising the Filesystem</h2>
+
+        <p>
+          Just like <code>runno-run</code> elements, <code>runno-wasi</code>
+          elements can have the filesystem configured through HTML elements and
+          attributes.
+        </p>
+
+        <pre><code>&lt;runno-wasi
+  src=&quot;/cat.wasi.wasm&quot;
+  fs-url=&quot;/python-package.tar.gz&quot; 
+  args=&quot;/package/__init__.py&quot;
+  controls
+&gt;
+&lt;/runno-wasi&gt;</code></pre>
+
+        <runno-wasi
+          src="/cat.wasi.wasm"
+          fs-url="/python-package.tar.gz"
+          args="/package/__init__.py"
+          controls
+        >
+        </runno-wasi>
+
+        <p>
+          You can also use <code>runno-file</code> elements to create plaintext
+          files straight in the HTML. Or use the <code>url</code> attribute to
+          point to a file.
+        </p>
+
+        <pre><code>&lt;runno-wasi
+  src=&quot;/cat.wasi.wasm&quot;
+  name=&quot;cat&quot;
+  args=&quot;/file.txt /test.txt&quot;
+  fs-url=&quot;/python-package.tar.gz&quot;
+  controls
+&gt;
+  &lt;runno-file path="/file.txt"&gt;
+    G'day world.
+    Welcome to Runno.
+  &lt;/runno-file&gt;
+  &lt;runno-file path="/test.txt" url="/test.txt"&gt;&lt;/runno-file&gt;
+&lt;/runno-wasi&gt;</code></pre>
+
+        <runno-wasi src="/cat.wasi.wasm" args="/file.txt /test.txt" controls>
+          <runno-file path="/file.txt">
+            G'day world. Welcome to Runno.
+          </runno-file>
+          <runno-file path="/test.txt" url="/test.txt"></runno-file>
+        </runno-wasi>
+      </article>
+
+      <article>
+        <h1 id="headless-examples">Headless Examples</h1>
+
+        <p>TODO</p>
+      </article>
+    </main>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

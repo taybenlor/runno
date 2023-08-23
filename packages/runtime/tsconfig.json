@@ -15,8 +15,9 @@
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
     "declaration": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "isolatedModules": true
   },
-  "include": ["./src"],
+  "include": ["./lib"],
   "exclude": ["node_modules"]
 }

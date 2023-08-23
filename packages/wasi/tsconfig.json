@@ -13,10 +13,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "skipLibCheck": true,
-    "outDir": "./dist",
-    "declaration": true,
-    "emitDeclarationOnly": true
+    "declaration": true
   },
-  "include": ["src", "lib"]
+  "include": ["src", "lib"],
+  "exclude": ["node_modules"]
 }
