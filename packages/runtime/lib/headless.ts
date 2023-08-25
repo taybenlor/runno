@@ -5,7 +5,7 @@ import {
   commandsForRuntime,
   getBinaryPathFromCommand,
 } from "./commands";
-import { fetchWASIFS } from "./helpers";
+import { fetchWASIFS, makeRunnoError } from "./helpers";
 
 export async function headlessRunCode(
   runtime: Runtime,
@@ -35,11 +35,31 @@ export async function headlessRunFS(
 ): Promise<RunResult> {
   const commands = commandsForRuntime(runtime, entryPath);
 
-  const prepare = await headlessPrepareFS(commands.prepare ?? [], fs);
-  fs = prepare.fs;
+  let prepare: CompleteResult;
+  try {
+    prepare = await headlessPrepareFS(commands.prepare ?? [], fs);
+    fs = prepare.fs;
+  } catch (e) {
+    return {
+      resultType: "crash",
+      error: makeRunnoError(e),
+    };
+  }
 
   const { run } = commands;
   const binaryPath = getBinaryPathFromCommand(run, fs);
+
+  if (run.baseFSURL) {
+    try {
+      const baseFS = await fetchWASIFS(run.baseFSURL);
+      fs = { ...fs, ...baseFS };
+    } catch (e) {
+      return {
+        resultType: "crash",
+        error: makeRunnoError(e),
+      };
+    }
+  }
 
   const workerHost = new WASIWorkerHost(binaryPath, {
     args: [run.binaryName, ...(run.args ?? [])],
@@ -61,7 +81,7 @@ export async function headlessRunFS(
 
   const result = await workerHost.start();
 
-  prepare.fs = { ...prepare.fs, ...result.fs };
+  prepare.fs = { ...fs, ...result.fs };
   prepare.exitCode = result.exitCode;
 
   return prepare;
@@ -129,9 +149,6 @@ export async function headlessPrepareFS(
     prepare.exitCode = result.exitCode;
 
     if (result.exitCode !== 0) {
-      // TODO: Remove this
-      console.error("Prepare failed", prepare);
-
       // If a prepare step fails then we stop.
       throw new PrepareError(
         "Prepare step returned a non-zero exit code",
