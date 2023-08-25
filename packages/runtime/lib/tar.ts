@@ -1,14 +1,8 @@
-// @ts-ignore - No type definitions
-import untar from "js-untar";
+import type { WASIFS } from "@runno/wasi";
+import { Tarball } from "@obsidize/tar-browserify";
+
 // @ts-ignore - No type definitions
 import { inflate } from "pako/dist/pako_inflate.min.js";
-
-type TarFile = {
-  name: string;
-  type: string | number;
-  buffer: ArrayBuffer;
-  blob: Blob;
-};
 
 /**
  * Extract a .tar.gz file.
@@ -18,9 +12,7 @@ type TarFile = {
  * @param binary .tar.gz file
  * @returns
  */
-export const extractTarGz = async (binary: Uint8Array): Promise<File[]> => {
-  let files: File[] = [];
-
+export const extractTarGz = async (binary: Uint8Array): Promise<WASIFS> => {
   // If we receive a tar.gz, we first need to uncompress it.
   let inflatedBinary: Uint8Array;
   try {
@@ -29,21 +21,27 @@ export const extractTarGz = async (binary: Uint8Array): Promise<File[]> => {
     inflatedBinary = binary;
   }
 
-  try {
-    files = (await untar(inflatedBinary.buffer))
-      .filter((file: TarFile) => {
-        return file.type === "file" || file.type === "0" || file.type == 0;
-      })
-      .map((file: TarFile) => {
-        // HACK: Make all files start with / to solve compatibility issues
-        const name = file.name.replace(/^([^/])/, "/$1");
-        return new File([file.blob], name, {
-          lastModified: Date.now(),
-        });
-      });
-  } catch (e) {
-    console.log("failed untar", e);
+  const entries = Tarball.extract(inflatedBinary);
+
+  const fs: WASIFS = {};
+  for (const entry of entries) {
+    if (!entry.isFile()) {
+      continue;
+    }
+
+    // HACK: Make sure each file name starts with /
+    const name = entry.fileName.replace(/^([^/])/, "/$1");
+    fs[name] = {
+      path: name,
+      timestamps: {
+        change: new Date(entry.lastModified),
+        access: new Date(entry.lastModified),
+        modification: new Date(entry.lastModified),
+      },
+      mode: "binary",
+      content: entry.content!,
+    };
   }
 
-  return files;
+  return fs;
 };

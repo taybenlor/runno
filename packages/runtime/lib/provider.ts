@@ -102,8 +102,18 @@ export class RunnoProvider implements RuntimeMethods {
     this.terminal.terminal.clear();
 
     if (run.baseFSURL) {
-      const baseFS = await fetchWASIFS(run.baseFSURL);
-      fs = { ...fs, ...baseFS };
+      try {
+        const baseFS = await fetchWASIFS(run.baseFSURL);
+        fs = { ...fs, ...baseFS };
+      } catch (e) {
+        console.error(e);
+        this.terminal.terminal.write(`\nRunno crashed: ${e}\n`);
+
+        return {
+          resultType: "crash",
+          error: makeRunnoError(e),
+        };
+      }
     }
 
     return this.terminal.run(

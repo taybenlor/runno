@@ -31,6 +31,9 @@
   "scripts": {
     "dev": "vite",
     "watch": "vite build --watch",
+    "test:serve": "vite --config tests/vite.config.js",
+    "test:playwright": "playwright test",
+    "test": "npm run test:playwright",
     "build:docs": "typedoc --options typedoc.config.cjs",
     "build:package": "tsc --noEmit && vite build",
     "build": "npm run build:docs && npm run build:package",
@@ -38,6 +41,7 @@
     "lint": "npx eslint src"
   },
   "devDependencies": {
+    "@playwright/test": "^1.37.1",
     "@rollup/plugin-typescript": "^8.2.5",
     "eslint": "^7.28.0",
     "typedoc": "^0.24.8",
@@ -57,9 +61,9 @@
     "@codemirror/language": "^0.19.0",
     "@codemirror/rectangular-selection": "^0.19.2",
     "@codemirror/view": "^0.19.31",
+    "@obsidize/tar-browserify": "^3.0.0",
     "@runno/host": "^0.5.1",
     "@runno/wasi": "^0.5.1",
-    "js-untar": "^2.0.0",
     "lit": "^2.7.6",
     "pako": "^1.0.11",
     "runno-codemirror-lang-ruby": "^0.0.2",

@@ -1,4 +1,3 @@
-import { WASIFS } from "@runno/wasi";
 import { extractTarGz } from "./tar";
 
 export function stripWhitespace(text: string): string {
@@ -62,23 +61,7 @@ export function elementCodeContent(element: HTMLElement): string {
 export async function fetchWASIFS(fsURL: string) {
   const response = await fetch(fsURL);
   const buffer = await response.arrayBuffer();
-  const files = await extractTarGz(new Uint8Array(buffer));
-
-  const fs: WASIFS = {};
-  for (const file of files) {
-    fs[file.name] = {
-      path: file.name,
-      timestamps: {
-        change: new Date(file.lastModified),
-        access: new Date(file.lastModified),
-        modification: new Date(file.lastModified),
-      },
-      mode: "binary",
-      content: new Uint8Array(await file.arrayBuffer()),
-    };
-  }
-
-  return fs;
+  return await extractTarGz(new Uint8Array(buffer));
 }
 
 export function isErrorObject(

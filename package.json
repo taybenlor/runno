@@ -27,7 +27,8 @@
     "build:deploy": "npm run bootstrap && npm run build",
     "test:client": "cd packages/client && npm run test",
     "test:wasi": "cd packages/wasi && npm run test:prepare && npm run test",
-    "test": "npm run test:client && npm run test:wasi"
+    "test:runtime": "cd packages/runtime && npm run test",
+    "test": "npm run test:client && npm run test:wasi && npm run test:runtime"
   },
   "eslintConfig": {
     "extends": "preact",
