@@ -1,6 +1,6 @@
 {
   "name": "@runno/wasi",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "author": "Ben Taylor <runno@taybenlor.com>",
   "description": "Browser-only WASI implementation",
   "website": "https://runno.dev",
@@ -41,8 +41,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.37.1",
-    "typescript": "^5.1.6",
     "typedoc": "^0.24.8",
+    "typescript": "^5.1.6",
     "vite": "^4.4.9"
   }
 }
