@@ -64,7 +64,6 @@
     "@obsidize/tar-browserify": "^3.0.0",
     "@runno/host": "^0.5.1",
     "@runno/wasi": "^0.5.1",
-    "js-untar": "^2.0.0",
     "lit": "^2.7.6",
     "pako": "^1.0.11",
     "runno-codemirror-lang-ruby": "^0.0.2",
