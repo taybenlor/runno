@@ -4,6 +4,17 @@
   "author": "Ben Taylor <runno@taybenlor.com>",
   "description": "Runtime for @runno",
   "website": "https://runno.dev",
+  "keywords": [
+    "wasm",
+    "wasi",
+    "browser",
+    "web components",
+    "repl",
+    "python",
+    "ruby",
+    "clang",
+    "php"
+  ],
   "repository": {
     "type": "git",
     "url": "git://github.com/taybenlor/runno.git"
