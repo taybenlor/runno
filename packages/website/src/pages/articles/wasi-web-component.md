@@ -108,7 +108,7 @@ content from a URL.
 >
   <runno-file
     path="/serenity.mp4"
-    url="https://assets.runno.dev/ffmpeg/ffprobe.wasm"
+    url="https://assets.runno.dev/ffmpeg/serenity.mp4"
   >
   </runno-file>
 </runno-wasi>
