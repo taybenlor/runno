@@ -22,14 +22,19 @@ Because Runno is all about using Web Components to run short snippets of code
 directly from HTML, I realised it would be neat to also support running WASI
 binaries this way.
 
-So I've added a `<runno-wasi>` element to
-[`@runno/runtime`](https://www.npmjs.com/package/@runno/runtime). It needs the
-same setup that a normal Runno runtime needs, you need to be in a Cross-Origin
-Isolated Context, and you need to include the `@runno/runtime` package
-([see the docs](/docs)), but once you've done that it's pretty straightforward
-to run WASI binaries. That opens up a whole host of ways to run CLI tools in
-your web browser, whether they're built in Rust, C, Zig, C# or the variety of
-other languages that support compiling to WASI.
+It needs the same setup that a normal Runno runtime needs, you need to be in a
+Cross-Origin Isolated Context, and you need to include the `@runno/runtime`
+package ([see the docs](/docs)), but once you've done that it's pretty
+straightforward to run WASI binaries. That opens up a bunch of ways to run
+CLI tools in your web browser, whether they're built in Rust, C, Zig, C# or the
+variety of other languages that support compiling to WASI.
+
+_Note: If you're lost about what the heck WASI is, it stands for WebAssembly
+System Interface. It's a standard interface for WASM (WebAssembly) binaries to
+interact with a host (like an OS). In a binary built for an old Intel mac the
+target might be `x86-macos`. In that string `x86` is the CPU and `macos` is the
+operating system. These binaries are `wasm-wasi` so WASM is the CPU, and WASI is
+the operating system._
 
 ## Examples
 
@@ -84,10 +89,16 @@ files passed as arguments. I've configured the two files by using `runno-file`
 elements. The `path` attribute specifies the full path of these files in the
 filesystem and must start with `/`.
 
-This is cool, but it's going to be hard to use with `ffmpeg`, we'd need to write
-out the video file as text in the web browser, and I'm not sure HTML escape
-codes are up to the task. So instead we can specify a `url` attribute on those
-`wasi-file` elements to have them pull down their content from a URL.
+Then to tell `cat` what the two files are, I've passed `args` as an attribute to
+the element. This is just like your args in a shell, a space seperated string
+that is passed to the program as part of execution. Putting it all together we
+get **concatenation**!
+
+Specifying files this way is neat, but it's going to be hard to use with
+`ffmpeg`, we'd need to write out the video file as text in the web browser, and
+I'm not sure HTML escape codes are up to the task. So instead we can specify a
+`url` attribute on those `wasi-file` elements to have them pull down their
+content from a URL.
 
 ```html
 <runno-wasi
@@ -109,46 +120,46 @@ codes are up to the task. So instead we can specify a `url` attribute on those
 
 In this example we're using `ffprobe` to get information about an `mp4` file.
 The file in question is the [Serenity trailer](https://www.youtube.com/watch?v=w8JNjmK5lfk).
-Before the WASI binary is run, the video file is downloaded.
+Before the WASI binary is run, the video file is downloaded. Then `ffprobe` runs
+over the file and outputs metadata about it. You can see this was the DVD
+Trailer from 2005!
 
 In some circumstances you might want to specify a full filesystem, not just a
-couple of files. In those cases you can pass a `fs-url` to the `runno-wasi`
+couple of files. In those cases you can pass an `fs-url` to the `runno-wasi`
 element.
 
 ```
-<runno-wasi src="/langs/python-3.11.3.wasm" fs-url="python-3.11.3.tar.gz" controls>
+<runno-wasi
+  src="/langs/python-3.11.3.wasm"
+  fs-url="https://assets.runno.dev/examples/python-package.tar.gz"
+  controls
+>
 </runno-wasi>
 ```
 
-<runno-wasi src="/langs/python-3.11.3.wasm" fs-url="python-3.11.3.tar.gz" controls>
+<runno-wasi src="/langs/python-3.11.3.wasm" fs-url="https://assets.runno.dev/examples/python-package.tar.gz" controls>
 </runno-wasi>
 
 In this example I've used a binary of Python 3.11 compiled to WASI, along with
-the required supporting files for the standard library. When you run it you
-should get a Python REPL, it's a little bit dodgy but mostly works. That
-`python-3.11.3.tar.gz` file contains a filesystem that looks like:
+the files required for a python package. When you run it you should get a Python
+REPL, it's a little bit dodgy but mostly works.
+
+That `python-package.tar.gz` file contains a minimal filesystem that looks like:
 
 ```
-$ tar xzvf python-3.11.3.tar.gz
-x usr/
-x usr/local/
-x usr/local/lib/
-x usr/local/lib/python311.zip
-x usr/local/lib/python3.11/
-x usr/local/lib/python3.11/lib-dynload/
-x usr/local/lib/python3.11/os.py
-x usr/local/lib/python3.11/lib-dynload/.empty
+$ tar xzvf python-package.tar.gz
+x package/
+x package/__init__.py
 ```
 
-When extracted, each of these files will have a `/` added to the front, to make
-them compatible with the Runno filesystem.
-
-If you'd like to go have a look yourself, try these two commands inside the
-Python REPL above:
+When extracted, the files will have a `/` added to the front, to make
+them compatible with the Runno filesystem. When python runs it will have this
+package available in the local filesystem, you can try it yourself in the REPL
+above:
 
 ```
->>> import os
->>> os.listdir("/usr/local/lib")
+>>> from package import say_hello
+>>> say_hello()
 ```
 
 I've also specified `controls` as an attribute, this gives the user a run button
