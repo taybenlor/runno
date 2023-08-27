@@ -5,10 +5,19 @@ import { TailwindElement } from "../lib/tailwind";
 
 import wasiArticleMarkdown from "./articles/wasi.md?raw";
 import ffmpegArticleMarkdown from "./articles/ffmpeg.md?raw";
+import wasiWebComponentArticleMarkdown from "./articles/wasi-web-component.md?raw";
 
 import "../components/article";
 
 const articles = [
+  {
+    slug: "wasi-web-component",
+    title: "Running WASI binaries from your HTML using Web Components",
+    markdown: wasiWebComponentArticleMarkdown,
+    published: new Date("2023-08-27"),
+    draft: true,
+    author: "Ben Taylor",
+  },
   {
     slug: "ffmpeg",
     title:

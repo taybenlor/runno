@@ -223,14 +223,21 @@ export class WASIElement extends HTMLElement {
   connectedCallback() {
     this.terminal.loadAddon(new WebLinksAddon());
     this.terminal.loadAddon(this.fitAddon);
-    this.terminal.open(this.shadowRoot?.getElementById("container")!);
-    this.fitAddon.fit();
+    setTimeout(() => {
+      this.terminal.open(this.shadowRoot?.getElementById("container")!);
+      this.fitAddon.fit();
+    });
 
     window.addEventListener("resize", this.onResize);
     this.resizeObserver.observe(this);
 
     this.addEventListener("runno-run", this.onRunEvent);
     this.addEventListener("runno-stop", this.onStopEvent);
+
+    if (this.autorun && !this.hasRun && this.isConnected) {
+      this.autorun = true;
+      this.run();
+    }
   }
 
   disconnectedCallback() {
@@ -251,7 +258,8 @@ export class WASIElement extends HTMLElement {
       return;
     }
 
-    if (name === "autorun" && !this.hasRun) {
+    if (name === "autorun" && !this.hasRun && this.isConnected) {
+      this.autorun = true;
       this.run();
     }
 
