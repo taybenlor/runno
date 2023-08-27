@@ -1,9 +1,9 @@
-import { LitElement, css, unsafeCSS, CSSResultGroup } from "lit";
+import { LitElement, css, unsafeCSS, CSSResultArray } from "lit";
 
 import maincss from "../main.css?inline";
 
 export class TailwindElement extends LitElement {
-  static styles: CSSResultGroup = [
+  static styles: CSSResultArray = [
     css`
       ${unsafeCSS(maincss)}
     `,

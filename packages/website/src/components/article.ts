@@ -1,4 +1,4 @@
-import { html } from "lit";
+import { css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 
@@ -30,10 +30,19 @@ export class WebsiteArticle extends TailwindElement {
   @property({ type: String })
   author: string = "";
 
+  static styles = [
+    css`
+      runno-wasi {
+        padding: 1em;
+        box-sizing: content-box;
+      }
+    `,
+    ...TailwindElement.styles,
+  ];
+
   onPopState = (_: PopStateEvent) => {
     const hash = window.location.hash;
     const el = this.shadowRoot?.querySelector(`${hash}`);
-    console.log("pop state", hash, el);
     if (el) {
       el.scrollIntoView();
     }

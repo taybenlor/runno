@@ -93,6 +93,16 @@ export function makeRunnoError(e: unknown): { type: string; message: string } {
   }
 }
 
+export function extractErrorMessage(e: unknown): string {
+  if (e instanceof Error) {
+    return e.message;
+  } else if (isErrorObject(e)) {
+    return e.message;
+  } else {
+    return "Unknown error";
+  }
+}
+
 export function assertUnreachable(_: never, message?: string): never {
   throw new Error(message ?? "Unexpectedly reached unreachable code.");
 }
