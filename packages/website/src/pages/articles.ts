@@ -15,7 +15,7 @@ const articles = [
     title: "Running WASI binaries from your HTML using Web Components",
     markdown: wasiWebComponentArticleMarkdown,
     published: new Date("2023-08-27"),
-    draft: true,
+    draft: false,
     author: "Ben Taylor",
   },
   {
