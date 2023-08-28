@@ -1,16 +1,18 @@
 # Running WASI binaries from your HTML using Web Components
 
 Web Components are a really interesting API for JavaScript libraries. Here's a
-Web Component I've built that can run WASI binaries.
+Web Component I've built that can run WASI binaries. **Click the Run button**
 
-<runno-wasi src="https://assets.runno.dev/ffmpeg/ffmpeg.wasm" autorun></runno-wasi>
+<runno-wasi src="https://assets.runno.dev/ffmpeg/ffmpeg.wasm" controls></runno-wasi>
 
 The HTML is very simple:
 
 ```html
-<runno-wasi src="https://assets.runno.dev/ffmpeg/ffmpeg.wasm" autorun>
+<runno-wasi src="https://assets.runno.dev/ffmpeg/ffmpeg.wasm" controls>
 </runno-wasi>
 ```
+
+And it runs `ffmpeg`!
 
 ## Background
 
@@ -41,17 +43,18 @@ the operating system._
 Running a CLI program with no args is very simple.
 
 ```html
-<runno-wasi src="https://assets.runno.dev/ffmpeg/ffmpeg.wasm" autorun>
+<runno-wasi src="https://assets.runno.dev/ffmpeg/ffmpeg.wasm" controls>
 </runno-wasi>
 ```
 
-<runno-wasi src="https://assets.runno.dev/ffmpeg/ffmpeg.wasm" autorun></runno-wasi>
+<runno-wasi src="https://assets.runno.dev/ffmpeg/ffmpeg.wasm" controls></runno-wasi>
 
 You specify the `src` of the WASI binary as an attribute, just like an `img`.
-If you want it to automatically run, then specify `autorun` as an attribute. In
-this example we're running `ffmpeg` with no args, and no files. You'll notice
-that terminal output is automatically displayed, this terminal can be styled
-with CSS ([docs](/docs/runtime/)).
+I've used `controls` to give it a run button. If you want it to automatically
+run, then specify `autorun` as an attribute. In this example we're running
+`ffmpeg` with no args, and no files. You'll notice that terminal output is
+automatically displayed, this terminal can be styled with CSS
+([docs](/docs/runtime/)).
 
 Running `ffmpeg` without anything in the filesystem isn't particularly useful,
 so lets look at how we can add files to the `runno-wasi` element. The simplest
@@ -62,7 +65,7 @@ way to do this is with the `runno-file` element.
 <runno-wasi
   src="https://assets.runno.dev/examples/cat.wasi.wasm"
   args="/foo.txt /bar.txt"
-  autorun
+  controls
 >
   <runno-file path="/foo.txt">
     Hello, World!
@@ -73,7 +76,7 @@ way to do this is with the `runno-file` element.
 </runno-wasi>
 ```
 
-<runno-wasi src="https://assets.runno.dev/examples/cat.wasi.wasm" args="/foo.txt /bar.txt" autorun>
+<runno-wasi src="https://assets.runno.dev/examples/cat.wasi.wasm" args="/foo.txt /bar.txt" controls>
   <!-- prettier-ignore -->
   <runno-file path="/foo.txt">
     Hello, World!
@@ -104,7 +107,7 @@ content from a URL.
 <runno-wasi
   src="https://assets.runno.dev/ffmpeg/ffprobe.wasm"
   args="/serenity.mp4"
-  autorun
+  controls
 >
   <runno-file
     path="/serenity.mp4"
@@ -114,7 +117,7 @@ content from a URL.
 </runno-wasi>
 ```
 
-<runno-wasi src="https://assets.runno.dev/ffmpeg/ffprobe.wasm" args="/serenity.mp4" autorun>
+<runno-wasi src="https://assets.runno.dev/ffmpeg/ffprobe.wasm" args="/serenity.mp4" controls>
 <runno-file path="/serenity.mp4" url="https://assets.runno.dev/ffmpeg/serenity.mp4"></runno-file>
 </runno-wasi>
 
@@ -162,10 +165,9 @@ above:
 >>> say_hello()
 ```
 
-I've also specified `controls` as an attribute, this gives the user a run button
-that they can click to run the code. Without `controls` or `autorun` you can
-call `run` directly on the element reference. That's the handle you get back
-from running something like `querySelector('runno-wasi')`.
+Without `controls` or `autorun` you can call `run` directly on the element
+reference. That's the handle you get back from running something like
+`querySelector('runno-wasi')`.
 
 ## Headless
 
@@ -184,3 +186,9 @@ projects, I'd love to hear from you!
 I'm heading over to Seattle from Australia to be at WASMCon2023, if you're
 planning on attending and would like to chat, shoot me an email or find me
 on Mastodon. The links are in the footer.
+
+## Update (28th August, 2023)
+
+I've had to update this post to switch from `autorun` to `controls` for each of
+the examples, because it was costing me too much in bandwidth. It's still a fun
+demo hopefully!
