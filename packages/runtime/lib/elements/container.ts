@@ -3,20 +3,17 @@ import xtermcss from "xterm/css/xterm.css?inline";
 import { Terminal } from "xterm";
 import { WebLinksAddon } from "xterm-addon-web-links";
 import { FitAddon } from "xterm-addon-fit";
-import { WASIFS, WASIWorkerHost, WASIWorkerHostKilledError } from "@runno/wasi";
-import { fetchWASIFS, makeRunnoError } from "../helpers";
-import { FileElement } from "./file";
+import { WASIWorkerHost, WASIWorkerHostKilledError } from "@runno/wasi";
+import { makeRunnoError } from "../helpers";
 import { ControlsElement } from "./controls";
+import { extractOCIFile } from "../oci";
 
 const ATTRIBUTE_MAP = {
   src: "src",
-  name: "name",
-  args: "args",
   "disable-echo": "disableEcho",
   "disable-tty": "disableTTY",
   controls: "controls",
   autorun: "autorun",
-  "fs-url": "fsURL",
 } as const;
 
 const BOOLEAN_ATTRIBUTES = [
@@ -32,17 +29,12 @@ function isBooleanAttribute(key: string): key is BooleanAttribute {
   return BOOLEAN_ATTRIBUTES.includes(key);
 }
 
-export class WASIElement extends HTMLElement {
+export class ContainerElement extends HTMLElement {
   static get observedAttributes() {
     return Object.keys(ATTRIBUTE_MAP);
   }
 
   src: string = "";
-  name: string = "program";
-  args: string[] = [];
-  env: Record<string, string> = {};
-  fs: WASIFS = {};
-  fsURL: string = "";
 
   // Boolean controls
   disableEcho: boolean = false;
@@ -172,31 +164,21 @@ export class WASIElement extends HTMLElement {
     this.terminal.reset();
     this.terminal.focus();
 
-    let fs: WASIFS = this.fs;
-
-    if (this.fsURL) {
-      const baseFS = await fetchWASIFS(this.fsURL);
-      fs = { ...baseFS, ...fs };
-    }
-
-    const fileElements = Array.from(
-      this.querySelectorAll<FileElement>("runno-file")
-    );
-    const files = await Promise.all(fileElements.map((f) => f.getFile()));
-    for (const file of files) {
-      fs[file.path] = file;
-    }
+    const ociContextBuffer = await (await fetch(this.src)).arrayBuffer();
+    const ociContext = await extractOCIFile(new Uint8Array(ociContextBuffer));
+    const entrypoint = ociContext.entrypoint;
+    const entrypointFile = ociContext.fs[ociContext.entrypoint];
+    const entryBlob = new Blob([entrypointFile.content]);
+    const entryURL = URL.createObjectURL(entryBlob);
 
     try {
       let stdout = "";
       let stderr = "";
-
-      // TODO: this should also do window.location.origin + window.location.pathname trimmed to the last /
-      const url = new URL(this.src, window.location.origin);
+      const url = new URL(entryURL);
       this.workerHost = new WASIWorkerHost(url.toString(), {
-        args: [this.name, ...this.args],
-        env: this.env,
-        fs,
+        args: [entrypoint, ...ociContext.args],
+        env: ociContext.env,
+        fs: ociContext.fs,
         isTTY: true,
         stdout: (out) => {
           stdout += out;
@@ -271,11 +253,6 @@ export class WASIElement extends HTMLElement {
     _: string,
     newValue: string
   ) {
-    if (name === "args") {
-      this.args = newValue.trim() ? newValue.trim().split(" ") : [];
-      return;
-    }
-
     if (name === "autorun" && !this.hasRun && this.isConnected) {
       this.autorun = true;
       this.run();
@@ -353,4 +330,4 @@ export class WASIElement extends HTMLElement {
   }
 }
 
-customElements.define("runno-wasi", WASIElement);
+customElements.define("runno-container", ContainerElement);

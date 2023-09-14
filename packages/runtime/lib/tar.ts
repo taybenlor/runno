@@ -1,4 +1,4 @@
-import type { WASIFS } from "@runno/wasi";
+import type { BinaryWASIFS } from "@runno/wasi";
 import { Tarball } from "@obsidize/tar-browserify";
 
 // @ts-ignore - No type definitions
@@ -12,7 +12,9 @@ import { inflate } from "pako/dist/pako_inflate.min.js";
  * @param binary .tar.gz file
  * @returns
  */
-export const extractTarGz = async (binary: Uint8Array): Promise<WASIFS> => {
+export const extractTarGz = async (
+  binary: Uint8Array
+): Promise<BinaryWASIFS> => {
   // If we receive a tar.gz, we first need to uncompress it.
   let inflatedBinary: Uint8Array;
   try {
@@ -23,7 +25,7 @@ export const extractTarGz = async (binary: Uint8Array): Promise<WASIFS> => {
 
   const entries = Tarball.extract(inflatedBinary);
 
-  const fs: WASIFS = {};
+  const fs: BinaryWASIFS = {};
   for (const entry of entries) {
     if (!entry.isFile()) {
       continue;
