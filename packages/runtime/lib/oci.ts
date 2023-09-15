@@ -13,10 +13,11 @@ export async function extractOCIFile(binary: Uint8Array): Promise<OCIContext> {
 
   // TODO: throw if the file doesn't exist or whatever
   const manifestFile = contents["/manifest.json"];
-  const manifest = fileToJSON(manifestFile);
+  const manifest = fileToJSON(manifestFile)[0];
 
   // TODO: throw if the file doesn't exist or whatever
   const configPath = manifest["Config"];
+
   const config = fileToJSON(contents[`/${configPath}`]);
   const entrypoint: string[] = config["config"]["Entrypoint"];
   const env = Object.fromEntries(

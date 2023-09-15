@@ -168,7 +168,9 @@ export class ContainerElement extends HTMLElement {
     const ociContext = await extractOCIFile(new Uint8Array(ociContextBuffer));
     const entrypoint = ociContext.entrypoint;
     const entrypointFile = ociContext.fs[ociContext.entrypoint];
-    const entryBlob = new Blob([entrypointFile.content]);
+    const entryBlob = new Blob([entrypointFile.content], {
+      type: "application/wasm",
+    });
     const entryURL = URL.createObjectURL(entryBlob);
 
     try {
