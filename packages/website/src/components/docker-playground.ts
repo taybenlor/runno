@@ -1,19 +1,12 @@
 import { html, css, unsafeCSS } from "lit";
-import { customElement, query, state } from "lit/decorators.js";
+import { customElement, state } from "lit/decorators.js";
 
 import xtermcss from "xterm/css/xterm.css?inline";
-import { Terminal } from "xterm";
-import { WebLinksAddon } from "xterm-addon-web-links";
-import { FitAddon } from "xterm-addon-fit";
-
-import { WASIFS, WASIWorkerHost } from "@runno/wasi";
 
 import { TailwindElement } from "../lib/tailwind";
-import { extractTarGz } from "../demos/tar";
-import { WASIExample } from "../demos/wasi-examples";
 
 @customElement("website-docker-playground")
-export class WebsitePlayground extends TailwindElement {
+export class WebsiteDockerPlayground extends TailwindElement {
   static styles = [
     TailwindElement.styles,
     css`
@@ -93,6 +86,6 @@ export class WebsitePlayground extends TailwindElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "website-playground": WebsitePlayground;
+    "website-docker-playground": WebsiteDockerPlayground;
   }
 }
