@@ -6,10 +6,20 @@ import { TailwindElement } from "../lib/tailwind";
 import wasiArticleMarkdown from "./articles/wasi.md?raw";
 import ffmpegArticleMarkdown from "./articles/ffmpeg.md?raw";
 import wasiWebComponentArticleMarkdown from "./articles/wasi-web-component.md?raw";
+import experimentDockerMarkdown from "./articles/experiment-docker.md?raw";
 
 import "../components/article";
+import "../components/docker-playground";
 
 const articles = [
+  {
+    slug: "experiment-docker",
+    title: "Experimental Docker WASI Images",
+    markdown: experimentDockerMarkdown,
+    published: new Date("2023-09-10"),
+    draft: true,
+    author: "Ben Taylor",
+  },
   {
     slug: "wasi-web-component",
     title: "Running WASI binaries from your HTML using Web Components",

@@ -7,4 +7,6 @@ import "./pages/articles";
 
 import "./components/route";
 
+import "./lib/demos";
+
 import "@runno/runtime";
