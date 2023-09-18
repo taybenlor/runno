@@ -4,6 +4,7 @@
   "author": "Ben Taylor <runno@taybenlor.com>",
   "description": "DEPRECATED iframe host for @runno",
   "website": "https://runno.dev",
+  "private": true,
   "repository": {
     "type": "git",
     "url": "git://github.com/taybenlor/runno.git"

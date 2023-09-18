@@ -1,5 +1,5 @@
 {
-  "private": "true",
+  "private": true,
   "name": "@runno/client",
   "author": "Ben Taylor <runno@taybenlor.com>",
   "description": "DEPRECATED frame client for @runno",

@@ -4,6 +4,10 @@ export type WASIFS = {
   [path: WASIPath]: WASIFile;
 };
 
+export type BinaryWASIFS = {
+  [path: WASIPath]: BinaryWASIFile;
+};
+
 export type WASITimestamps = {
   access: Date;
   modification: Date;
@@ -23,6 +27,13 @@ export type WASIFile = {
       content: Uint8Array;
     }
 );
+
+export type BinaryWASIFile = {
+  path: WASIPath;
+  timestamps: WASITimestamps;
+  mode: "binary";
+  content: Uint8Array;
+};
 
 export type WASIExecutionResult = {
   exitCode: number;
