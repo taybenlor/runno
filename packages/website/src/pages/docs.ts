@@ -83,7 +83,7 @@ export class PageDocs extends TailwindElement {
                 <a href="/docs/runtime/">@runno/runtime</a>
               </li>
               <li class="list-none">
-                <a href="/docs/runtime/">@runno/wasi</a>
+                <a href="/docs/wasi/">@runno/wasi</a>
               </li>
             </ul>
             <h1 id="know-runno">Quickstart</h1>
