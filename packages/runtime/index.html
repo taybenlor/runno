@@ -186,6 +186,22 @@
           </runno-file>
           <runno-file path="/test.txt" url="/test.txt"></runno-file>
         </runno-wasi>
+
+        <h2>Issue #263</h2>
+        <p>
+          <a href="https://github.com/taybenlor/runno/issues/263">Issue 263</a>
+        </p>
+        <runno-wasi
+          src="./cat.wasi.wasm"
+          args="/foo.txt /bar.txt"
+          autorun
+          controls
+        >
+          <runno-file path="/foo.txt"> Hello, World! </runno-file>
+          <runno-file path="/bar.txt">
+            Lets concatenate these files.
+          </runno-file>
+        </runno-wasi>
       </article>
 
       <article>
