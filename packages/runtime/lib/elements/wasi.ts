@@ -252,9 +252,10 @@ export class WASIElement extends HTMLElement {
     this.addEventListener("runno-run", this.onRunEvent);
     this.addEventListener("runno-stop", this.onStopEvent);
 
-    if (this.autorun && !this.hasRun && this.isConnected) {
-      this.autorun = true;
-      this.run();
+    if (this.autorun) {
+      // Schedule for next frame, after DOM is fully mounted
+      // Important for nested files
+      setTimeout(this.onAutorun);
     }
   }
 
@@ -276,9 +277,9 @@ export class WASIElement extends HTMLElement {
       return;
     }
 
-    if (name === "autorun" && !this.hasRun && this.isConnected) {
+    if (name === "autorun") {
       this.autorun = true;
-      this.run();
+      setTimeout(this.onAutorun);
     }
 
     if (isBooleanAttribute(name)) {
@@ -333,6 +334,12 @@ export class WASIElement extends HTMLElement {
 
   onStopEvent = () => {
     this.stop();
+  };
+
+  onAutorun = () => {
+    if (!this.hasRun && this.isConnected) {
+      this.run();
+    }
   };
 
   //
