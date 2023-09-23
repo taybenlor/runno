@@ -2,7 +2,7 @@ import { html, css } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { TailwindElement } from "../lib/tailwind";
 
-import { Runtime, runtimeToSyntax } from "@runno/host";
+import { Runtime, runtimeToSyntax } from "@runno/runtime";
 import { exampleForRuntime } from "../examples";
 
 @customElement("website-form")

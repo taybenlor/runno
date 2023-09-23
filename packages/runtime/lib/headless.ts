@@ -1,4 +1,4 @@
-import { CompleteResult, RunResult, Runtime } from "@runno/host";
+import { CompleteResult, RunResult, Runtime } from "./types";
 import { WASIFS, WASIWorkerHost } from "@runno/wasi";
 import {
   Command,

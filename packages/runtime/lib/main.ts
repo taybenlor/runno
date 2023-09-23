@@ -8,4 +8,10 @@ export { FileElement } from "./elements/file";
 export { ContainerElement } from "./elements/container";
 export { RunnoProvider } from "./provider";
 export { headlessRunCode, headlessRunFS } from "./headless";
-export { stripWhitespace, fetchWASIFS, elementCodeContent } from "./helpers";
+export {
+  stripWhitespace,
+  fetchWASIFS,
+  elementCodeContent,
+  runtimeToSyntax,
+} from "./helpers";
+export * from "./types";

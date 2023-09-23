@@ -1,5 +1,5 @@
 import { EditorState, EditorView } from "@codemirror/basic-setup";
-import { Syntax } from "@runno/host";
+import { Syntax } from "../types";
 import { elementCodeContent } from "../helpers";
 import { syntaxToExtensions } from "./shared/codemirror";
 

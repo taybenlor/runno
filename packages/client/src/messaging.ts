@@ -1,5 +1,5 @@
 import { ChildHandshake, WindowMessenger } from "post-me";
-import { RuntimeMethods } from "@runno/host";
+import { RuntimeMethods } from "@runno/runtime";
 
 const messenger = new WindowMessenger({
   localWindow: window,

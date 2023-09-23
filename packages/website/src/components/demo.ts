@@ -1,7 +1,7 @@
 import { css, html } from "lit";
 import { customElement, state, query } from "lit/decorators.js";
 
-import { Runtime } from "@runno/host";
+import { Runtime } from "@runno/runtime";
 
 import { TailwindElement } from "../lib/tailwind";
 
