@@ -22,7 +22,6 @@
     "serve": "vite preview"
   },
   "devDependencies": {
-    "@runno/host": "^0.5.4",
     "@runno/runtime": "^0.5.5",
     "@runno/wasi": "^0.5.4",
     "@tailwindcss/typography": "^0.5.4",

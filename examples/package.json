@@ -16,7 +16,6 @@
     "build": "tsc && vite build"
   },
   "dependencies": {
-    "@runno/host": "file://../packages/host",
     "@runno/client": "file://../packages/client",
     "@runno/runtime": "file://../packages/runtime",
     "lit": "^2.0.2"
