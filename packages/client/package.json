@@ -33,7 +33,6 @@
     "vite": "^4.4.9"
   },
   "dependencies": {
-    "@runno/host": "^0.5.4",
     "@runno/runtime": "^0.5.5",
     "normalize.css": "^8.0.1",
     "post-me": "^0.4.5",
