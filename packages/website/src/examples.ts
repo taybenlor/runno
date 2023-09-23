@@ -1,4 +1,4 @@
-import { Runtime } from "@runno/host";
+import { Runtime } from "@runno/runtime";
 import { assertUnreachable } from "./helpers";
 
 const c = `

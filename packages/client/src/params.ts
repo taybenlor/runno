@@ -1,6 +1,6 @@
 import { decode } from "url-safe-base64";
 
-import { Runtime, RuntimeMethods, runtimeToSyntax } from "@runno/host";
+import { Runtime, RuntimeMethods, runtimeToSyntax } from "@runno/runtime";
 
 function isTruthy(param: string | null | undefined) {
   if (param === null || param === undefined) {

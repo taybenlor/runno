@@ -1,4 +1,4 @@
-import { CompleteResult, RuntimeMethods } from "@runno/host";
+import { CompleteResult, RuntimeMethods } from "@runno/runtime";
 import { RunElement } from "@runno/runtime";
 import { html, css, LitElement, svg } from "lit";
 import { customElement, property, state } from "lit/decorators.js";

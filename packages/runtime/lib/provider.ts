@@ -1,16 +1,11 @@
 import { EditorElement } from "./elements/editor";
 import { TerminalElement } from "./elements/terminal";
-import {
-  RunResult,
-  WASIFS,
-  Runtime,
-  Syntax,
-  RuntimeMethods,
-} from "@runno/host";
+import { RunResult, Runtime, Syntax, RuntimeMethods } from "./types";
 import { ControlsElement } from "./elements/controls";
 import { commandsForRuntime, getBinaryPathFromCommand } from "./commands";
 import { headlessPrepareFS, headlessRunCode, headlessRunFS } from "./headless";
 import { fetchWASIFS, makeRunnoError } from "./helpers";
+import { WASIFS } from "@runno/wasi";
 
 export class RunnoProvider implements RuntimeMethods {
   terminal: TerminalElement;

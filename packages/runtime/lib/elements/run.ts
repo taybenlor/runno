@@ -3,19 +3,14 @@ import { customElement, property, state } from "lit/decorators.js";
 import { createRef, Ref, ref } from "lit/directives/ref.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 
-import {
-  Runtime,
-  RuntimeMethods,
-  Syntax,
-  RunResult,
-  WASIFS,
-} from "@runno/host";
+import { Runtime, RuntimeMethods, Syntax, RunResult } from "../types";
 import { EditorElement } from "./editor";
 import { ControlsElement } from "./controls";
 import { TerminalElement } from "./terminal";
 import { RunnoProvider } from "../provider";
 import { elementCodeContent, fetchWASIFS } from "../helpers";
 import { FileElement } from "./file";
+import { WASIFS } from "@runno/wasi";
 
 @customElement("runno-run")
 export class RunElement extends LitElement implements RuntimeMethods {

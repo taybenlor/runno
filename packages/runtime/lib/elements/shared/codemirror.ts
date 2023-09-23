@@ -7,7 +7,7 @@ import { php } from "@codemirror/lang-php";
 import { html } from "@codemirror/lang-html";
 import { HighlightStyle, tags as t } from "@codemirror/highlight";
 import { EditorView } from "@codemirror/basic-setup";
-import { Syntax } from "@runno/host";
+import { Syntax } from "../../types";
 
 // This is just the one-dark theme colors
 // adjusted for a light background

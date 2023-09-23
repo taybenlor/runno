@@ -1,4 +1,4 @@
-import type { RunResult } from "@runno/host";
+import type { RunResult } from "../types";
 import xtermcss from "xterm/css/xterm.css?inline";
 import { Terminal } from "xterm";
 import { WebLinksAddon } from "xterm-addon-web-links";

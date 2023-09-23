@@ -1,4 +1,5 @@
 import { extractTarGz } from "./tar";
+import { Syntax } from "./types";
 
 export function stripWhitespace(text: string): string {
   const lines = text.split(/\n/);
@@ -105,4 +106,25 @@ export function extractErrorMessage(e: unknown): string {
 
 export function assertUnreachable(_: never, message?: string): never {
   throw new Error(message ?? "Unexpectedly reached unreachable code.");
+}
+
+export function runtimeToSyntax(runtime: string | undefined | null): Syntax {
+  switch (runtime) {
+    case "python":
+      return "python";
+    case "quickjs":
+      return "js";
+    case "sqlite":
+      return "sql";
+    case "clang":
+      return "cpp";
+    case "clangpp":
+      return "cpp";
+    case "ruby":
+      return "ruby";
+    case "php-cgi":
+      return "php";
+    default:
+      return undefined;
+  }
 }

@@ -1,4 +1,4 @@
-import type { Runtime } from "@runno/host";
+import type { Runtime } from "./types";
 import { WASIFS } from "@runno/wasi";
 import { assertUnreachable } from "./helpers";
 

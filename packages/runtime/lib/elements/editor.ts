@@ -1,7 +1,7 @@
 import { EditorState, EditorView, basicSetup } from "@codemirror/basic-setup";
 
-import { Runtime, Syntax, runtimeToSyntax } from "@runno/host";
-import { elementCodeContent } from "../helpers";
+import { Runtime, Syntax } from "../types";
+import { elementCodeContent, runtimeToSyntax } from "../helpers";
 import { highlightStyle, syntaxToExtensions, theme } from "./shared/codemirror";
 
 const baseExtensions = [basicSetup, theme, highlightStyle];

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { RunResult } from "@runno/host";
+import { RunResult } from "../lib/types";
 
 // TODO: These are dependent on `@runno/website` being run on localhost:4321
 // See: https://github.com/taybenlor/runno/issues/258
