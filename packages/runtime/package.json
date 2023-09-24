@@ -19,7 +19,7 @@
     "type": "git",
     "url": "git://github.com/taybenlor/runno.git"
   },
-  "version": "0.5.5",
+  "version": "0.5.6",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
