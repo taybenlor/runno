@@ -357,7 +357,7 @@ export class WASI implements SnapshotPreview1 {
    */
   random_get(buffer_ptr: number, buffer_len: number): number {
     const buffer = new Uint8Array(this.memory.buffer, buffer_ptr, buffer_len);
-    crypto.getRandomValues(buffer);
+    globalThis.crypto.getRandomValues(buffer);
     return Result.SUCCESS;
   }
 
