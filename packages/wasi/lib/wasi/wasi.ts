@@ -65,6 +65,7 @@ export class WASI implements SnapshotPreview1 {
   ) {
     const wasi = new WASI(context);
     const wasm = await WebAssembly.instantiateStreaming(wasmSource, {
+      env: context.env,
       wasi_snapshot_preview1: wasi.getImports("preview1", context.debug),
       wasi_unstable: wasi.getImports("unstable", context.debug),
     });
@@ -80,7 +81,9 @@ export class WASI implements SnapshotPreview1 {
   init(wasm: WebAssembly.WebAssemblyInstantiatedSource) {
     this.instance = wasm.instance;
     this.module = wasm.module;
-    this.memory = this.instance.exports.memory as WebAssembly.Memory;
+    this.memory =
+      this.context.env.memory ??
+      (this.instance.exports.memory as WebAssembly.Memory);
 
     this.initialized = true;
   }

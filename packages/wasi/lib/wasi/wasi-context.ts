@@ -4,7 +4,8 @@ import { DebugFn } from "./wasi";
 export type WASIContextOptions = {
   fs: WASIFS;
   args: string[];
-  env: Record<string, string>;
+  env: Record<string, any>;
+  memory: WebAssembly.Memory;
   stdin: (maxByteLength: number) => string | null;
   stdout: (out: string) => void;
   stderr: (err: string) => void;
@@ -31,7 +32,7 @@ export type WASIContextOptions = {
 export class WASIContext {
   fs: WASIFS;
   args: string[]; // Program args (like from a terminal program)
-  env: Record<string, string>; // Environment (like a .env file)
+  env: Record<string, any>; // Environment (like a .env file)
   stdin: WASIContextOptions["stdin"];
   stdout: WASIContextOptions["stdout"];
   stderr: WASIContextOptions["stderr"];
