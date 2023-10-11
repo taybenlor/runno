@@ -17,7 +17,7 @@ import {
 } from "./snapshot-preview1";
 import { Whence as UnstableWhence } from "./unstable";
 import { WASIExecutionResult } from "../types";
-import { WASIContext } from "./wasi-context";
+import { WASIContext, WASIContextOptions } from "./wasi-context";
 import { DriveStat, WASIDrive } from "./wasi-drive";
 
 /** Injects a function between implementation and return for debugging */
@@ -57,43 +57,39 @@ export class WASI implements SnapshotPreview1 {
   context: WASIContext;
   drive: WASIDrive;
 
-  initialized: boolean = false;
-
   static async start(
     wasmSource: Response | PromiseLike<Response>,
-    context: WASIContext
+    context: Partial<WASIContextOptions> = {}
   ) {
     const wasi = new WASI(context);
-    const wasm = await WebAssembly.instantiateStreaming(wasmSource, {
-      wasi_snapshot_preview1: wasi.getImports("preview1", context.debug),
-      wasi_unstable: wasi.getImports("unstable", context.debug),
-    });
-    wasi.init(wasm);
-    return wasi.start();
+    const wasm = await WebAssembly.instantiateStreaming(
+      wasmSource,
+      wasi.getImportObject()
+    );
+    return wasi.start(wasm);
   }
 
-  constructor(context: WASIContext) {
-    this.context = context;
-    this.drive = new WASIDrive(context.fs);
+  constructor(context: Partial<WASIContextOptions>) {
+    this.context = new WASIContext(context);
+    this.drive = new WASIDrive(this.context.fs);
   }
 
-  init(wasm: WebAssembly.WebAssemblyInstantiatedSource) {
+  getImportObject() {
+    return {
+      wasi_snapshot_preview1: this.getImports("preview1", this.context.debug),
+      wasi_unstable: this.getImports("unstable", this.context.debug),
+    };
+  }
+
+  // Internal initialization
+  private init(wasm: WebAssembly.WebAssemblyInstantiatedSource) {
     this.instance = wasm.instance;
     this.module = wasm.module;
     this.memory = this.instance.exports.memory as WebAssembly.Memory;
-
-    this.initialized = true;
   }
 
-  start(): WASIExecutionResult {
-    if (!this.initialized) {
-      throw new Error("WASI must be initialized with init(wasm) first");
-    }
-
-    // TODO: Investigate Google's Asyncify
-    // https://github.com/GoogleChromeLabs/asyncify
-    // which allows for async imports/exports so we aren't
-    // dependent on blocking IO
+  start(wasm: WebAssembly.WebAssemblyInstantiatedSource): WASIExecutionResult {
+    this.init(wasm);
 
     const entrypoint = this.instance.exports._start as () => void;
     try {
