@@ -12,19 +12,55 @@ interesting system level events, or hooks into the filesystem.
 
 ## Quickstart
 
-There are two parts to running a WASI binary with Runno. The `WASI` instance
-which does the actual running and the `WASIContext` which sets up an environment
-to run the binary in.
+The quickest way to get started with Runno is by using the `WASI.start` class
+method. It will set up everything you need and run the Wasm binary directly.
 
 Be aware that this will run on the main thread, not inside a worker. So you will
 interrupt any interactive use of the browser until it completes.
 
 ```js
-import { WASI, WASIContext } from "@runno/wasi";
+import { WASI } from "@runno/wasi";
 
 //...
 
-const context = new WASIContext({
+const result = WASI.start(fetch("/binary.wasm"), {
+  args: ["binary-name", "--do-something", "some-file.txt"],
+  env: { SOME_KEY: "some value" },
+  stdout: (out) => console.log("stdout", out),
+  stderr: (err) => console.error("stderr", err),
+  stdin: () => prompt("stdin:"),
+  fs: {
+    "/some-file.txt": {
+      path: "/some-file.txt",
+      timestamps: {
+        access: new Date(),
+        change: new Date(),
+        modification: new Date(),
+      },
+      mode: "string",
+      content: "Some content for the file.",
+    },
+  },
+});
+```
+
+You can see a more complete example in `src/main.ts`.
+
+_Note: The `args` should start with the name of the binary. Like when you run
+a terminal command, you write `cat somefile` the name of the binary is `cat`._
+
+## Custom Instantiation
+
+There are two parts to running a WASI binary with Runno. The `WASI` instance
+which represents the emulated system, and the WebAssembly runtime provided by
+the browser. If you'd like to customise the way the WebAssembly runtime is
+instantiated, you can split these parts up.
+
+```js
+import { WASI } from "@runno/wasi";
+
+// First set up the WASI emulated system
+const wasi = new WASI({
   args: ["binary-name", "--do-something", "some-file.txt"],
   env: { SOME_KEY: "some value" },
   stdout: (out) => console.log("stdout", out),
@@ -44,13 +80,20 @@ const context = new WASIContext({
   },
 });
 
-const result = WASI.start(fetch("/binary.wasm"), context);
+// Then instantiate your binary with the imports provided by the wasi object
+const wasm = await WebAssembly.instantiateStreaming(
+  fetch("/binary.wasm"),
+  {
+    ...wasi.getImportObject(),
+
+    // Your own custom imports (e.g. memory)
+    memory: new WebAssembly.Memory({ initial: 32, maximum: 10000 });
+  }
+);
+
+// Finally start the WASI binary
+const result = wasi.start(wasm);
 ```
-
-You can see a more complete example in `src/main.ts`.
-
-_Note: The `args` should start with the name of the binary. Like when you run
-a terminal command, you write `cat somefile` the name of the binary is `cat`._
 
 ## Using the WASIWorker
 

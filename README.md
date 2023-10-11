@@ -99,19 +99,18 @@ Visit [`@runno/runtime`](https://github.com/taybenlor/runno/tree/main/packages/r
 
 ## Quickstart
 
-There are two parts to running a WASI binary with Runno. The `WASI` instance
-which does the actual running and the `WASIContext` which sets up an environment
-to run the binary in.
+The quickest way to get started with Runno is by using the `WASI.start` class
+method. It will set up everything you need and run the Wasm binary directly.
 
 Be aware that this will run on the main thread, not inside a worker. So you will
 interrupt any interactive use of the browser until it completes.
 
 ```js
-import { WASI, WASIContext } from "@runno/wasi";
+import { WASI } from "@runno/wasi";
 
 //...
 
-const context = new WASIContext({
+const result = WASI.start(fetch("/binary.wasm"), {
   args: ["binary-name", "--do-something", "some-file.txt"],
   env: { SOME_KEY: "some value" },
   stdout: (out) => console.log("stdout", out),
@@ -130,8 +129,6 @@ const context = new WASIContext({
     },
   },
 });
-
-const result = WASI.start(fetch("/binary.wasm"), context);
 ```
 
 You can see a more complete example in `src/main.ts`.
