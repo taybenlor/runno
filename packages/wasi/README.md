@@ -80,19 +80,22 @@ const wasi = new WASI({
   },
 });
 
+const myMemory = new WebAssembly.Memory({ initial: 32, maximum: 10000 });
+
 // Then instantiate your binary with the imports provided by the wasi object
-const wasm = await WebAssembly.instantiateStreaming(
-  fetch("/binary.wasm"),
-  {
-    ...wasi.getImportObject(),
+const wasm = await WebAssembly.instantiateStreaming(fetch("/binary.wasm"), {
+  ...wasi.getImportObject(),
 
-    // Your own custom imports (e.g. memory)
-    {env: {memory: new WebAssembly.Memory({ initial: 32, maximum: 10000 })}}
-  }
-);
+  // Your own custom imports (e.g. custom memory)
+  env: {
+    memory: myMemory,
+  },
+});
 
-// Finally start the WASI binary
-const result = wasi.start(wasm);
+// Finally start the WASI binary (with the custom memory)
+const result = wasi.start(wasm, {
+  memory: myMemory,
+});
 ```
 
 ## Using the WASIWorker
