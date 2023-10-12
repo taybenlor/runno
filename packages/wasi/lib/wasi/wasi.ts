@@ -81,15 +81,16 @@ export class WASI implements SnapshotPreview1 {
     };
   }
 
-  // Internal initialization
-  private init(wasm: WebAssembly.WebAssemblyInstantiatedSource) {
+  start(
+    wasm: WebAssembly.WebAssemblyInstantiatedSource,
+    options: {
+      memory?: WebAssembly.Memory;
+    } = {}
+  ): WASIExecutionResult {
     this.instance = wasm.instance;
     this.module = wasm.module;
-    this.memory = this.instance.exports.memory as WebAssembly.Memory;
-  }
-
-  start(wasm: WebAssembly.WebAssemblyInstantiatedSource): WASIExecutionResult {
-    this.init(wasm);
+    this.memory =
+      options.memory ?? (this.instance.exports.memory as WebAssembly.Memory);
 
     const entrypoint = this.instance.exports._start as () => void;
     try {
