@@ -87,7 +87,7 @@ const wasm = await WebAssembly.instantiateStreaming(
     ...wasi.getImportObject(),
 
     // Your own custom imports (e.g. memory)
-    memory: new WebAssembly.Memory({ initial: 32, maximum: 10000 });
+    {env: {memory: new WebAssembly.Memory({ initial: 32, maximum: 10000 })}}
   }
 );
 
