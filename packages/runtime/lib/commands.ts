@@ -38,7 +38,6 @@ export function commandsForRuntime(
           binaryName: "python",
           args: [entryPath],
           env: {},
-          baseFSURL: `${baseURL}/python-3.11.3.tar.gz`,
         },
       };
 
