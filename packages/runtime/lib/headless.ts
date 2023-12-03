@@ -77,6 +77,7 @@ export async function headlessRunFS(
 
   if (stdin) {
     workerHost.pushStdin(stdin);
+    workerHost.pushEOF();
   }
 
   const result = await workerHost.start();
