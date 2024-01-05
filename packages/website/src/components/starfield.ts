@@ -5,7 +5,8 @@ function seenPosition(
   const [x1, y1] = position;
   for (const [x2, y2] of seen) {
     const distance = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
-    if (distance < 7) {
+    const distanceInPx = (distance / 100) * window.innerWidth;
+    if (distanceInPx < 20) {
       return true;
     }
   }
@@ -56,7 +57,11 @@ export class StarfieldElement extends HTMLElement {
         Math.random() * 100,
         Math.random() * 100,
       ];
-      while (avoidPosition(position) || seenPosition(position, seen)) {
+      let giveUpCount = 10;
+      while (
+        giveUpCount-- > 0 &&
+        (avoidPosition(position) || seenPosition(position, seen))
+      ) {
         position = [Math.random() * 100, Math.random() * 100];
       }
       clone.style.left = `${position[0]}%`;
