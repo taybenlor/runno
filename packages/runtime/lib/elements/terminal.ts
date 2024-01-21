@@ -120,7 +120,14 @@ export class TerminalElement extends HTMLElement {
         return { resultType: "terminated" };
       }
       console.error(e);
-      this.terminal.write(`\nRunno crashed: ${e}`);
+      if (
+        e != null &&
+        (e instanceof Error || (typeof e === "object" && "message" in e))
+      ) {
+        this.terminal.write(
+          `\n[Crashed] ${(e as any).type ?? "Error"}: ${e.message}\n`
+        );
+      }
       return { resultType: "crash", error: makeRunnoError(e) };
     } finally {
       this.workerHost = undefined;

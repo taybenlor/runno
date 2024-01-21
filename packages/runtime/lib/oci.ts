@@ -11,11 +11,9 @@ type OCIContext = {
 export async function extractOCIFile(binary: Uint8Array): Promise<OCIContext> {
   const contents = await extractTarGz(binary);
 
-  // TODO: throw if the file doesn't exist or whatever
   const manifestFile = contents["/manifest.json"];
   const manifest = fileToJSON(manifestFile)[0];
 
-  // TODO: throw if the file doesn't exist or whatever
   const configPath = manifest["Config"];
 
   const config = fileToJSON(contents[`/${configPath}`]);
@@ -33,9 +31,34 @@ export async function extractOCIFile(binary: Uint8Array): Promise<OCIContext> {
     })
   );
 
-  // TODO: Implement the OCI spec for layering
+  // OCI spec for layering includes whiteout / deleting files
   // https://github.com/opencontainers/image-spec/blob/main/layer.md
-  const fs = layers.reduce((prev, current) => ({ ...prev, ...current }), {});
+  const fs = layers.reduce((prev, current) => {
+    // Whiteout files must be applied first
+
+    const entries = Object.entries(current);
+    for (const [path] of entries) {
+      if (path.endsWith(".wh..wh..opq")) {
+        // Opaque whiteout, delete all siblings
+        const prefix = path.replace(".wh..wh..opq", "");
+        for (const [existingPath] of Object.entries(prev)) {
+          if (existingPath.startsWith(prefix)) {
+            delete prev[existingPath];
+          }
+        }
+      } else if (path.includes(".wh.")) {
+        // Regular whiteout - just delete this one file
+        const filename = path.replace(".wh.", "");
+        delete prev[filename];
+      }
+    }
+
+    const currentWithoutWhiteouts = Object.fromEntries(
+      entries.filter(([p]) => !p.includes(".wh."))
+    );
+
+    return { ...prev, ...currentWithoutWhiteouts };
+  }, {});
 
   return {
     fs,
