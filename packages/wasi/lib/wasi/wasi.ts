@@ -39,6 +39,9 @@ function popDebugStrings(): { [key: string]: string }[] {
   return current;
 }
 
+export class InvalidInstanceError extends Error {}
+export class InitializationError extends Error {}
+
 /**
  * Implementation of a WASI runner for the browser.
  * Explicitly designed for the browser context, where system resources
@@ -56,7 +59,12 @@ export class WASI implements SnapshotPreview1 {
   memory!: WebAssembly.Memory;
   context: WASIContext;
   drive: WASIDrive;
+  hasBeenInitialized: boolean = false;
 
+  /**
+   * Start a WASI command.
+   *
+   */
   static async start(
     wasmSource: Response | PromiseLike<Response>,
     context: Partial<WASIContextOptions> = {}
@@ -67,6 +75,24 @@ export class WASI implements SnapshotPreview1 {
       wasi.getImportObject()
     );
     return wasi.start(wasm);
+  }
+
+  /**
+   * Initialize a WASI reactor.
+   *
+   * Returns the WebAssembly instance exports.
+   */
+  static async initialize(
+    wasmSource: Response | PromiseLike<Response>,
+    context: Partial<WASIContextOptions> = {}
+  ) {
+    const wasi = new WASI(context);
+    const wasm = await WebAssembly.instantiateStreaming(
+      wasmSource,
+      wasi.getImportObject()
+    );
+    wasi.initialize(wasm);
+    return wasm.instance.exports;
   }
 
   constructor(context: Partial<WASIContextOptions>) {
@@ -81,16 +107,43 @@ export class WASI implements SnapshotPreview1 {
     };
   }
 
+  /**
+   * Start a WASI command.
+   *
+   * See: https://github.com/WebAssembly/WASI/blob/main/legacy/application-abi.md
+   */
   start(
     wasm: WebAssembly.WebAssemblyInstantiatedSource,
     options: {
       memory?: WebAssembly.Memory;
     } = {}
   ): WASIExecutionResult {
+    if (this.hasBeenInitialized) {
+      throw new InitializationError(
+        "This instance has already been initialized"
+      );
+    }
+
+    this.hasBeenInitialized = true;
     this.instance = wasm.instance;
     this.module = wasm.module;
     this.memory =
       options.memory ?? (this.instance.exports.memory as WebAssembly.Memory);
+
+    // If the export contains `_initialize` it's a reactor which
+    // should be initialized instead
+    if ("_initialize" in this.instance.exports) {
+      throw new InvalidInstanceError(
+        "WebAssembly instance is a reactor and should be started with initialize."
+      );
+    }
+
+    // If the export doesn't contain `_start` we can't start it
+    if (!("_start" in this.instance.exports)) {
+      throw new InvalidInstanceError(
+        "WebAssembly instance doesn't export _start, it may not be WASI or may be a Reactor."
+      );
+    }
 
     const entrypoint = this.instance.exports._start as () => void;
     try {
@@ -117,6 +170,44 @@ export class WASI implements SnapshotPreview1 {
       exitCode: 0,
       fs: this.drive.fs,
     };
+  }
+
+  /**
+   * Initialize a WASI Reactor.
+   *
+   * See: https://github.com/WebAssembly/WASI/blob/main/legacy/application-abi.md
+   */
+  initialize(
+    wasm: WebAssembly.WebAssemblyInstantiatedSource,
+    options: {
+      memory?: WebAssembly.Memory;
+    } = {}
+  ) {
+    if (this.hasBeenInitialized) {
+      throw new InitializationError(
+        "This instance has already been initialized"
+      );
+    }
+
+    this.hasBeenInitialized = true;
+    this.instance = wasm.instance;
+    this.module = wasm.module;
+    this.memory =
+      options.memory ?? (this.instance.exports.memory as WebAssembly.Memory);
+
+    // If the export contains `_start` it's a command which
+    // should be started instead
+    if ("_start" in this.instance.exports) {
+      throw new InvalidInstanceError(
+        "WebAssembly instance is a command and should be started with start."
+      );
+    }
+
+    // Optionally initialize if the initialize export is present
+    if ("_initialize" in this.instance.exports) {
+      const initialize = this.instance.exports._initialize as () => void;
+      initialize();
+    }
   }
 
   getImports(
