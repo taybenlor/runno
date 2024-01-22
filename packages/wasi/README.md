@@ -98,6 +98,16 @@ const result = wasi.start(wasm, {
 });
 ```
 
+If you are working with a Reactor instead of a command, you can instead use:
+
+```js
+const exports = wasi.initialize(wasm, {
+  memory: myMemory,
+});
+```
+
+The returned exports will be the exports from your WebAssembly module.
+
 ## Using the WASIWorker
 
 A worker is provided for using the WASI runner outside of the main thread. It
@@ -161,6 +171,40 @@ Cross-Origin-Embedder-Policy: require-corp
 
 You can test that your page is Cross-Origin Isolated by opening the browser
 console and checking `crossOriginIsolated` (see: [mdn docs](https://developer.mozilla.org/en-US/docs/Web/API/crossOriginIsolated)).
+
+## Initializing a WASI Reactor
+
+Reactors are modules that respond to calls, rather than running as a command.
+
+You can initialize a WASI Reactor with `initialize` instead of `start`:
+
+```js
+import { WASI } from "@runno/wasi";
+
+//...
+
+const exports = WASI.initialize(fetch("/binary.wasm"), {
+  args: ["binary-name", "--do-something", "some-file.txt"],
+  env: { SOME_KEY: "some value" },
+  stdout: (out) => console.log("stdout", out),
+  stderr: (err) => console.error("stderr", err),
+  stdin: () => prompt("stdin:"),
+  fs: {
+    "/some-file.txt": {
+      path: "/some-file.txt",
+      timestamps: {
+        access: new Date(),
+        change: new Date(),
+        modification: new Date(),
+      },
+      mode: "string",
+      content: "Some content for the file.",
+    },
+  },
+});
+```
+
+The `WASI.initialize` call will return the exports from the WebAssembly module.
 
 ## The filesystem
 

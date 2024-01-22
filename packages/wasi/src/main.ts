@@ -7,6 +7,9 @@ import { WASI, WASIContext } from "../lib/main";
 const programSelect = document.getElementById("program")! as HTMLSelectElement;
 const argsInput = document.getElementById("args")! as HTMLInputElement;
 const runButton = document.getElementById("run")! as HTMLButtonElement;
+const runReactorButton = document.getElementById(
+  "run-reactor"
+)! as HTMLButtonElement;
 
 const exitCode = document.getElementById("exit-code")! as HTMLElement;
 const stdoutPre = document.getElementById("stdout")! as HTMLPreElement;
@@ -62,4 +65,17 @@ runButton.addEventListener("click", async () => {
     })
   );
   exitCode.textContent = result.exitCode.toString();
+});
+
+runReactorButton.addEventListener("click", async () => {
+  stdoutPre.textContent = "";
+  stderrPre.textContent = "";
+
+  const url = programSelect.value;
+  const exports = await WASI.initialize(fetch(url));
+
+  // This is very specific to the current reactor
+  // but I just want a simple e2e test. Write something a bit more general
+  // when there are more reactor tests.
+  exitCode.textContent = (exports.return_57 as Function)();
 });
