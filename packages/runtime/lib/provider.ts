@@ -81,7 +81,14 @@ export class RunnoProvider implements RuntimeMethods {
       fs = prepare.fs;
     } catch (e) {
       console.error(e);
-      this.terminal.terminal.write(`\nRunno crashed: ${e}\n`);
+      if (
+        e != null &&
+        (e instanceof Error || (typeof e === "object" && "message" in e))
+      ) {
+        this.terminal.terminal.write(
+          `\n[Crashed] ${(e as any).type ?? "Error"}: ${e.message}\n`
+        );
+      }
 
       return {
         resultType: "crash",
@@ -102,7 +109,14 @@ export class RunnoProvider implements RuntimeMethods {
         fs = { ...fs, ...baseFS };
       } catch (e) {
         console.error(e);
-        this.terminal.terminal.write(`\nRunno crashed: ${e}\n`);
+        if (
+          e != null &&
+          (e instanceof Error || (typeof e === "object" && "message" in e))
+        ) {
+          this.terminal.terminal.write(
+            `\n[Crashed] ${(e as any).type ?? "Error"}: ${e.message}\n`
+          );
+        }
 
         return {
           resultType: "crash",
