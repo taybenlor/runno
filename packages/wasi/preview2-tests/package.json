@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "name": "preview2-tests",
+  "description": "Tests for preview2",
+  "version": "0.1.0",
+  "scripts": {
+    "build:hello-world": "npx jco componentize hello-world.js --enable-stdout -w wit -n hello-world -o hello-world.wasm",
+    "run:hello-world": "wasmtime --wasm component-model hello-world.wasm"
+  },
+  "devDependencies": {
+    "@bytecodealliance/componentize-js": "^0.6.0",
+    "@bytecodealliance/jco": "^0.14.2"
+  }
+}
