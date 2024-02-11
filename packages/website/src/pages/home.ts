@@ -279,7 +279,7 @@ export class PageHome extends TailwindElement {
                 class="overflow-hidden"
               >
                 name = input("What's your name? ")
-                if "i" in name:
+                if "i" in name or "I" in name:
                   print("You've got an I in your name, how selfish.")
                 else:
                   print("There's no I in your name.")
