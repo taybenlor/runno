@@ -86,3 +86,41 @@ inside it, and the terminal will be its minimum height. If you set
 the element to be a fixed height, they will share the space so
 that the editor gets 60% and the controls and terminal get the
 rest.
+
+## Local Development
+
+Start by starting the `packages/website` server as that is where the langs get served from
+
+```bash
+cd packages/website && npm i && npm run build && npm run dev
+```
+
+## How to attach a debugger in a TS project:
+
+1. cd into the directory that has vite.config.js
+2. Execute `npm run dev`
+3. On the command palette, Run the `Debug: packages/runtime` debugger
+
+## How to attach a debugger to debug a nodejs library in a TS project:
+
+https://maximomussini.com/posts/debugging-javascript-libraries#using-a-local-library-
+
+### Problem: If you simply attach a debugger, and try to step into a library import, it will show the transpiled JS code and not the ts code. If you want to step into the ts library code then do the following:
+
+Please add the following to `tsconfig.json` to both the project and the cloned library locally
+
+1. tsconfig.json: compilerOptions: {
+   "sourceMap": true,
+   "inlineSources": true,
+   }
+
+2. vite.config.js —> build.sourcemap: true
+
+3. Clone the library to de-bugged locally in a sibling folder
+4. cd into the library and execute the following:
+   1. npm link
+   2. npm dev
+5. cd into the project directory that has vite.config.js
+   1. npm link <NAME OF LIBRARY AS DEFINED IN ITS PACKAGE.JSON>
+   2. npm dev
+6. On the command palette, enter `> Debug: Open link` and then enter the `url` or pick the correct debugger config from vscode

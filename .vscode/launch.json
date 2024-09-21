@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "name": "Debug: packages/runtime",
+      "request": "launch",
+      "url": "http://localhost:5174/",
+      "sourceMaps": true
+    }
+  ]
+}

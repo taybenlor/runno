@@ -6,6 +6,7 @@
     "moduleResolution": "Node",
     "strict": true,
     "sourceMap": true,
+    "inlineSources": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "noEmit": true,
