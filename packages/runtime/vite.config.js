@@ -16,6 +16,9 @@ const crossOriginPolicy = {
 };
 
 export default defineConfig({
+  server: {
+    port: 5174,
+  },
   build: {
     copyPublicDir: false, // Public dir contains testing binaries
     lib: {

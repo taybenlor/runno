@@ -2,6 +2,7 @@ import type { WASIContextOptions } from "../wasi/wasi-context";
 import type { WASIExecutionResult } from "../types";
 import type { HostMessage, WorkerMessage } from "./wasi-worker";
 
+// This is a web worker
 import WASIWorker from "./wasi-worker?worker&inline";
 
 function sendMessage(worker: Worker, message: WorkerMessage) {

@@ -4,6 +4,9 @@ import { resolve } from "path";
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  server: {
+    port: 5173,
+  },
   build: {
     copyPublicDir: false, // Public dir contains testing binaries
     lib: {
