@@ -1,0 +1,39 @@
+{
+  "name": "@runno/sandbox",
+  "version": "0.7.0",
+  "description": "A sandbox for running code server-side in JavaScript environments",
+  "keywords": [
+    "sandbox",
+    "python",
+    "ruby",
+    "wasi",
+    "wasm"
+  ],
+  "author": "Ben Taylor <me@taybenlor.com>",
+  "homepage": "https://runno.dev",
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/main.ts",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taybenlor/runno.git"
+  },
+  "scripts": {
+    "test": "node ./__tests__/@runno/sandbox.test.js"
+  },
+  "bugs": {
+    "url": "https://github.com/taybenlor/runno/issues"
+  },
+  "dependencies": {
+    "@runno/wasi": "^0.7.0"
+  }
+}
