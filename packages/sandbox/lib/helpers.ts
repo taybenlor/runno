@@ -1,3 +1,5 @@
+import { extractTarGz } from "./tar.ts";
+
 export function stripWhitespace(text: string): string {
   const lines = text.split(/\n/);
   let commonWhitespace = null;
@@ -34,19 +36,19 @@ export function stripWhitespace(text: string): string {
   return outputText.replace(/^\s*/, "").replace(/\s*$/, "");
 }
 
-// /**
-//  * Fetches and deflates a .tar.gz file representing a base filesystem.
-//  * This is for languages that require specific files to already exist.
-//  *
-//  * Prefers .tar.gz files in ustar format.
-//  *
-//  * @param fsURL The URL of the filesystem to fetch
-//  */
-// export async function fetchWASIFS(fsURL: string) {
-//   const response = await fetch(fsURL);
-//   const buffer = await response.arrayBuffer();
-//   return await extractTarGz(new Uint8Array(buffer));
-// }
+/**
+ * Fetches and deflates a .tar.gz file representing a base filesystem.
+ * This is for languages that require specific files to already exist.
+ *
+ * Prefers .tar.gz files in ustar format.
+ *
+ * @param fsURL The URL of the filesystem to fetch
+ */
+export async function fetchWASIFS(fsURL: string) {
+  const response = await fetch(fsURL);
+  const buffer = await response.arrayBuffer();
+  return await extractTarGz(new Uint8Array(buffer));
+}
 
 export function isErrorObject(
   e: unknown

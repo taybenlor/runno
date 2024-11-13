@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "@runno/wasi": "npm:@runno/wasi@^0.7.0",
+    "@std/tar": "jsr:@std/tar@^0.1.3"
+  }
+}
