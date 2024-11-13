@@ -1,6 +1,9 @@
 {
   "version": "4",
   "specifiers": {
+    "jsr:@std/streams@^1.0.7": "1.0.8",
+    "jsr:@std/tar@0.1.3": "0.1.3",
+    "jsr:@std/tar@~0.1.3": "0.1.3",
     "npm:@codemirror/basic-setup@0.19": "0.19.3",
     "npm:@codemirror/gutter@0.19": "0.19.9",
     "npm:@codemirror/highlight@0.19": "0.19.8",
@@ -15,7 +18,7 @@
     "npm:@codemirror/view@~0.19.31": "0.19.48",
     "npm:@obsidize/tar-browserify@3": "3.0.2",
     "npm:@playwright/test@^1.37.1": "1.48.2",
-    "npm:@rollup/plugin-typescript@^8.2.5": "8.5.0_rollup@2.79.2_typescript@5.6.3",
+    "npm:@rollup/plugin-typescript@^8.2.5": "8.5.0_rollup@2.79.2_typescript@5.1.6",
     "npm:@tailwindcss/typography@~0.5.4": "0.5.15_tailwindcss@3.4.14__postcss@8.4.47",
     "npm:@types/marked@^4.0.7": "4.3.2",
     "npm:@types/url-safe-base64@^1.1.0": "1.1.2",
@@ -25,7 +28,7 @@
     "npm:glob@^10.3.3": "10.4.5",
     "npm:husky@^7.0.4": "7.0.4",
     "npm:js-untar@2": "2.0.0",
-    "npm:lerna@7": "7.4.2_nx@16.10.0_typescript@5.6.3",
+    "npm:lerna@7": "7.4.2_nx@16.10.0_typescript@5.1.6",
     "npm:lint-staged@11": "11.2.6_enquirer@2.4.1",
     "npm:lit@^2.7.6": "2.8.0",
     "npm:marked@^4.1.0": "4.3.0",
@@ -37,13 +40,24 @@
     "npm:runno-codemirror-lang-ruby@^0.0.2": "0.0.2_@codemirror+autocomplete@0.19.15_@codemirror+highlight@0.19.8_@codemirror+language@0.19.10_@codemirror+rangeset@0.19.9_@codemirror+text@0.19.6_@codemirror+view@0.19.48_@lezer+common@0.15.12_@lezer+lr@0.15.8",
     "npm:tailwindcss@^3.3.3": "3.4.14_postcss@8.4.47",
     "npm:typedoc@~0.24.8": "0.24.8_typescript@5.1.6",
-    "npm:typescript@^5.1.6": "5.6.3",
+    "npm:typescript@^5.1.6": "5.1.6",
     "npm:url-safe-base64@^1.1.1": "1.3.0",
     "npm:vite@^4.4.9": "4.5.5",
     "npm:xterm-addon-fit@0.5": "0.5.0_xterm@4.19.0",
     "npm:xterm-addon-web-links@0.6": "0.6.0_xterm@4.19.0",
     "npm:xterm@^4.12.0": "4.19.0",
     "npm:xterm@^4.19.0": "4.19.0"
+  },
+  "jsr": {
+    "@std/streams@1.0.8": {
+      "integrity": "b41332d93d2cf6a82fe4ac2153b930adf1a859392931e2a19d9fabfb6f154fb3"
+    },
+    "@std/tar@0.1.3": {
+      "integrity": "531270fc707b37ab9b5f051aa4943e7b16b86905e0398a4ebe062983b0c93115",
+      "dependencies": [
+        "jsr:@std/streams"
+      ]
+    }
   },
   "npm": {
     "@alloc/quick-lru@5.2.0": {
@@ -511,7 +525,7 @@
         "strong-log-transformer"
       ]
     },
-    "@lerna/create@7.4.2_nx@16.10.0_typescript@5.6.3": {
+    "@lerna/create@7.4.2_nx@16.10.0_typescript@5.1.6": {
       "integrity": "sha512-1wplFbQ52K8E/unnqB0Tq39Z4e+NEoNrpovEnl6GpsTUrC6WDp8+w0Le2uCBV0hXyemxChduCkLz4/y1H1wTeg==",
       "dependencies": [
         "@lerna/child-process",
@@ -526,7 +540,7 @@
         "columnify",
         "conventional-changelog-core",
         "conventional-recommended-bump",
-        "cosmiconfig@8.3.6_typescript@5.6.3",
+        "cosmiconfig@8.3.6_typescript@5.1.6",
         "dedent",
         "execa@5.0.0",
         "fs-extra",
@@ -890,13 +904,13 @@
         "playwright"
       ]
     },
-    "@rollup/plugin-typescript@8.5.0_rollup@2.79.2_typescript@5.6.3": {
+    "@rollup/plugin-typescript@8.5.0_rollup@2.79.2_typescript@5.1.6": {
       "integrity": "sha512-wMv1/scv0m/rXx21wD2IsBbJFba8wGF3ErJIr6IKRfRj49S85Lszbxb4DCo8iILpluTjk2GAAu9CoZt4G3ppgQ==",
       "dependencies": [
         "@rollup/pluginutils",
         "resolve",
         "rollup@2.79.2",
-        "typescript@5.6.3"
+        "typescript"
       ]
     },
     "@rollup/pluginutils@3.1.0_rollup@2.79.2": {
@@ -1553,14 +1567,14 @@
         "yaml@1.10.2"
       ]
     },
-    "cosmiconfig@8.3.6_typescript@5.6.3": {
+    "cosmiconfig@8.3.6_typescript@5.1.6": {
       "integrity": "sha512-kcZ6+W5QzcJ3P1Mt+83OUv/oHFqZHIx8DuxG6eZ5RGMERoLqp4BuGjhHLYGK+Kf5XVkQvqBSmAy/nGWN3qDgEA==",
       "dependencies": [
         "import-fresh",
         "js-yaml@4.1.0",
         "parse-json@5.2.0",
         "path-type@4.0.0",
-        "typescript@5.6.3"
+        "typescript"
       ]
     },
     "crelt@1.0.6": {
@@ -2645,7 +2659,7 @@
     "kind-of@6.0.3": {
       "integrity": "sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw=="
     },
-    "lerna@7.4.2_nx@16.10.0_typescript@5.6.3": {
+    "lerna@7.4.2_nx@16.10.0_typescript@5.1.6": {
       "integrity": "sha512-gxavfzHfJ4JL30OvMunmlm4Anw7d7Tq6tdVHzUukLdS9nWnxCN/QB21qR+VJYp5tcyXogHKbdUEGh6qmeyzxSA==",
       "dependencies": [
         "@lerna/child-process",
@@ -2662,7 +2676,7 @@
         "conventional-changelog-angular",
         "conventional-changelog-core",
         "conventional-recommended-bump",
-        "cosmiconfig@8.3.6_typescript@5.6.3",
+        "cosmiconfig@8.3.6_typescript@5.1.6",
         "dedent",
         "envinfo",
         "execa@5.0.0",
@@ -2714,7 +2728,7 @@
         "strong-log-transformer",
         "tar",
         "temp-dir",
-        "typescript@5.6.3",
+        "typescript",
         "upath",
         "uuid",
         "validate-npm-package-license",
@@ -4418,14 +4432,11 @@
         "marked",
         "minimatch@9.0.5",
         "shiki",
-        "typescript@5.1.6"
+        "typescript"
       ]
     },
     "typescript@5.1.6": {
       "integrity": "sha512-zaWCozRZ6DLEWAWFrVDz1H6FVXzUSfTy5FUMWsQlU8Ym5JP9eO4xkTIROFCQvhQf61z6O/G6ugw3SgAnvvm+HA=="
-    },
-    "typescript@5.6.3": {
-      "integrity": "sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw=="
     },
     "uglify-js@3.19.3": {
       "integrity": "sha512-v3Xu+yuwBXisp6QYTcH4UbH+xYJXqnq2m/LtQVWKWzYc1iehYnLixoQDN9FH6/j9/oybfd6W9Ghwkl8+UMKTKQ=="
@@ -4752,6 +4763,10 @@
         }
       },
       "packages/sandbox": {
+        "dependencies": [
+          "jsr:@std/tar@~0.1.3",
+          "npm:@runno/wasi@0.7"
+        ],
         "packageJson": {
           "dependencies": [
             "npm:@runno/wasi@0.7"

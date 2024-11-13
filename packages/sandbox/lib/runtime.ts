@@ -4,7 +4,7 @@ import {
   commandsForRuntime,
   getBinaryPathFromCommand,
 } from "./commands.ts";
-import { makeRunnoError } from "./helpers.ts";
+import { fetchWASIFS, makeRunnoError } from "./helpers.ts";
 import { CompleteResult, RunResult, Runtime } from "./types.ts";
 
 export async function runCode(
@@ -50,24 +50,28 @@ export async function runFS(
   const binaryPath = getBinaryPathFromCommand(run, fs);
 
   if (run.baseFSURL) {
-    // TODO: add support for untarring baseFS
-    // try {
-    //   const baseFS = await fetchWASIFS(run.baseFSURL);
-    //   fs = { ...fs, ...baseFS };
-    // } catch (e) {
-    //   return {
-    //     resultType: "crash",
-    //     error: makeRunnoError(e),
-    //   };
-    // }
-    throw new Error("Unsupported baseFSURL");
+    try {
+      const baseFS = await fetchWASIFS(run.baseFSURL);
+      fs = { ...fs, ...baseFS };
+    } catch (e) {
+      return {
+        resultType: "crash",
+        error: makeRunnoError(e),
+      };
+    }
   }
 
-  // TODO: Support STDIN
+  let stdinBytes = new TextEncoder().encode(stdin ?? "");
+
   const result = await WASI.start(fetch(binaryPath), {
     args: [run.binaryName, ...(run.args ?? [])],
     env: run.env,
     fs,
+    stdin: (maxByteLength) => {
+      const chunk = stdinBytes.slice(0, maxByteLength);
+      stdinBytes = stdinBytes.slice(maxByteLength);
+      return new TextDecoder().decode(chunk);
+    },
     stdout: (out) => {
       prepare.stdout += out;
       prepare.tty += out;
@@ -119,11 +123,8 @@ export async function headlessPrepareFS(
     const binaryPath = getBinaryPathFromCommand(command, prepare.fs);
 
     if (command.baseFSURL) {
-      // TODO: Support baseFSURL
-      // const baseFS = await fetchWASIFS(command.baseFSURL);
-      // prepare.fs = { ...prepare.fs, ...baseFS };
-
-      throw new Error("Unsupported baseFSURL");
+      const baseFS = await fetchWASIFS(command.baseFSURL);
+      prepare.fs = { ...prepare.fs, ...baseFS };
     }
 
     const result = await WASI.start(fetch(binaryPath), {
