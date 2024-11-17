@@ -1,7 +1,7 @@
 {
   "name": "@runno/sandbox",
   "version": "0.7.0",
-  "description": "A sandbox for running code server-side in JavaScript environments",
+  "description": "Run untrusted code from programming languages inside a WebAssembly sandbox.",
   "keywords": [
     "sandbox",
     "python",
@@ -28,7 +28,8 @@
     "url": "git+https://github.com/taybenlor/runno.git"
   },
   "scripts": {
-    "test": "deno test --no-check --allow-net"
+    "test": "deno test --no-check --allow-net",
+    "cli": "deno --allow-net --allow-read src/main.ts"
   },
   "bugs": {
     "url": "https://github.com/taybenlor/runno/issues"
