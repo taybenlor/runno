@@ -57,6 +57,7 @@ for (const name of wasmFiles) {
 
           let stderr = "";
           let stdout = "";
+          let stdinBytes = new TextEncoder().encode(stdin ?? "");
 
           return W.start(
             fetch(url),
@@ -69,11 +70,10 @@ for (const name of wasmFiles) {
               stderr: (s) => {
                 stderr += s;
               },
-              stdin: (maxByteLength: number) => {
-                const index = Math.floor(maxByteLength / 2) + 1;
-                const retvalue = stdin.slice(0, index);
-                stdin = stdin.slice(index);
-                return retvalue;
+              stdin: (maxByteLength) => {
+                const chunk = stdinBytes.slice(0, maxByteLength);
+                stdinBytes = stdinBytes.slice(maxByteLength);
+                return new TextDecoder().decode(chunk);
               },
               fs,
             })
