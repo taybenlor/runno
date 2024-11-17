@@ -38,8 +38,7 @@ export function commandsForRuntime(
           binaryName: "python",
           args: [entryPath],
           env: {},
-          // TODO: This is eventually needed for extended python support
-          // baseFSURL: `${baseURL}/python-3.11.3.tar.gz`,
+          baseFSURL: `${baseURL}/python-3.11.3.tar.gz`,
         },
       };
 
