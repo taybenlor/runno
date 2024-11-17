@@ -24,10 +24,11 @@
     "build:website": "cd packages/website && npm run build",
     "build": "npm run build:wasi && npm run build:runtime && npm run build:client && npm run build:docs && npm run build:website",
     "build:deploy": "npm run bootstrap && npm run build",
+    "test:sandbox": "cd packages/sandbox && npm run test",
     "test:client": "cd packages/client && npm run test",
     "test:wasi": "cd packages/wasi && npm run test:prepare && npm run test",
     "test:runtime": "cd packages/runtime && npm run test",
-    "test": "npm run test:client && npm run test:wasi && npm run test:runtime"
+    "test": "npm run test:client && npm run test:wasi && npm run test:runtime && npm run test:sandbox"
   },
   "eslintConfig": {
     "extends": "preact",
