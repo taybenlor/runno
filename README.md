@@ -27,7 +27,7 @@ browser.
 There are two main parts to runno:
 
 1. `@runno/runtime` - web components and headless tools for running code examples in the browser.
-2. `@runno/wasi` - an implementation of WASI made for the browser.
+2. `@runno/wasi` - a sandboxed implementation of WASI made for the browser that works on the server.
 
 The `@runno/runtime` is built on top of the primitives provided by `@runno/wasi`.
 
