@@ -67,16 +67,16 @@ export async function runFS(
     args: [run.binaryName, ...(run.args ?? [])],
     env: run.env,
     fs,
-    stdin: (maxByteLength) => {
+    stdin: (maxByteLength: number) => {
       const chunk = stdinBytes.slice(0, maxByteLength);
       stdinBytes = stdinBytes.slice(maxByteLength);
       return new TextDecoder().decode(chunk);
     },
-    stdout: (out) => {
+    stdout: (out: string) => {
       prepare.stdout += out;
       prepare.tty += out;
     },
-    stderr: (err) => {
+    stderr: (err: string) => {
       prepare.stderr += err;
       prepare.tty += err;
     },
@@ -131,17 +131,13 @@ export async function headlessPrepareFS(
       args: [command.binaryName, ...(command.args ?? [])],
       env: command.env,
       fs: prepare.fs,
-      stdout: (out) => {
+      stdout: (out: string) => {
         prepare.stdout += out;
         prepare.tty += out;
       },
-      stderr: (err) => {
+      stderr: (err: string) => {
         prepare.stderr += err;
         prepare.tty += err;
-      },
-      debug: (...args) => {
-        console.log("DEBUG", ...args);
-        return args[2];
       },
     });
 
