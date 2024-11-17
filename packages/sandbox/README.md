@@ -4,7 +4,20 @@ Run untrusted code from programming languages inside a WebAssembly sandbox.
 
 This is an unreleased proof of concept.
 
-## Quickstart
+## Quickstart CLI
+
+`src/main.ts` is a CLI program that runs files using Runno.
+
+```
+$ deno --allow-net --allow-read src/main.ts python test.py
+Hello, World!
+```
+
+_Note: Currently network access is required to fetch the WASM binaries from runno.dev_
+
+Supported runtimes are: `python`, `ruby`, `quickjs`, `php-cgi`, `sqlite`, `clang`, and `clangpp`.
+
+## Quickstart API
 
 The simplest use is to run some code in a supported language:
 

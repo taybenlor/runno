@@ -1,5 +1,6 @@
 {
   "imports": {
+    "@cliffy/command": "jsr:@cliffy/command@1.0.0-rc.7",
     "@runno/wasi": "npm:@runno/wasi@^0.7.0",
     "@std/tar": "jsr:@std/tar@^0.1.3"
   },
