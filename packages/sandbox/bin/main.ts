@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { WASIFS } from "@runno/wasi";
 
 import { runFS } from "../lib/runtime.ts";
