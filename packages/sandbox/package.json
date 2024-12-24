@@ -33,7 +33,7 @@
     "url": "git+https://github.com/taybenlor/runno.git"
   },
   "scripts": {
-    "test": "deno test --no-check --allow-net",
+    "test": "deno test --no-check --allow-read=langs/",
     "cli": "deno --allow-net --allow-read src/main.ts"
   },
   "bugs": {

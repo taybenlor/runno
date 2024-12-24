@@ -1,10 +1,11 @@
 import { WASIFS } from "@runno/wasi";
 import type { Runtime } from "./types.ts";
 import { assertUnreachable } from "./helpers.ts";
+import { dirname, fromFileUrl, join } from "@std/path";
 
 type CommandSource =
   | {
-      binaryURL: `${string}.wasm`;
+      binaryURL: string;
     }
   | {
       fsPath: string;
@@ -14,7 +15,7 @@ export type Command = CommandSource & {
   binaryName: string;
   args?: string[];
   env?: { [key: string]: string };
-  baseFSURL?: `${string}.tar.gz`; // Base FileSystem URL (.tar.gz)
+  baseFSURL?: string; // Base FileSystem URL (.tar.gz)
 };
 
 export type RuntimeCommands = {
@@ -23,7 +24,8 @@ export type RuntimeCommands = {
 };
 
 // TODO: Figure out a way to package the wasm binaries (maybe via NPM?)
-const baseURL = `https://runno.dev/langs`;
+const __dirname = dirname(fromFileUrl(import.meta.url));
+const relativePath = join(__dirname, "..", "langs");
 
 export function commandsForRuntime(
   name: Runtime,
@@ -34,11 +36,11 @@ export function commandsForRuntime(
     case "python":
       return {
         run: {
-          binaryURL: `${baseURL}/python-3.11.3.wasm`,
+          binaryURL: join(relativePath, `/python-3.11.3.wasm`),
           binaryName: "python",
           args: [entryPath],
           env: {},
-          baseFSURL: `${baseURL}/python-3.11.3.tar.gz`,
+          baseFSURL: join(relativePath, `/python-3.11.3.tar.gz`),
         },
       };
 
@@ -46,11 +48,11 @@ export function commandsForRuntime(
     case "ruby":
       return {
         run: {
-          binaryURL: `${baseURL}/ruby-3.2.0.wasm`,
+          binaryURL: join(relativePath, `/ruby-3.2.0.wasm`),
           binaryName: "ruby",
           args: ["-r", "/ruby-3.2.0/.rubyopts.rb", entryPath],
           env: {},
-          baseFSURL: `${baseURL}/ruby-3.2.0.tar.gz`,
+          baseFSURL: join(relativePath, `/ruby-3.2.0.tar.gz`),
         },
       };
 
@@ -58,7 +60,7 @@ export function commandsForRuntime(
     case "quickjs":
       return {
         run: {
-          binaryURL: `${baseURL}/wasmedge_quickjs.wasm`,
+          binaryURL: join(relativePath, `/wasmedge_quickjs.wasm`),
           binaryName: "quickjs",
           args: [entryPath],
           env: {},
@@ -69,7 +71,7 @@ export function commandsForRuntime(
     case "sqlite":
       return {
         run: {
-          binaryURL: `${baseURL}/sqlite.wasm`,
+          binaryURL: join(relativePath, `/sqlite.wasm`),
           binaryName: "sqlite",
           args: ["-cmd", `.read ${entryPath}`],
           env: {},
@@ -79,7 +81,7 @@ export function commandsForRuntime(
     case "php-cgi":
       return {
         run: {
-          binaryURL: `${baseURL}/php-cgi-8.2.0.wasm`,
+          binaryURL: join(relativePath, `/php-cgi-8.2.0.wasm`),
           binaryName: "php",
           args: [entryPath],
           env: {},
@@ -91,7 +93,7 @@ export function commandsForRuntime(
       return {
         prepare: [
           {
-            binaryURL: `${baseURL}/clang.wasm`,
+            binaryURL: join(relativePath, `/clang.wasm`),
             binaryName: "clang",
             args: [
               "-cc1",
@@ -116,10 +118,10 @@ export function commandsForRuntime(
               entryPath,
             ],
             env: {},
-            baseFSURL: `${baseURL}/clang-fs.tar.gz`,
+            baseFSURL: join(relativePath, `/clang-fs.tar.gz`),
           },
           {
-            binaryURL: `${baseURL}/wasm-ld.wasm`,
+            binaryURL: join(relativePath, `/wasm-ld.wasm`),
             binaryName: "wasm-ld",
             args: [
               "--no-threads",
@@ -146,7 +148,7 @@ export function commandsForRuntime(
       return {
         prepare: [
           {
-            binaryURL: `${baseURL}/clang.wasm`,
+            binaryURL: join(relativePath, `/clang.wasm`),
             binaryName: "clang",
             args: [
               "-cc1",
@@ -174,10 +176,10 @@ export function commandsForRuntime(
               entryPath,
             ],
             env: {},
-            baseFSURL: `${baseURL}/clang-fs.tar.gz`,
+            baseFSURL: join(relativePath, `/clang-fs.tar.gz`),
           },
           {
-            binaryURL: `${baseURL}/wasm-ld.wasm`,
+            binaryURL: join(relativePath, `/wasm-ld.wasm`),
             binaryName: "wasm-ld",
             args: [
               "--no-threads",

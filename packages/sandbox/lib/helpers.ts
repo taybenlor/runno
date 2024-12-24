@@ -1,4 +1,5 @@
 import { extractTarGz } from "./tar.ts";
+import { toFileUrl } from "@std/path";
 
 export function stripWhitespace(text: string): string {
   const lines = text.split(/\n/);
@@ -45,7 +46,7 @@ export function stripWhitespace(text: string): string {
  * @param fsURL The URL of the filesystem to fetch
  */
 export async function fetchWASIFS(fsURL: string) {
-  const response = await fetch(fsURL);
+  const response = await fetch(toFileUrl(fsURL));
   const buffer = await response.arrayBuffer();
   return await extractTarGz(new Uint8Array(buffer));
 }

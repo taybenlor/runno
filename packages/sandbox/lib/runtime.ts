@@ -6,6 +6,7 @@ import {
 } from "./commands.ts";
 import { fetchWASIFS, makeRunnoError } from "./helpers.ts";
 import { CompleteResult, RunResult, Runtime } from "./types.ts";
+import { toFileUrl } from "@std/path";
 
 export async function runCode(
   runtime: Runtime,
@@ -63,7 +64,7 @@ export async function runFS(
 
   let stdinBytes = new TextEncoder().encode(stdin ?? "");
 
-  const result = await WASI.start(fetch(binaryPath), {
+  const result = await WASI.start(fetch(toFileUrl(binaryPath)), {
     args: [run.binaryName, ...(run.args ?? [])],
     env: run.env,
     fs,
