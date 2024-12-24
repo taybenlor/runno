@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "prepare": "npx husky install",
-    "bootstrap": "npm install",
+    "bootstrap": "npm install && cd sandbox && deno install",
     "dev": "cd packages/website && npm run dev # TODO: Also run watch on runtime and wasi",
     "publish": "npm run build && npx lerna publish",
     "build:docs:wasi": "npm run build:docs --workspace=@runno/wasi && rm -rf packages/website/docs/wasi && mkdir -p packages/website/docs && cp -R packages/wasi/docs packages/website/docs/wasi",
@@ -24,7 +24,7 @@
     "build:website": "cd packages/website && npm run build",
     "build": "npm run build:wasi && npm run build:runtime && npm run build:client && npm run build:docs && npm run build:website",
     "build:deploy": "npm run bootstrap && npm run build",
-    "test:sandbox": "cd packages/sandbox && npm run test",
+    "test:sandbox": "cd sandbox && deno task test",
     "test:client": "cd packages/client && npm run test",
     "test:wasi": "cd packages/wasi && npm run test:prepare && npm run test",
     "test:runtime": "cd packages/runtime && npm run test",
