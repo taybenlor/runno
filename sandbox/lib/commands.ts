@@ -1,7 +1,6 @@
 import { WASIFS } from "@runno/wasi";
 import type { Runtime } from "./types.ts";
 import { assertUnreachable } from "./helpers.ts";
-import { dirname, fromFileUrl, join } from "@std/path";
 
 type CommandSource =
   | {
@@ -23,10 +22,6 @@ export type RuntimeCommands = {
   run: Command;
 };
 
-// TODO: Figure out a way to package the wasm binaries (maybe via NPM?)
-const __dirname = dirname(fromFileUrl(import.meta.url));
-const relativePath = join(__dirname, "..", "langs");
-
 export function commandsForRuntime(
   name: Runtime,
   entryPath: string
@@ -36,11 +31,11 @@ export function commandsForRuntime(
     case "python":
       return {
         run: {
-          binaryURL: join(relativePath, `/python-3.11.3.wasm`),
+          binaryURL: import.meta.resolve(`../langs/python-3.11.3.wasm`),
           binaryName: "python",
           args: [entryPath],
           env: {},
-          baseFSURL: join(relativePath, `/python-3.11.3.tar.gz`),
+          baseFSURL: import.meta.resolve(`../langs/python-3.11.3.tar.gz`),
         },
       };
 
@@ -48,11 +43,11 @@ export function commandsForRuntime(
     case "ruby":
       return {
         run: {
-          binaryURL: join(relativePath, `/ruby-3.2.0.wasm`),
+          binaryURL: import.meta.resolve(`../langs/ruby-3.2.0.wasm`),
           binaryName: "ruby",
           args: ["-r", "/ruby-3.2.0/.rubyopts.rb", entryPath],
           env: {},
-          baseFSURL: join(relativePath, `/ruby-3.2.0.tar.gz`),
+          baseFSURL: import.meta.resolve(`../langs/ruby-3.2.0.tar.gz`),
         },
       };
 
@@ -60,7 +55,7 @@ export function commandsForRuntime(
     case "quickjs":
       return {
         run: {
-          binaryURL: join(relativePath, `/wasmedge_quickjs.wasm`),
+          binaryURL: import.meta.resolve(`../langs/wasmedge_quickjs.wasm`),
           binaryName: "quickjs",
           args: [entryPath],
           env: {},
@@ -71,7 +66,7 @@ export function commandsForRuntime(
     case "sqlite":
       return {
         run: {
-          binaryURL: join(relativePath, `/sqlite.wasm`),
+          binaryURL: import.meta.resolve(`../langs/sqlite.wasm`),
           binaryName: "sqlite",
           args: ["-cmd", `.read ${entryPath}`],
           env: {},
@@ -81,7 +76,7 @@ export function commandsForRuntime(
     case "php-cgi":
       return {
         run: {
-          binaryURL: join(relativePath, `/php-cgi-8.2.0.wasm`),
+          binaryURL: import.meta.resolve(`../langs/php-cgi-8.2.0.wasm`),
           binaryName: "php",
           args: [entryPath],
           env: {},
@@ -93,7 +88,7 @@ export function commandsForRuntime(
       return {
         prepare: [
           {
-            binaryURL: join(relativePath, `/clang.wasm`),
+            binaryURL: import.meta.resolve(`../langs/clang.wasm`),
             binaryName: "clang",
             args: [
               "-cc1",
@@ -118,10 +113,10 @@ export function commandsForRuntime(
               entryPath,
             ],
             env: {},
-            baseFSURL: join(relativePath, `/clang-fs.tar.gz`),
+            baseFSURL: import.meta.resolve(`../langs/clang-fs.tar.gz`),
           },
           {
-            binaryURL: join(relativePath, `/wasm-ld.wasm`),
+            binaryURL: import.meta.resolve(`../langs/wasm-ld.wasm`),
             binaryName: "wasm-ld",
             args: [
               "--no-threads",
@@ -148,7 +143,7 @@ export function commandsForRuntime(
       return {
         prepare: [
           {
-            binaryURL: join(relativePath, `/clang.wasm`),
+            binaryURL: import.meta.resolve(`../langs/clang.wasm`),
             binaryName: "clang",
             args: [
               "-cc1",
@@ -176,10 +171,10 @@ export function commandsForRuntime(
               entryPath,
             ],
             env: {},
-            baseFSURL: join(relativePath, `/clang-fs.tar.gz`),
+            baseFSURL: import.meta.resolve(`../langs/clang-fs.tar.gz`),
           },
           {
-            binaryURL: join(relativePath, `/wasm-ld.wasm`),
+            binaryURL: import.meta.resolve(`../langs/wasm-ld.wasm`),
             binaryName: "wasm-ld",
             args: [
               "--no-threads",
