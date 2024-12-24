@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "prepare": "npx husky install",
-    "bootstrap": "npm install && cd sandbox && deno install",
+    "bootstrap": "npm install",
     "dev": "cd packages/website && npm run dev # TODO: Also run watch on runtime and wasi",
     "publish": "npm run build && npx lerna publish",
     "build:docs:wasi": "npm run build:docs --workspace=@runno/wasi && rm -rf packages/website/docs/wasi && mkdir -p packages/website/docs && cp -R packages/wasi/docs packages/website/docs/wasi",
