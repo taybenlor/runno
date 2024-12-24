@@ -54,7 +54,7 @@ int main() {
 }`
   );
 
-  assertEquals(result.resultType, "complete");
+  assertEquals(result.resultType, "complete", JSON.stringify(result));
   if (result.resultType !== "complete") throw new Error("wtf");
   assertEquals(result.stderr, "");
   assertEquals(result.stdout, "Hello, World!\n");
