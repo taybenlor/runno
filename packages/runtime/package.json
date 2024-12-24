@@ -52,7 +52,7 @@
     "lint": "npx eslint src"
   },
   "devDependencies": {
-    "@playwright/test": "^1.37.1",
+    "@playwright/test": "^1.49.1",
     "@rollup/plugin-typescript": "^8.2.5",
     "eslint": "^7.28.0",
     "typedoc": "^0.24.8",

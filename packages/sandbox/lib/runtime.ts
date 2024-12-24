@@ -6,6 +6,7 @@ import {
 } from "./commands.ts";
 import { fetchWASIFS, makeRunnoError } from "./helpers.ts";
 import { CompleteResult, RunResult, Runtime } from "./types.ts";
+import { toFileUrl } from "@std/path";
 
 export async function runCode(
   runtime: Runtime,
@@ -63,7 +64,10 @@ export async function runFS(
 
   let stdinBytes = new TextEncoder().encode(stdin ?? "");
 
-  const result = await WASI.start(fetch(binaryPath), {
+  const url = binaryPath.startsWith("blob:")
+    ? binaryPath
+    : toFileUrl(binaryPath);
+  const result = await WASI.start(fetch(url), {
     args: [run.binaryName, ...(run.args ?? [])],
     env: run.env,
     fs,
@@ -127,7 +131,10 @@ export async function headlessPrepareFS(
       prepare.fs = { ...prepare.fs, ...baseFS };
     }
 
-    const result = await WASI.start(fetch(binaryPath), {
+    const url = binaryPath.startsWith("blob:")
+      ? binaryPath
+      : toFileUrl(binaryPath);
+    const result = await WASI.start(fetch(url), {
       args: [command.binaryName, ...(command.args ?? [])],
       env: command.env,
       fs: prepare.fs,
