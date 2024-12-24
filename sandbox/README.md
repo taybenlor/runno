@@ -6,14 +6,12 @@ This is an unreleased proof of concept.
 
 ## Quickstart CLI
 
-`src/main.ts` is a CLI program that runs files using Runno.
+`bin/main.ts` is a CLI program that runs files using Runno.
 
 ```
-$ deno --allow-net --allow-read src/main.ts python test.py
+$ deno --allow-read bin/main.ts python test.py
 Hello, World!
 ```
-
-_Note: Currently network access is required to fetch the WASM binaries from runno.dev_
 
 Supported runtimes are: `python`, `ruby`, `quickjs`, `php-cgi`, `sqlite`, `clang`, and `clangpp`.
 
@@ -37,10 +35,8 @@ console.log("Result:", result);
 When run using Deno:
 
 ```
-$ deno --allow-net demo.ts
+$ deno demo.ts
 ```
-
-_Note: Currently network access is required to fetch the WASM binaries from runno.dev_
 
 This gives the following output:
 
@@ -66,8 +62,6 @@ Result: {
   exitCode: 0
 }
 ```
-
-_Note: Currently STDIN is not supported in this proof-of-concept_
 
 ## Specifying a File System
 

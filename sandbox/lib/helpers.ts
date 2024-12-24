@@ -1,5 +1,26 @@
 import { extractTarGz } from "./tar.ts";
-import { toFileUrl } from "@std/path";
+
+/**
+ * This is used to handle reading files after the sandbox
+ * has been compiled using `deno compile`. Without this
+ * wrapper we get network errors when trying to use fetch
+ * to read local files.
+ *
+ * @param path
+ * @returns
+ */
+export function makeBlobFromPath(path: string): string {
+  if (path.startsWith("blob:")) {
+    return path;
+  }
+  const file = Deno.readFileSync(new URL(path));
+  const blob = new Blob([file], {
+    type: path.endsWith(".wasm")
+      ? "application/wasm"
+      : "application/octet-stream",
+  });
+  return URL.createObjectURL(blob);
+}
 
 export function stripWhitespace(text: string): string {
   const lines = text.split(/\n/);
@@ -46,7 +67,7 @@ export function stripWhitespace(text: string): string {
  * @param fsURL The URL of the filesystem to fetch
  */
 export async function fetchWASIFS(fsURL: string) {
-  const response = await fetch(toFileUrl(fsURL));
+  const response = await fetch(makeBlobFromPath(fsURL));
   const buffer = await response.arrayBuffer();
   return await extractTarGz(new Uint8Array(buffer));
 }

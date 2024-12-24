@@ -57,7 +57,7 @@ Entry is a path to a file, which will be added on top of the base filesystem and
       };
 
       if (options.filesystem) {
-        const baseFS = fetchWASIFS(options.filesystem);
+        const baseFS = await fetchWASIFS(options.filesystem);
         fs = { ...baseFS, ...fs };
       }
 
