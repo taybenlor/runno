@@ -124,3 +124,6 @@ dist
 
 # Generated Docs
 packages/*/docs
+
+# Python
+__pycache__

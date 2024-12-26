@@ -5,11 +5,11 @@ description = "Run untrusted code inside the Runno WebAssembly sandbox."
 authors = ["Ben Taylor <me@taybenlor.com>"]
 license = "MIT"
 readme = "README.md"
+packages = [{ include = "runno_sandbox" }]
 
 [tool.poetry.dependencies]
 python = "^3.13"
 pydantic = "^2.10.4"
-
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.10.0"

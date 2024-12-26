@@ -1,3 +1,4 @@
+import base64
 from typing import Literal, Union, Dict
 from pydantic import BaseModel
 from datetime import datetime
@@ -7,7 +8,7 @@ type WASIPath = str
 
 class WASITimestamps(BaseModel):
     access: datetime
-    modified: datetime
+    modification: datetime
     change: datetime
 
 
@@ -15,6 +16,26 @@ class BaseFile(BaseModel):
     path: WASIPath
     timestamps: WASITimestamps
     mode: Union[Literal["string"], Literal["binary"]]
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> "WASIFile":
+        data["timestamps"] = WASITimestamps(
+            **{
+                key: datetime.fromisoformat(value)
+                for key, value in data["timestamps"].items()
+            }
+        )
+
+        if data["mode"] == "string":
+            return StringFile(**data)
+        elif data["mode"] == "binary":
+            return BinaryFile(**data)
+        elif data["mode"] == "base64":
+            data["mode"] = "binary"
+            data["content"] = base64.b64decode(data["content"])
+            return BinaryFile(**data)
+        else:
+            raise ValueError(f"Invalid mode: {data['mode']}")
 
 
 class BinaryFile(BaseFile):
@@ -41,9 +62,14 @@ type Runtime = Union[
 ]
 
 
+class RunnoError(BaseModel):
+    type: str
+    message: str
+
+
 class CrashResult(BaseModel):
     result_type: Literal["crash"]
-    error: Dict[str, str]
+    error: RunnoError
 
 
 class CompleteResult(BaseModel):

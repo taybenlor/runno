@@ -1,11 +1,16 @@
 #!/usr/bin/env node
 
-import { WASIFS } from "@runno/wasi";
+import { WASIFS, WASIPath, WASITimestamps } from "@runno/wasi";
 import { readAll } from "@std/io";
 
 import { runFS } from "../lib/runtime.ts";
 import { Command } from "@cliffy/command";
-import { Runtime } from "../lib/types.ts";
+import {
+  CompleteResult,
+  CrashResult,
+  Runtime,
+  TerminatedResult,
+} from "../lib/types.ts";
 import { fetchWASIFS } from "../lib/main.ts";
 import { extractTarGz } from "../lib/tar.ts";
 
@@ -36,19 +41,21 @@ Entry name is the name of the entrypoint in the base filesystem.
     "A tgz file to use as the base filesystem"
   )
   .option(
-    "-fs, --filesystem-stdin",
+    "--filesystem-stdin",
     "Read the base filesystem from stdin as a tgz file (useful for piping)"
   )
   .option(
-    "-es, --entry-stdin",
+    "--entry-stdin",
     "Read just the entry file from stdin (useful for piping)"
   )
+  .option("--json", "Output the result as JSON (useful for scripting)")
   .action(
     async (
       options: {
         filesystem?: string;
         filesystemStdin?: true;
         entryStdin?: true;
+        json?: true;
       },
       ...args: [string, string]
     ) => {
@@ -89,6 +96,19 @@ Entry name is the name of the entrypoint in the base filesystem.
       }
 
       const result = await runFS(runtime, entryPath, fs);
+      if (options.json) {
+        let jsonResult: JSONResult;
+        if (result.resultType === "complete") {
+          jsonResult = {
+            ...result,
+            fs: fsToBase64FS(result.fs),
+          } as Omit<CompleteResult, "fs"> & { fs: Base64WASIFS };
+        } else {
+          jsonResult = result;
+        }
+        console.log(JSON.stringify(jsonResult));
+        return;
+      }
 
       switch (result.resultType) {
         case "complete":
@@ -108,3 +128,49 @@ Entry name is the name of the entrypoint in the base filesystem.
   );
 
 await command.parse(Deno.args);
+
+function fsToBase64FS(fs: WASIFS): Base64WASIFS {
+  return Object.fromEntries(
+    Object.entries(fs).map(([path, file]) => {
+      if (file.mode === "binary") {
+        return [
+          path,
+          {
+            ...file,
+            mode: "base64",
+            content: btoa(
+              file.content.reduce(
+                (data, byte) => data + String.fromCharCode(byte),
+                ""
+              )
+            ),
+          },
+        ];
+      }
+      return [path, file];
+    })
+  );
+}
+
+export type Base64WASIFS = {
+  [path: WASIPath]: Base64WASIFile | StringWASIFile;
+};
+
+export type Base64WASIFile = {
+  path: WASIPath;
+  timestamps: WASITimestamps;
+  mode: "base64";
+  content: string;
+};
+
+export type StringWASIFile = {
+  path: WASIPath;
+  timestamps: WASITimestamps;
+  mode: "string";
+  content: string;
+};
+
+export type JSONResult =
+  | (Omit<CompleteResult, "fs"> & { fs: Base64WASIFS })
+  | CrashResult
+  | TerminatedResult;
