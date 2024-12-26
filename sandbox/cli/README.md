@@ -1,6 +1,6 @@
 # Runno Sandbox
 
-Run untrusted code from programming languages inside a WebAssembly sandbox.
+Run untrusted code inside a WebAssembly sandbox.
 
 This is an unreleased proof of concept.
 

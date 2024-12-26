@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
 import { WASIFS } from "@runno/wasi";
+import { readAll } from "@std/io";
 
 import { runFS } from "../lib/runtime.ts";
 import { Command } from "@cliffy/command";
 import { Runtime } from "../lib/types.ts";
 import { fetchWASIFS } from "../lib/main.ts";
+import { extractTarGz } from "../lib/tar.ts";
 
 function isRuntime(runtime: string): runtime is Runtime {
   return [
@@ -25,43 +27,68 @@ const command = new Command()
   .description(
     `A CLI for running code in a sandbox environment, powered by Runno & WASI.
 Supports python, ruby, quickjs, php-cgi, clang, and clangpp.
-Entry is a path to a file, which will be added on top of the base filesystem and used as the entrypoint.
+Entry name is the name of the entrypoint in the base filesystem.
 `
   )
-  .arguments("<runtime:string> <entry:string>")
+  .arguments("<runtime:string> <entry-path:string>")
   .option(
     "-f, --filesystem <filesystem:string>",
     "A tgz file to use as the base filesystem"
   )
+  .option(
+    "-fs, --filesystem-stdin",
+    "Read the base filesystem from stdin as a tgz file (useful for piping)"
+  )
+  .option(
+    "-es, --entry-stdin",
+    "Read just the entry file from stdin (useful for piping)"
+  )
   .action(
-    async (options: { filesystem?: string }, ...args: [string, string]) => {
+    async (
+      options: {
+        filesystem?: string;
+        filesystemStdin?: true;
+        entryStdin?: true;
+      },
+      ...args: [string, string]
+    ) => {
       const [runtimeString, entry] = args;
       if (!isRuntime(runtimeString)) {
         throw new Error(`Unsupported runtime: ${runtimeString}`);
       }
       const runtime: Runtime = runtimeString;
 
-      // TODO: Use filesystem helpers
-      const entryName = entry.split("/").pop() ?? entry;
-      let fs: WASIFS = {
-        [`/${entryName}`]: {
-          path: `/${entryName}`,
-          content: await Deno.readFile(entry),
-          mode: "binary",
-          timestamps: {
-            access: new Date(),
-            modification: new Date(),
-            change: new Date(),
-          },
-        },
-      };
+      // TODO: Read the entry file from stdin
+
+      const entryPath = entry.startsWith("/") ? entry : `/${entry}`;
+      let fs: WASIFS = {};
 
       if (options.filesystem) {
         const baseFS = await fetchWASIFS(options.filesystem);
         fs = { ...baseFS, ...fs };
       }
 
-      const result = await runFS(runtime, entryName, fs);
+      if (options.filesystemStdin) {
+        const tgz = await readAll(Deno.stdin);
+        const baseFS = await extractTarGz(tgz);
+        fs = { ...baseFS, ...fs };
+      }
+
+      if (options.entryStdin) {
+        const content = await readAll(Deno.stdin);
+        fs[entryPath] = {
+          path: entryPath,
+          content,
+          mode: "binary",
+          timestamps: {
+            access: new Date(),
+            modification: new Date(),
+            change: new Date(),
+          },
+        };
+      }
+
+      const result = await runFS(runtime, entryPath, fs);
 
       switch (result.resultType) {
         case "complete":
