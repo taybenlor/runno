@@ -1,5 +1,4 @@
 import asyncio
-import base64
 from datetime import datetime
 import json
 import tarfile
@@ -7,7 +6,6 @@ import io
 import os
 from .types import (
     BaseFile,
-    BinaryFile,
     CompleteResult,
     CrashResult,
     RunnoError,
