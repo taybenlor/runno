@@ -67,9 +67,19 @@ infer_tag = true
 path = "hatch_build.py"
 
 # Make sure deno is installed inside cibuildwheel containers
+# Make sure glibc 2.18 is available inside manylinux containers
 [tool.cibuildwheel.linux]
-before-all = "yum install glibc && curl -fsSL https://deno.land/install.sh | sh"
+before-all = "curl -fsSL https://deno.land/install.sh | sh"
 environment = { "PATH" = "$HOME/.deno/bin:$PATH" }
+manylinux-aarch64-image = "manylinux_2_28"
+manylinux-armv7l-image = "manylinux_2_28"
+manylinux-i686-image = "manylinux_2_28"
+manylinux-ppc64le-image = "manylinux_2_28"
+manylinux-pypy_aarch64-image = "manylinux_2_28"
+manylinux-pypy_i686-image = "manylinux_2_28"
+manylinux-pypy_x86_64-image = "manylinux_2_28"
+manylinux-s390x-image = "manylinux_2_28"
+manylinux-x86_64-image = "manylinux_2_28"
 
 [[tool.cibuildwheel.overrides]]
 select = "*-musllinux*"
