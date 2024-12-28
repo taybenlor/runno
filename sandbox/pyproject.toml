@@ -66,17 +66,20 @@ infer_tag = true
 [tool.hatch.build.targets.wheel.hooks.custom]
 path = "hatch_build.py"
 
+# musllinux is not supported by deno
+[tool.cibuildwheel]
+skip = "*-musllinux*"
+
 # Make sure deno is installed inside cibuildwheel containers
 # Make sure glibc 2.18 is available inside manylinux containers
 [tool.cibuildwheel.linux]
 before-all = "curl -fsSL https://deno.land/install.sh | sh"
 environment = { "PATH" = "$HOME/.deno/bin:$PATH" }
+archs = ["aarch64", "armv71", "ppc64le", "s390x", "x86_64"]
 manylinux-aarch64-image = "manylinux_2_28"
-manylinux-armv7l-image = "manylinux_2_28"
-manylinux-i686-image = "manylinux_2_28"
+manylinux-armv7l-image = "manylinux_2_31"
 manylinux-ppc64le-image = "manylinux_2_28"
 manylinux-pypy_aarch64-image = "manylinux_2_28"
-manylinux-pypy_i686-image = "manylinux_2_28"
 manylinux-pypy_x86_64-image = "manylinux_2_28"
 manylinux-s390x-image = "manylinux_2_28"
 manylinux-x86_64-image = "manylinux_2_28"
@@ -84,3 +87,5 @@ manylinux-x86_64-image = "manylinux_2_28"
 [[tool.cibuildwheel.overrides]]
 select = "*-musllinux*"
 before-all = "apk add glibc"
+
+x86_64, i686, aarch64, ppc64le, s390x, armv7l, universal2, arm64, x86, AMD64, ARM64, wasm32
