@@ -9,6 +9,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: denoland/setup-deno@v2
+        id: deno
+        with:
+          deno-version: "v2.x"
       - name: Install Hatch
         uses: pypa/hatch@install
       - run: "npm run build:deploy"
