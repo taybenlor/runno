@@ -68,5 +68,9 @@ path = "hatch_build.py"
 
 # Make sure deno is installed inside cibuildwheel containers
 [tool.cibuildwheel.linux]
-before-all = "curl -fsSL https://deno.land/install.sh | sh"
+before-all = "yum install libc6 && curl -fsSL https://deno.land/install.sh | sh"
 environment = { "PATH" = "$HOME/.deno/bin:$PATH" }
+
+[[tool.cibuildwheel.overrides]]
+select = "*-musllinux*"
+before-all = "apk add libc6"
