@@ -18,6 +18,12 @@ jobs:
         with:
           deno-version: "v2.x"
 
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22.0
         env:
