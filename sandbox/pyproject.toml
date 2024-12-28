@@ -65,3 +65,7 @@ infer_tag = true
 
 [tool.hatch.build.targets.wheel.hooks.custom]
 path = "hatch_build.py"
+
+# Make sure deno is installed inside cibuildwheel containers
+[tool.cibuildwheel.linux]
+before-all = "curl -fsSL https://deno.land/install.sh | sh"
