@@ -20,6 +20,9 @@ jobs:
 
       - run: echo "Deno version is ${{ steps.deno.outputs.deno-version }}"
       - run: echo "Binary version is:" `deno --version`
+      - run: echo "PATH is:" $PATH
+      - run: sh -c "echo $PATH"
+      - run: sh -c "deno --version"
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22.0
