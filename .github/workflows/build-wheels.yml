@@ -14,8 +14,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v2
+        id: deno
         with:
           deno-version: "v2.x"
+
+      - run: echo "Deno version is ${{ steps.deno.outputs.deno-version }}"
+      - run: echo "Binary version is:" `deno --version`
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22.0
