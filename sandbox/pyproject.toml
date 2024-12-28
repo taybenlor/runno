@@ -76,8 +76,8 @@ skip = "*-musllinux*"
 before-all = "curl -fsSL https://deno.land/install.sh | sh"
 environment = { "PATH" = "$HOME/.deno/bin:$PATH" }
 archs = ["aarch64", "armv7l", "ppc64le", "s390x", "x86_64"]
-manylinux-aarch64-image = "manylinux_2_28"
-manylinux-armv7l-image = "manylinux_2_31"
+manylinux-aarch64-image = "manylinux_2_34"                  # It seems like 2_28 doesn't exist???
+manylinux-armv7l-image = "manylinux_2_34"
 manylinux-ppc64le-image = "manylinux_2_28"
 manylinux-pypy_aarch64-image = "manylinux_2_28"
 manylinux-pypy_x86_64-image = "manylinux_2_28"
