@@ -75,7 +75,7 @@ skip = "*-musllinux*"
 [tool.cibuildwheel.linux]
 before-all = "curl -fsSL https://deno.land/install.sh | sh"
 environment = { "PATH" = "$HOME/.deno/bin:$PATH" }
-archs = ["aarch64", "armv7l", "ppc64le", "s390x", "x86_64"]
+archs = ["aarch64", "armv7l", "s390x", "x86_64"]            # TODO: Support ppc64le
 manylinux-aarch64-image = "manylinux_2_28"
 manylinux-armv7l-image = "manylinux_2_31"
 manylinux-ppc64le-image = "manylinux_2_28"
