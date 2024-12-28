@@ -68,4 +68,4 @@ path = "hatch_build.py"
 
 # Make sure deno is installed inside cibuildwheel containers
 [tool.cibuildwheel.linux]
-before-all = "curl -fsSL https://deno.land/install.sh | sh"
+before-all = "curl -fsSL https://deno.land/install.sh | sh && export PATH=$HOME/.deno/bin:$PATH"
