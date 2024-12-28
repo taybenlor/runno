@@ -11,12 +11,17 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: "v2.x"
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
       - name: Install dependencies
         run: npm run bootstrap
       - name: Build Runno
         run: npm run build
       - name: Install Playwright
         run: npx playwright install --with-deps
+      - name: Install Hatch (Python package management)
+        run: pipx install hatch
       - name: Run your tests - this might fail if playwright version is outdated
         run: npm run test
       - name: Upload test results
