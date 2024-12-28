@@ -87,5 +87,3 @@ manylinux-x86_64-image = "manylinux_2_28"
 [[tool.cibuildwheel.overrides]]
 select = "*-musllinux*"
 before-all = "apk add glibc"
-
-x86_64, i686, aarch64, ppc64le, s390x, armv7l, universal2, arm64, x86, AMD64, ARM64, wasm32
