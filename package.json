@@ -27,7 +27,7 @@
     "build:deploy": "npm run bootstrap && npm run build",
     "test:sandbox:hatch": "cd sandbox && hatch build && hatch test",
     "test:sandbox:deno": "cd sandbox/cli && deno task test",
-    "test:sandbox": "npm run test:sandbox:hatch && npm run test:sandbox:deno",
+    "test:sandbox": "npm run test:sandbox:deno && npm run test:sandbox:hatch",
     "test:client": "cd packages/client && npm run test",
     "test:wasi": "cd packages/wasi && npm run test:prepare && npm run test",
     "test:runtime": "cd packages/runtime && npm run test",

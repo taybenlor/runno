@@ -49,6 +49,12 @@ work_dir = "cli"
 commands = ["deno task compile"]
 artifacts = ["build/runno"]
 
+# chmod the artifact from previous step (it erases the executable bit)
+[[tool.hatch.build.targets.wheel.hooks.build-scripts.scripts]]
+work_dir = "runno_sandbox"
+commands = ["chmod +x build/runno"]
+artifacts = []
+
 [tool.hatch.envs.hatch-build]
 dependencies = ["deno"]
 
@@ -83,7 +89,3 @@ manylinux-pypy_aarch64-image = "manylinux_2_28"
 manylinux-pypy_x86_64-image = "manylinux_2_28"
 manylinux-s390x-image = "manylinux_2_28"
 manylinux-x86_64-image = "manylinux_2_28"
-
-[[tool.cibuildwheel.overrides]]
-select = "*-musllinux*"
-before-all = "apk add glibc"
