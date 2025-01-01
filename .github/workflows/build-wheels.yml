@@ -17,6 +17,7 @@ jobs:
         id: deno
         with:
           deno-version: "v2.x"
+      - run: cd sandbox/cli && deno task bootstrap
 
       - name: Set up QEMU
         if: runner.os == 'Linux'
