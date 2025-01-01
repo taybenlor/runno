@@ -37,7 +37,7 @@ async def run_code(runtime: Runtime, code: str) -> RunResult:
 
 async def run_fs(runtime: Runtime, entry_path: WASIPath, fs: WASIFS) -> RunResult:
     proc = await asyncio.create_subprocess_exec(
-        "build/runno",
+        "./runno",
         runtime,
         entry_path,
         "--filesystem-stdin",

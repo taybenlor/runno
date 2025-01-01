@@ -47,11 +47,11 @@ build-backend = "hatchling.build"
 out_dir = "runno_sandbox"
 work_dir = "cli"
 commands = ["deno task compile"]
-artifacts = ["build/runno"]
+artifacts = ["runno"]
 
 # chmod the artifact from previous step (it erases the executable bit)
 [[tool.hatch.build.targets.wheel.hooks.build-scripts.scripts]]
-work_dir = "runno_sandbox/build"
+work_dir = "runno_sandbox"
 commands = ["python -c \"import os; os.chmod('runno', 0o755)\""]
 artifacts = []
 
@@ -59,11 +59,11 @@ artifacts = []
 dependencies = ["deno"]
 
 [tool.hatch.build.targets.sdist]
-exclude = ["/.github", "/docs", "build/runno"]
+exclude = ["/.github", "/docs", "runno"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["runno_sandbox"]
-artifacts = ["build/runno"]
+artifacts = ["runno"]
 
 [tool.hatch.build.targets.wheel.build-data]
 pure_python = false
