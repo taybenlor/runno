@@ -1,5 +1,5 @@
 [project]
-name = "runno-sandbox"
+name = "runno"
 version = "0.1.0"
 description = "Run untrusted code inside the Runno WebAssembly sandbox."
 authors = [{ name = "Ben Taylor", email = "me@taybenlor.com" }]
@@ -44,14 +44,14 @@ requires = ["hatchling", "hatch-build-scripts"]
 build-backend = "hatchling.build"
 
 [[tool.hatch.build.targets.wheel.hooks.build-scripts.scripts]]
-out_dir = "runno_sandbox"
+out_dir = "runno"
 work_dir = "cli"
 commands = ["deno task compile"]
 artifacts = ["runno"]
 
 # chmod the artifact from previous step (it erases the executable bit)
 [[tool.hatch.build.targets.wheel.hooks.build-scripts.scripts]]
-work_dir = "runno_sandbox"
+work_dir = "runno"
 commands = [
   "python -c \"import os; os.name != 'nt' and os.chmod('runno', 0o755)\"",
 ]
@@ -64,7 +64,7 @@ dependencies = ["deno"]
 exclude = ["/.github", "/docs", "runno"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["runno_sandbox"]
+packages = ["runno"]
 artifacts = ["runno"]
 
 [tool.hatch.build.targets.wheel.build-data]

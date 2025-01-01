@@ -1,5 +1,5 @@
 import pytest
-from runno_sandbox import run_code
+from runno import run_code
 
 
 @pytest.mark.asyncio

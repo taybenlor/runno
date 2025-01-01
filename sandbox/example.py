@@ -1,4 +1,4 @@
-from runno_sandbox import run_code
+from runno import run_code
 import asyncio
 
 

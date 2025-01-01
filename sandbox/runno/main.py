@@ -18,8 +18,19 @@ from .types import (
     WASITimestamps,
 )
 
+"""
+Runno is a simple sandboxing tool that allows you to run code in a variety of
+programming languages in a secure environment. It is built on top of the WASI
+specification and uses Deno to execute a WebAssembly runtime.
+"""
+
 
 async def run_code(runtime: Runtime, code: str) -> RunResult:
+    """
+    Run code in a Runno sandbox.
+
+    Available runtimes: python, quickjs, sqlite, clang, clangpp, ruby, php-cgi
+    """
     fs: WASIFS = {
         "/program": StringFile(
             path="/program",
@@ -36,6 +47,17 @@ async def run_code(runtime: Runtime, code: str) -> RunResult:
 
 
 async def run_fs(runtime: Runtime, entry_path: WASIPath, fs: WASIFS) -> RunResult:
+    """
+    Run code in a Runno sandbox with a custom filesystem.
+
+    The `entry_path` is the path to the file that will be executed within that
+    custom filesystem.
+
+    This is useful for packaging multiple files together, or for running code that
+    has dependencies on packages. The filesystem is a dictionary of paths to files.
+
+    See the types module for more information on the WASIFS type.
+    """
     proc = await asyncio.create_subprocess_exec(
         "./runno",
         runtime,

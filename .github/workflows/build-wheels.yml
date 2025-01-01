@@ -1,4 +1,4 @@
-name: Build runno_sandbox wheels
+name: Build runno wheels
 
 on: [pull_request]
 
