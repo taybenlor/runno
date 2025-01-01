@@ -18,12 +18,6 @@ from .types import (
     WASITimestamps,
 )
 
-"""
-Runno is a simple sandboxing tool that allows you to run code in a variety of
-programming languages in a secure environment. It is built on top of the WASI
-specification and uses Deno to execute a WebAssembly runtime.
-"""
-
 
 async def run_code(runtime: Runtime, code: str) -> RunResult:
     """
@@ -117,3 +111,6 @@ async def run_fs(runtime: Runtime, entry_path: WASIPath, fs: WASIFS) -> RunResul
         )
     else:
         raise ValueError(f"Unknown result type: {result_type}")
+
+
+__all__ = ["run_code", "run_fs"]

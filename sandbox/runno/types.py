@@ -87,3 +87,6 @@ class TerminatedResult(BaseModel):
 
 
 type RunResult = Union[CompleteResult, CrashResult, TerminatedResult]
+
+
+__all__ = ["StringFile", "BinaryFile", "WASIFS"]

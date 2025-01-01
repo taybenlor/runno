@@ -1,6 +1,6 @@
 [project]
 name = "runno"
-version = "0.1.1"
+version = "0.1.2"
 description = "Run untrusted code inside the Runno WebAssembly sandbox."
 authors = [{ name = "Ben Taylor", email = "me@taybenlor.com" }]
 maintainers = [{ name = "Ben Taylor", email = "me@taybenlor.com" }]
@@ -57,19 +57,12 @@ commands = [
 ]
 artifacts = []
 
-[tool.hatch.envs.hatch-build]
-dependencies = ["deno"]
-
 [tool.hatch.build.targets.sdist]
 exclude = ["/.github", "/docs", "runno"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["runno"]
 artifacts = ["runno"]
-
-[tool.hatch.build.targets.wheel.build-data]
-pure_python = false
-infer_tag = true
 
 [tool.hatch.build.targets.wheel.hooks.custom]
 path = "hatch_build.py"
@@ -91,3 +84,6 @@ manylinux-pypy_aarch64-image = "manylinux_2_28"
 manylinux-pypy_x86_64-image = "manylinux_2_28"
 manylinux-s390x-image = "manylinux_2_28"
 manylinux-x86_64-image = "manylinux_2_28"
+
+[tool.cibuildwheel.macos]
+environment = { "MACOSX_DEPLOYMENT_TARGET" = "15.0" }
