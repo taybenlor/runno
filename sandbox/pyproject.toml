@@ -52,7 +52,9 @@ artifacts = ["runno"]
 # chmod the artifact from previous step (it erases the executable bit)
 [[tool.hatch.build.targets.wheel.hooks.build-scripts.scripts]]
 work_dir = "runno_sandbox"
-commands = ["python -c \"import os; os.chmod('runno', 0o755)\""]
+commands = [
+  "python -c \"import os; os.name != 'nt' and os.chmod('runno', 0o755)\"",
+]
 artifacts = []
 
 [tool.hatch.envs.hatch-build]
