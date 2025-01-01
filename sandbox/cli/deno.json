@@ -16,7 +16,8 @@
   "tasks": {
     "test": "deno test --allow-read",
     "cli": "deno --allow-net --allow-read src/main.ts",
-    "compile": "cp -R ../../langs . && deno compile --frozen --include langs --output runno bin/main.ts"
+    "bootstrap": "cp -R ../../langs .",
+    "compile": "deno compile --frozen --include langs --output runno bin/main.ts"
   },
   "lock": {
     "path": "./deno.lock",
