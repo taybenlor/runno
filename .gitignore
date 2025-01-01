@@ -45,6 +45,7 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
+wheelhouse/
 
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
@@ -124,3 +125,6 @@ dist
 
 # Generated Docs
 packages/*/docs
+
+# Python
+__pycache__

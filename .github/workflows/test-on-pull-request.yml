@@ -11,6 +11,11 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: "v2.x"
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+      - name: Install Hatch
+        uses: pypa/hatch@install
       - name: Install dependencies
         run: npm run bootstrap
       - name: Build Runno
