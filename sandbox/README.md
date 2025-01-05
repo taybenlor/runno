@@ -27,7 +27,8 @@ If you want to process files within your sandbox, you can include them in the
 file system by using the `run_fs` method.
 
 ```python
-from runno import run_code, WASIFS, StringFile
+from runno import run_fs, WASIFS, StringFile, WASITimestamps
+
 fs: WASIFS = {
     "/program.py": StringFile(
         path="/program.py",
@@ -63,3 +64,20 @@ await run_fs(runtime, "/program", fs)
 
 You can use the same technique to include pure python packages as dependencies.
 The interface for this is not super nice right now, but it's on the way.
+
+## Limiting Execution Time
+
+You can limit how much time is allocated for execution using an optional
+`timeout` kwarg (measured in seconds). Like:
+
+```
+from runno import run_code
+
+code = "while True: pass"
+result = await run_code("python", code, timeout=5)
+
+if result.result_type == "timeout":
+    print("Timed out.")
+else:
+    print("Wow, it ran forever.")
+```

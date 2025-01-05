@@ -1,8 +1,5 @@
-import type { WASIContextOptions } from "../wasi/wasi-context";
-import type { WASIExecutionResult } from "../types";
-import type { HostMessage, WorkerMessage } from "./wasi-worker";
-
-import WASIWorker from "./wasi-worker?worker&inline";
+import type { WASIExecutionResult, WASIContextOptions } from "@runno/wasi";
+import type { HostMessage, WorkerMessage } from "./worker.ts";
 
 function sendMessage(worker: Worker, message: WorkerMessage) {
   worker.postMessage(message);
@@ -29,14 +26,16 @@ export class WASIWorkerHost {
     this.context = context;
   }
 
-  async start() {
+  start() {
     if (this.result) {
       throw new Error("WASIWorker Host can only be started once");
     }
 
     this.result = new Promise<WASIExecutionResult>((resolve, reject) => {
       this.reject = reject;
-      this.worker = new WASIWorker();
+      this.worker = new Worker(new URL("./worker.ts", import.meta.url), {
+        type: "module",
+      });
 
       this.worker.addEventListener("message", (messageEvent) => {
         const message: HostMessage = messageEvent.data;

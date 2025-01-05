@@ -1,6 +1,6 @@
 [project]
 name = "runno"
-version = "0.1.2"
+version = "0.2.0"
 description = "Run untrusted code inside the Runno WebAssembly sandbox."
 authors = [{ name = "Ben Taylor", email = "me@taybenlor.com" }]
 maintainers = [{ name = "Ben Taylor", email = "me@taybenlor.com" }]
