@@ -40,7 +40,15 @@ export type TerminatedResult = {
   resultType: "terminated";
 };
 
-export type RunResult = CompleteResult | CrashResult | TerminatedResult;
+export type TimeoutResult = {
+  resultType: "timeout";
+};
+
+export type RunResult =
+  | CompleteResult
+  | CrashResult
+  | TerminatedResult
+  | TimeoutResult;
 
 export type RuntimeMethods = {
   showControls: () => void;
