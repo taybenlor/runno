@@ -8,10 +8,12 @@ from .types import (
     BaseFile,
     CompleteResult,
     CrashResult,
+    Options,
     RunnoError,
     Runtime,
     WASIFS,
     TerminatedResult,
+    TimeoutResult,
     WASIPath,
     StringFile,
     RunResult,
@@ -19,7 +21,7 @@ from .types import (
 )
 
 
-async def run_code(runtime: Runtime, code: str) -> RunResult:
+async def run_code(runtime: Runtime, code: str, **kwargs: Options) -> RunResult:
     """
     Run code in a Runno sandbox.
 
@@ -37,10 +39,12 @@ async def run_code(runtime: Runtime, code: str) -> RunResult:
             content=code,
         )
     }
-    return await run_fs(runtime, "/program", fs)
+    return await run_fs(runtime, "/program", fs, **kwargs)
 
 
-async def run_fs(runtime: Runtime, entry_path: WASIPath, fs: WASIFS) -> RunResult:
+async def run_fs(
+    runtime: Runtime, entry_path: WASIPath, fs: WASIFS, **kwargs: Options
+) -> RunResult:
     """
     Run code in a Runno sandbox with a custom filesystem.
 
@@ -52,6 +56,18 @@ async def run_fs(runtime: Runtime, entry_path: WASIPath, fs: WASIFS) -> RunResul
 
     See the types module for more information on the WASIFS type.
     """
+    try:
+        return await asyncio.wait_for(
+            _internal_run_fs(runtime, entry_path, fs, **kwargs),
+            timeout=kwargs.get("timeout", 5),
+        )
+    except asyncio.TimeoutError:
+        return TimeoutResult(result_type="timeout")
+
+
+async def _internal_run_fs(
+    runtime: Runtime, entry_path: WASIPath, fs: WASIFS, **kwargs: Options
+) -> RunResult:
     proc = await asyncio.create_subprocess_exec(
         "./runno",
         runtime,
@@ -84,7 +100,9 @@ async def run_fs(runtime: Runtime, entry_path: WASIPath, fs: WASIFS) -> RunResul
 
     if exit_code != 0:
         raise RuntimeError(
-            f"Runno sandbox subprocess failed with exit code {exit_code}"
+            f"Runno sandbox subprocess failed with exit code {exit_code}",
+            stdout,
+            stderr,
         )
 
     data = json.loads(stdout)

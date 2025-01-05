@@ -10,6 +10,7 @@ import {
   CrashResult,
   Runtime,
   TerminatedResult,
+  TimeoutResult,
 } from "../lib/types.ts";
 import { fetchWASIFS } from "../lib/main.ts";
 import { extractTarGz } from "../lib/tar.ts";
@@ -32,13 +33,17 @@ const command = new Command()
   .description(
     `A CLI for running code in a sandbox environment, powered by Runno & WASI.
 Supports python, ruby, quickjs, php-cgi, clang, and clangpp.
-Entry name is the name of the entrypoint in the base filesystem.
+Entry path is the path of the entrypoint in the base filesystem.
 `
   )
-  .arguments("<runtime:string> <entry-path:string>")
+  .arguments("<runtime:string> [entry-path:string]")
   .option(
     "-f, --filesystem <filesystem:string>",
     "A tgz file to use as the base filesystem"
+  )
+  .option(
+    "-t --timeout <timeout:number>",
+    "The maximum amount of time to allow the code to run (in seconds)"
   )
   .option(
     "--filesystem-stdin",
@@ -56,17 +61,17 @@ Entry name is the name of the entrypoint in the base filesystem.
         filesystemStdin?: true;
         entryStdin?: true;
         json?: true;
+        timeout?: number;
       },
-      ...args: [string, string]
+      ...args: [string, string | undefined]
     ) => {
-      const [runtimeString, entry] = args;
+      let [runtimeString, entry] = args;
       if (!isRuntime(runtimeString)) {
         throw new Error(`Unsupported runtime: ${runtimeString}`);
       }
       const runtime: Runtime = runtimeString;
 
-      // TODO: Read the entry file from stdin
-
+      entry = entry ?? "/program";
       const entryPath = entry.startsWith("/") ? entry : `/${entry}`;
       let fs: WASIFS = {};
 
@@ -95,7 +100,9 @@ Entry name is the name of the entrypoint in the base filesystem.
         };
       }
 
-      const result = await runFS(runtime, entryPath, fs);
+      const result = await runFS(runtime, entryPath, fs, {
+        timeout: options.timeout,
+      });
       if (options.json) {
         let jsonResult: JSONResult;
         if (result.resultType === "complete") {
@@ -173,4 +180,5 @@ export type StringWASIFile = {
 export type JSONResult =
   | (Omit<CompleteResult, "fs"> & { fs: Base64WASIFS })
   | CrashResult
-  | TerminatedResult;
+  | TerminatedResult
+  | TimeoutResult;

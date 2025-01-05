@@ -9,6 +9,7 @@ from .types import (
     StringFile,
     BinaryFile,
     WASIFS,
+    WASITimestamps,
 )
 
-__all__ = ["run_code", "run_fs", "StringFile", "BinaryFile", "WASIFS"]
+__all__ = ["run_code", "run_fs", "StringFile", "BinaryFile", "WASIFS", "WASITimestamps"]

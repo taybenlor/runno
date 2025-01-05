@@ -10,8 +10,8 @@
     "jsr:@std/fmt@~1.0.2": "1.0.3",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/io@0.225": "0.225.0",
-    "jsr:@std/streams@^1.0.7": "1.0.8",
-    "jsr:@std/tar@~0.1.3": "0.1.3",
+    "jsr:@std/streams@^1.0.8": "1.0.8",
+    "jsr:@std/tar@~0.1.3": "0.1.4",
     "jsr:@std/text@~1.0.7": "1.0.8",
     "npm:@runno/wasi@0.7": "0.7.0"
   },
@@ -65,8 +65,8 @@
     "@std/streams@1.0.8": {
       "integrity": "b41332d93d2cf6a82fe4ac2153b930adf1a859392931e2a19d9fabfb6f154fb3"
     },
-    "@std/tar@0.1.3": {
-      "integrity": "531270fc707b37ab9b5f051aa4943e7b16b86905e0398a4ebe062983b0c93115",
+    "@std/tar@0.1.4": {
+      "integrity": "1bc1f1f9bfd557e849b31d6521348fdf5848886d87c851f1f0f992d002fe0ff5",
       "dependencies": [
         "jsr:@std/streams"
       ]

@@ -1,4 +1,8 @@
-import { WASIFS, WASI } from "@runno/wasi";
+import type {
+  WASIFS,
+  WASIExecutionResult,
+  WASIContextOptions,
+} from "@runno/wasi";
 import {
   Command,
   commandsForRuntime,
@@ -6,11 +10,15 @@ import {
 } from "./commands.ts";
 import { fetchWASIFS, makeBlobFromPath, makeRunnoError } from "./helpers.ts";
 import { CompleteResult, RunResult, Runtime } from "./types.ts";
+import { WASIWorkerHost } from "./host.ts";
 
-export async function runCode(
+export function runCode(
   runtime: Runtime,
   code: string,
-  stdin?: string
+  options: {
+    stdin?: string;
+    timeout?: number;
+  } = {}
 ): Promise<RunResult> {
   const fs: WASIFS = {
     "/program": {
@@ -24,14 +32,18 @@ export async function runCode(
       },
     },
   };
-  return runFS(runtime, "/program", fs, stdin);
+
+  return runFS(runtime, "/program", fs, options);
 }
 
 export async function runFS(
   runtime: Runtime,
   entryPath: string,
   fs: WASIFS,
-  stdin?: string
+  options: {
+    stdin?: string;
+    timeout?: number;
+  } = {}
 ): Promise<RunResult> {
   const commands = commandsForRuntime(runtime, entryPath);
 
@@ -40,6 +52,12 @@ export async function runFS(
     prepare = await headlessPrepareFS(commands.prepare ?? [], fs);
     fs = prepare.fs;
   } catch (e) {
+    if (e instanceof TimeoutError) {
+      return {
+        resultType: "timeout",
+      };
+    }
+
     return {
       resultType: "crash",
       error: makeRunnoError(e),
@@ -61,31 +79,44 @@ export async function runFS(
     }
   }
 
-  let stdinBytes = new TextEncoder().encode(stdin ?? "");
+  try {
+    const resultWithLimits = await _startWASIWithLimits(
+      binaryPath,
+      {
+        args: [run.binaryName, ...(run.args ?? [])],
+        env: run.env,
+        fs,
+        stdin: options.stdin,
+        stdout: (out: string) => {
+          prepare.stdout += out;
+          prepare.tty += out;
+        },
+        stderr: (err: string) => {
+          prepare.stderr += err;
+          prepare.tty += err;
+        },
+      },
+      {
+        timeout: options.timeout,
+      }
+    );
 
-  const result = await WASI.start(fetch(makeBlobFromPath(binaryPath)), {
-    args: [run.binaryName, ...(run.args ?? [])],
-    env: run.env,
-    fs,
-    stdin: (maxByteLength: number) => {
-      const chunk = stdinBytes.slice(0, maxByteLength);
-      stdinBytes = stdinBytes.slice(maxByteLength);
-      return new TextDecoder().decode(chunk);
-    },
-    stdout: (out: string) => {
-      prepare.stdout += out;
-      prepare.tty += out;
-    },
-    stderr: (err: string) => {
-      prepare.stderr += err;
-      prepare.tty += err;
-    },
-  });
+    prepare.fs = { ...fs, ...resultWithLimits.result.fs };
+    prepare.exitCode = resultWithLimits.result.exitCode;
 
-  prepare.fs = { ...fs, ...result.fs };
-  prepare.exitCode = result.exitCode;
+    return prepare;
+  } catch (e) {
+    if (e instanceof TimeoutError) {
+      return {
+        resultType: "timeout",
+      };
+    }
 
-  return prepare;
+    return {
+      resultType: "crash",
+      error: makeRunnoError(e),
+    };
+  }
 }
 
 type PrepareErrorData = {
@@ -107,9 +138,10 @@ export class PrepareError extends Error {
 
 export async function headlessPrepareFS(
   prepareCommands: Command[],
-  fs: WASIFS
+  fs: WASIFS,
+  limits: Partial<Limits> = {}
 ) {
-  let prepare: CompleteResult = {
+  const prepare: CompleteResult = {
     resultType: "complete",
     stdin: "",
     stdout: "",
@@ -127,24 +159,31 @@ export async function headlessPrepareFS(
       prepare.fs = { ...prepare.fs, ...baseFS };
     }
 
-    const result = await WASI.start(fetch(makeBlobFromPath(binaryPath)), {
-      args: [command.binaryName, ...(command.args ?? [])],
-      env: command.env,
-      fs: prepare.fs,
-      stdout: (out: string) => {
-        prepare.stdout += out;
-        prepare.tty += out;
+    const resultWithLimits = await _startWASIWithLimits(
+      binaryPath,
+      {
+        args: [command.binaryName, ...(command.args ?? [])],
+        env: command.env,
+        fs: prepare.fs,
+        stdout: (out: string) => {
+          prepare.stdout += out;
+          prepare.tty += out;
+        },
+        stderr: (err: string) => {
+          prepare.stderr += err;
+          prepare.tty += err;
+        },
       },
-      stderr: (err: string) => {
-        prepare.stderr += err;
-        prepare.tty += err;
-      },
-    });
+      limits
+    );
 
-    prepare.fs = result.fs;
-    prepare.exitCode = result.exitCode;
+    prepare.fs = resultWithLimits.result.fs;
+    prepare.exitCode = resultWithLimits.result.exitCode;
 
-    if (result.exitCode !== 0) {
+    // Consume the timeout
+    limits.timeout = resultWithLimits.remainingLimits.timeout;
+
+    if (resultWithLimits.result.exitCode !== 0) {
       // If a prepare step fails then we stop.
       throw new PrepareError(
         "Prepare step returned a non-zero exit code",
@@ -154,4 +193,61 @@ export async function headlessPrepareFS(
   }
 
   return prepare;
+}
+
+type Limits = {
+  timeout: number;
+};
+
+type WASIExecutionResultWithLimits = {
+  result: WASIExecutionResult;
+  remainingLimits: Partial<Limits>;
+};
+
+type Context = Omit<WASIContextOptions, "stdin"> & { stdin: string };
+
+async function _startWASIWithLimits(
+  binaryPath: string,
+  context: Partial<Context>,
+  limits: Partial<Limits>
+): Promise<WASIExecutionResultWithLimits> {
+  const startTime = performance.now();
+  const workerHost = new WASIWorkerHost(makeBlobFromPath(binaryPath), context);
+
+  if (context.stdin) {
+    workerHost.pushStdin(context.stdin);
+  }
+
+  let result: WASIExecutionResult | "timeout";
+  if (limits.timeout) {
+    const timeoutPromise: Promise<"timeout"> = new Promise((resolve) =>
+      setTimeout(() => resolve("timeout"), limits.timeout! * 1000)
+    );
+
+    result = await Promise.race([workerHost.start(), timeoutPromise]);
+  } else {
+    result = await workerHost.start();
+  }
+
+  if (result === "timeout") {
+    workerHost.kill();
+    throw new TimeoutError();
+  }
+
+  const endTime = performance.now();
+
+  return {
+    result,
+    remainingLimits: {
+      timeout: limits.timeout
+        ? limits.timeout - (endTime - startTime) / 1000
+        : undefined,
+    },
+  };
+}
+
+class TimeoutError extends Error {
+  constructor() {
+    super("Execution timed out");
+  }
 }

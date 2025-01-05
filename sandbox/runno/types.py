@@ -1,5 +1,5 @@
 import base64
-from typing import Literal, Union, Dict
+from typing import Literal, Union, Dict, TypedDict
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -86,7 +86,29 @@ class TerminatedResult(BaseModel):
     result_type: Literal["terminated"]
 
 
-type RunResult = Union[CompleteResult, CrashResult, TerminatedResult]
+class TimeoutResult(BaseModel):
+    result_type: Literal["timeout"]
 
 
-__all__ = ["StringFile", "BinaryFile", "WASIFS"]
+type RunResult = Union[CompleteResult, CrashResult, TerminatedResult, TimeoutResult]
+
+
+class Options(TypedDict):
+    timeout: float
+
+
+__all__ = [
+    "StringFile",
+    "BinaryFile",
+    "WASIFS",
+    "WASITimestamps",
+    "Options",
+    "RunnoError",
+    "Runtime",
+    "WASIPath",
+    "RunResult",
+    "TimeoutResult",
+    "TerminatedResult",
+    "CompleteResult",
+    "CrashResult",
+]

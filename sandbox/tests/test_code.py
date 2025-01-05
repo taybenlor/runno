@@ -61,3 +61,9 @@ async def test_simple_cpp():
     assert result.stdout == "Hello, World!\n"
     assert result.stderr == ""
     assert result.exit_code == 0
+
+
+@pytest.mark.asyncio
+async def test_timeout():
+    result = await run_code("python", "while True: pass", timeout=0.1)
+    assert result.result_type == "timeout"

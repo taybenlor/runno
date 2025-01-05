@@ -77,3 +77,8 @@ int main() {
   assertEquals(result.stderr, "");
   assertEquals(result.stdout, "Hello, World!\n");
 });
+
+Deno.test("a simple timeout example", async () => {
+  const result = await runCode("python", `while True:pass`, { timeout: 0.5 });
+  assertEquals(result.resultType, "timeout");
+});
