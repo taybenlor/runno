@@ -59,7 +59,7 @@ async def run_fs(
     try:
         return await asyncio.wait_for(
             _internal_run_fs(runtime, entry_path, fs, **kwargs),
-            timeout=kwargs.get("timeout", 5),
+            timeout=kwargs.get("timeout", None),
         )
     except asyncio.TimeoutError:
         return TimeoutResult(result_type="timeout")

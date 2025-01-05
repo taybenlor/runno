@@ -122,6 +122,10 @@ Entry path is the path of the entrypoint in the base filesystem.
           console.error(result.stderr);
           console.log(result.stdout);
           break;
+        case "timeout":
+          console.error("Timeout");
+          Deno.exit(1);
+          break;
         case "crash":
           console.error(result.error);
           Deno.exit(1);

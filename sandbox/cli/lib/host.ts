@@ -33,15 +33,9 @@ export class WASIWorkerHost {
 
     this.result = new Promise<WASIExecutionResult>((resolve, reject) => {
       this.reject = reject;
-      this.worker = new Worker(
-        new URL(
-          "../../../packages/wasi/lib/worker/wasi-worker.ts",
-          import.meta.url
-        ),
-        {
-          type: "module",
-        }
-      );
+      this.worker = new Worker(new URL("./worker.ts", import.meta.url), {
+        type: "module",
+      });
 
       this.worker.addEventListener("message", (messageEvent) => {
         const message: HostMessage = messageEvent.data;
@@ -82,6 +76,9 @@ export class WASIWorkerHost {
         fs: this.context.fs,
         isTTY: this.context.isTTY,
       });
+    }).then((result) => {
+      this.worker?.terminate();
+      return result;
     });
 
     return this.result;

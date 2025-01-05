@@ -77,6 +77,9 @@ export class WASIWorkerHost {
         fs: this.context.fs,
         isTTY: this.context.isTTY,
       });
+    }).then((result) => {
+      this.worker?.terminate();
+      return result;
     });
 
     return this.result;
