@@ -70,7 +70,7 @@ The interface for this is not super nice right now, but it's on the way.
 You can limit how much time is allocated for execution using an optional
 `timeout` kwarg (measured in seconds). Like:
 
-```
+```python
 from runno import run_code
 
 code = "while True: pass"
