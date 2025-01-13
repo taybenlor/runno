@@ -1,6 +1,6 @@
 [project]
 name = "runno"
-version = "0.2.0"
+version = "0.2.1"
 description = "Run untrusted code inside the Runno WebAssembly sandbox."
 authors = [{ name = "Ben Taylor", email = "me@taybenlor.com" }]
 maintainers = [{ name = "Ben Taylor", email = "me@taybenlor.com" }]
@@ -58,7 +58,7 @@ commands = [
 artifacts = []
 
 [tool.hatch.build.targets.sdist]
-exclude = ["/.github", "/docs", "runno"]
+exclude = ["/.github", "/docs", "runno/runno", "cli/runno"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["runno"]
