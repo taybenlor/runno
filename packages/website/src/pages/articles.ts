@@ -14,6 +14,15 @@ import "../components/docker-playground";
 
 const articles = [
   {
+    slug: "sandbox-python",
+    title:
+      "I made it so you can `pip install runno` and run Ruby inside Python",
+    markdown: sandboxPythonMarkdown,
+    published: new Date("2024-01-25"),
+    draft: true,
+    author: "Ben Taylor",
+  },
+  {
     slug: "experiment-docker",
     title: "Experimental Docker WASI Images",
     markdown: experimentDockerMarkdown,
@@ -43,15 +52,6 @@ const articles = [
     title: "Just implementing the whole WASI standard",
     markdown: wasiArticleMarkdown,
     published: new Date("3022-10-01"),
-    draft: true,
-    author: "Ben Taylor",
-  },
-  {
-    slug: "sandbox-python",
-    title:
-      "I made it so you can `pip install runno` and run Ruby inside Python",
-    markdown: sandboxPythonMarkdown,
-    published: new Date("2024-01-25"),
     draft: true,
     author: "Ben Taylor",
   },

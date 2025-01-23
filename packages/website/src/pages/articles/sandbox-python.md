@@ -22,17 +22,14 @@ import asyncio
 from runno import run_code
 
 async def hello():
-  code = "puts('Hello Python!')"
-  result = await run_code("ruby", code)
+  result = await run_code(
+    "ruby",
+    "puts('Hello Python!')"
+  )
   return result.stdout
 
 message = asyncio.run(hello())
 print("Ruby says:", message)
-
-if message == "Hello Python!\n":
-  print("Python says:", "Hello Ruby!")
-else:
-  print("Why won't Ruby be my friend?")
 
 ```
 
@@ -40,16 +37,20 @@ else:
 
 _Note: you can run that example with `$ uv run example.py` on python 3.13 to try it out._
 
-Why would I make this? Mostly because it seemed interesting. But the reason it
-seemed interesting is that people keep making LLMs write code. It's scary to me
-to just run the code that an LLM writes. Especially if you are using the
-code-running as a tool that the LLM can call out to. Who knows what that LLM
-will write? So you should probably run it in a sandbox. But if you are writing
+Why would I make this? Mostly because it seemed interesting.
+
+But the reason it seemed interesting is that people keep making LLMs write code.
+It's scary to me to just run the code that an LLM writes. Especially if you are
+using the code-running as a tool that the LLM can call out to.
+Who knows what that LLM will write?
+
+So you should probably run it in a sandbox. But if you are writing
 stuff with LLMs you are probably writing Python, so how can you run this code in
 a sandbox from Python?
 
-That's the problem I wanted to tackle, and I already had a sandbox in my pocket
-so I decided to use that sandbox as the basis for this sandbox.
+That's the problem I wanted to tackle, and I already had a sandbox in my pocket.
+It's called Runno (hello you are on the Runno website) and it runs code in the
+browser. So I decided to use that sandbox as the basis for this sandbox.
 
 In this post I'll talk about:
 
@@ -232,6 +233,10 @@ Figuring this out is left as an exercise to the reader.
 
 ## 2. How I made the runno package using `deno compile`
 
+_Note: I'm going to skip over the bit where I built Runno and what it is. It's
+a tool for running programming languages in the browser. You can find out more
+by browsing this website._
+
 In the opening section I mentioned that Runno is built for the browser using
 Typescript. So how did I get it running in Python? Python is a different
 programming language and does not normally interface with browsers (without the
@@ -345,7 +350,7 @@ a standard set of functions that a WebAssembly binary can call like they are
 system calls. Mostly they do things like read and write files.
 
 _Note: this is actually a definition of WASI preview1, preview2 / 0.2 is a
-quite different beast and is very cool but out of scope of this article_
+different beast and is very cool but out of scope of this article._
 
 Runno at it's core is an implementation of WASI preview1. It's kind of like a
 very lightweight Operating System implemented in TypeScript. It has a virtual
@@ -354,10 +359,10 @@ in memory). So it never accesses your real file system either. It also has no
 network access or anything else like that.
 
 So 1) it's a virtual machine, 2) it's a virtual file system, and 3) it has no
-network access. That's all the stuff inside WebAssembly. But what about the
-TypeScript that runs the Sandbox. Couldn't it be vulnerable to some sort of
-supply chain attack? That stuff is always happening in the JS packaging
-ecosystem.
+network access. That's all the stuff inside WebAssembly. That's pretty good.
+But what about the TypeScript that runs the Sandbox. Couldn't it be vulnerable
+to some sort of supply chain attack? That stuff is always happening in the
+JS packaging ecosystem.
 
 Well because it's compiled with Deno, it can't do that. Deno (by default)
 prevents access to system resources. I've intentionally not enabled file or
