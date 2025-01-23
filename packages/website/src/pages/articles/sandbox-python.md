@@ -1,7 +1,4 @@
-# I made it so you can `pip install runno` and run Ruby inside Python
-
-_Note: you can also run Python inside Python and C, and C++, and JavaScript but
-the Ruby one is funniest I think_
+# I made a Python package for sandboxing code
 
 Over the holidays I made a version of the Runno sandbox for Python, and released
 it to [PyPI](https://pypi.org/project/runno/). This was a bit of a
