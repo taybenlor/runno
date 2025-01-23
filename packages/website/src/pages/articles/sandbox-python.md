@@ -10,29 +10,35 @@ browser.
 
 tl;dr - it lets you do this:
 
+<!-- prettier-ignore -->
 <runno-code syntax="python">
+
+```
 # /// script
 # dependencies = ["runno"]
 # ///
+
 import asyncio
 from runno import run_code
 
 async def hello():
-code = "puts('Hello Python!')"
-result = await run_code("ruby", code)
-return result.stdout
+  code = "puts('Hello Python!')"
+  result = await run_code("ruby", code)
+  return result.stdout
 
 message = asyncio.run(hello())
 print("Ruby says:", message)
 
 if message == "Hello Python!\n":
-print("Python says:", "Hello Ruby!")
+  print("Python says:", "Hello Ruby!")
 else:
-print("Why won't Ruby be my friend?")
+  print("Why won't Ruby be my friend?")
+
+```
 
 </runno-code>
 
-_Note: you can run that example with `uv run example.py` on python 3.13 to try it out_
+_Note: you can run that example with `$ uv run example.py` on python 3.13 to try it out._
 
 Why would I make this? Mostly because it seemed interesting. But the reason it
 seemed interesting is that people keep making LLMs write code. It's scary to me
@@ -64,7 +70,10 @@ following language runtimes:
 4. `clang` - Clang fork for WASM by Binji [github](https://github.com/binji/wasm-clang)
 5. `clangpp` - Using the same Clang fork
 
-Plus a couple of bonus spicy ones that work a bit differently: 6. `php-cgi` - PHP CGI version `8.2.0` compiled by VMWare Labs [github](https://github.com/vmware-labs/webassembly-language-runtimes) 7. `sqlite` - SQLite from WAPM [github](https://github.com/wapm-packages/sqlite)
+Plus a couple of bonus spicy ones that work a bit differently:
+
+6. `php-cgi` - PHP CGI version `8.2.0` compiled by VMWare Labs [github](https://github.com/vmware-labs/webassembly-language-runtimes)
+7. `sqlite` - SQLite from WAPM [github](https://github.com/wapm-packages/sqlite)
 
 _Note: All of these runtimes are packaged with the Runno binary and will run locally
 without connecting to the internet._
@@ -73,8 +82,12 @@ without connecting to the internet._
 
 Here's the function signature for `run_code`:
 
+<!-- prettier-ignore -->
 <runno-code syntax="python">
-async def run_code(runtime: Runtime, code: str, **kwargs: Options) -> RunResult:
+
+async def run_code(
+runtime: Runtime, code: str, \*\*kwargs: Options
+) -> RunResult:
 
 </runno-code>
 
@@ -84,21 +97,28 @@ examples:
 
 **Doing a calculation in a sandbox**
 
+<!-- prettier-ignore -->
 <runno-code syntax="python">
+
+```
 # ... asyncio code omitted
 from runno import run_code
 
 async def sandbox(calculation):
-result = await run_code("python", f"print({calculation})")
-return int(result.stdout)
+  result = await run_code("python", f"print({calculation})")
+  return int(result.stdout)
 
 result = sandbox("1 + 1")
 print(f"1 + 1 = {result}")
+```
 
 </runno-code>
 
+This is slightly less expensive than getting an LLM to do the addition.
+
 **Running some generated C code**
 
+<!-- prettier-ignore -->
 <runno-code syntax="python">
 # ... asyncio code omitted
 from runno import run_code
@@ -112,11 +132,12 @@ print(result.tty)
 
 To run the C code Runno uses a WASI compiled release of clang set up to target
 `wasm32-unknown-wasi`. First it compiles the C-code to WebAssembly inside the
-Runno sandbox, then it runs the compiled WebAssembly binary, again inside the
+Runno sandbox, then it runs the compiled WebAssembly binary inside the
 sandbox.
 
 **Running some code with a time limit**
 
+<!-- prettier-ignore -->
 <runno-code syntax="python">
 # ... asyncio code omitted
 from runno import run_code
@@ -140,6 +161,7 @@ execution time.
 If you want the program to operate on some files in the file system you can
 provide them by using `run_fs`. The function signature is:
 
+<!-- prettier-ignore -->
 <runno-code syntax="python">
 async def run_fs(
     runtime: Runtime, entry_path: WASIPath, fs: WASIFS, **kwargs: Options
@@ -153,39 +175,46 @@ as an argument, so if it was python it's doing `$ python <entry_path>`.
 
 Let's imagine you want to do some calculations with a CSV file, you could do:
 
+<!-- prettier-ignore -->
 <runno-code syntax="python">
+
+```
 # ... asyncio code omitted
 from runno import run_code
 
-code = await llm(user_prompt, system_prompt="Respond with Python code that uses data.csv")
+code = await llm(
+  user_prompt,
+  system_prompt="Respond with Python code that uses data.csv"
+)
 
 result = await run_fs("python", "program.py", {
-"/program.py": StringFile(
-path="/program.py",
-content=code,
-mode="string",
-timestamps=WASITimestamps(
-access=datetime.now(),
-modification=datetime.now(),
-change=datetime.now(),
-),
-),
-"/data.csv": StringFile(
-path="/data.csv",
-content="""
-a,b,c
-1,2,3
-""",
-mode="string",
-timestamps=WASITimestamps(
-access=datetime.now(),
-modification=datetime.now(),
-change=datetime.now(),
-),
-)
+  "/program.py": StringFile(
+    path="/program.py",
+    content=code,
+    mode="string",
+    timestamps=WASITimestamps(
+      access=datetime.now(),
+      modification=datetime.now(),
+      change=datetime.now(),
+    ),
+  ),
+  "/data.csv": StringFile(
+    path="/data.csv",
+    content="""
+    a,b,c
+    1,2,3
+    """,
+    mode="string",
+    timestamps=WASITimestamps(
+      access=datetime.now(),
+      modification=datetime.now(),
+      change=datetime.now(),
+    ),
+  )
 })
 
 print(result.tty)
+```
 
 </runno-code>
 
@@ -197,16 +226,18 @@ as the `fs`.
 Many programming languages (including Python) can use packages directly from the
 local file system. Runno has no package manager (yet?) but you can absolutely
 provide your dependencies within the `fs`. You'll just need to load them in when
-you call `run_fs`. Figuring this out is left as an exercise to the reader.
+you call `run_fs`.
+
+Figuring this out is left as an exercise to the reader.
 
 ## 2. How I made the runno package using `deno compile`
 
 In the opening section I mentioned that Runno is built for the browser using
 Typescript. So how did I get it running in Python? Python is a different
-programming language and does not normally interface with browsers without the
-distance of a network connection and a HTTP request.
+programming language and does not normally interface with browsers (without the
+distance of a network connection and a HTTP request).
 
-Runno is built for the browser, but at the core of it is just TypeScript that runs
+Runno is built for the browser, but the core is TypeScript that runs
 WebAssembly. Any modern JavaScript runtime (like Node, Deno, or Bun) can do
 that. In fact because of great work by the [WinterTC](https://wintercg.org/) the
 stuff I wrote for browsers basically all just works vanilla in any JavaScript
@@ -241,15 +272,21 @@ refined it in my spare time until it had a neat little CLI interface.
 
 Getting that to compile was also not too bad, deno does a good job of packaging
 up your dependencies. You can even include whole folders of assets, and it
-figures out how to grab them from within the resulting binary. That's how I've
-packaged up all the WASM binaries. All in one neat little binary (the binary is
-almost 100mb).
+figures out how to grab them from within the resulting binary. I ended up with
+a short command like:
+
+```
+$ deno compile --frozen --include langs --output runno bin/main.ts
+```
+
+That's how I've packaged up all the WASM language binaries for distribution.
+All in one neat little binary (the binary is almost `100mb`).
 
 Finally I needed to dust off my Python and write some bindings for the binary
 I'd built. This was a fun bit of airport hacking on the way to see my family for
-Christmas. After figuring out what had happened with the Python packaging
-ecosystem in the last few years I had something running locally! I even had some
-tests.
+Christmas. After taking some time to understand what had happened with the
+Python packaging ecosystem, I got started. Shortly after, with some asyncio
+magic I had something running locally! I even had tests.
 
 So I thought to myself "Time to ship to PyPI!".
 
@@ -258,16 +295,26 @@ Not so fast.
 This is where the headaches began. To make this whole thing work nicely, I
 didn't want to impose a Deno dependency on my users. I wanted to build wheels
 that included the compiled version of Runno. That way the whole thing would
-"just run" without needing to compile locally or anything. I hate when I go to
+"just run". No need to compile locally or anything. I hate when I go to
 install a package and it ends up spending an hour compiling.
 
-So I started looking at `hatch` and `cibuildwheel`. These are both awesome tools
-and a huge shoutout to the maintainers. However the 200 or so commits I needed
-to configure them both to build may have inflicted permanent psychic damage. If
-you're interested you can [go look](https://github.com/taybenlor/runno/pull/306).
+This is totally possible with Python. You build the binary, then package up a
+binary release (a wheel). Unfortunately you do need to make one for each
+platform (OS & CPU combo). So I started looking at
+[`hatch`](https://hatch.pypa.io/1.8/) and
+[`cibuildwheel`](https://cibuildwheel.pypa.io/en/stable/).
 
-But a couple of days later I had a package on PyPI, I texted a friend and they
-got it running on their machine too. Wow. We did it!
+These are both awesome tools and a huge shoutout to the maintainers. However the
+200 or so commits I needed to configure them both to build may have inflicted
+permanent psychic damage. If you're interested you can
+[go look](https://github.com/taybenlor/runno/pull/306).
+
+After some late nights arguing with my computer I had a package on PyPI,
+I texted a friend and they got it running on their machine too (thanks Jim!).
+
+Wow. We did it!
+
+Now you can install it too, with `pip install runno`.
 
 ## 3. The architecture of Runno, and what makes it a secure sandbox
 
@@ -338,13 +385,13 @@ I've talked it up a bit through this post, so now it's time to be real.
    similar to the way they do for Pyodide. But I want to do it in a way that will
    work for any programming language.
 
-3. If you want any output, you'll probably need to take it from STDOUT. It's not
+3. If you want any output, you'll probably need to take it from `STDOUT`. It's not
    a particularly neat foreign function interface, but it isn't too hard to wrap up
    and turn into your own thing.
 
-4. You can't pass STDIN. This isn't an inherent limitation, I just haven't set
-   it up yet. The version I run in the browser does some really nice STDIN
-   interactions, and I'd like
+4. You can't pass `STDIN`. This isn't an inherent limitation, I just haven't set
+   it up yet. The version I run in the browser does some really nice `STDIN`
+   interactions, and I'd like to figure out a way to do them from Python.
 
 ## Conclusion
 
@@ -353,3 +400,13 @@ language runner work on servers as well. It was fun and challenging. I hope
 someone finds it useful!
 
 Thanks for reading!
+
+Now try out `runno` yourself with `pip install runno`.
+
+```
+$ pip install runno
+$ python -m asyncio
+>>> from runno import run_code
+>>> result = await run_code("python", "print('hello friend')")
+>>> result.tty
+```
