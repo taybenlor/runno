@@ -29,6 +29,7 @@ if message == "Hello Python!\n":
 print("Python says:", "Hello Ruby!")
 else:
 print("Why won't Ruby be my friend?")
+
 </runno-code>
 
 _Note: you can run that example with `uv run example.py` on python 3.13 to try it out_
@@ -74,6 +75,7 @@ Here's the function signature for `run_code`:
 
 <runno-code syntax="python">
 async def run_code(runtime: Runtime, code: str, **kwargs: Options) -> RunResult:
+
 </runno-code>
 
 So to use `run_code` you just throw in the string name of the `Runtime` you want
@@ -92,6 +94,7 @@ return int(result.stdout)
 
 result = sandbox("1 + 1")
 print(f"1 + 1 = {result}")
+
 </runno-code>
 
 **Running some generated C code**
@@ -104,6 +107,7 @@ code = await llm("Write a C program to calculate 1000 digits of pi.")
 result = await run_code("clang", code)
 
 print(result.tty)
+
 </runno-code>
 
 To run the C code Runno uses a WASI compiled release of clang set up to target
@@ -124,6 +128,7 @@ if result.result_type == "timeout":
 print("Timed out.")
 else:
 print("Wow, it ran forever.")
+
 </runno-code>
 
 The `timeout` is enforced in two layers, on the Python side, and then on the
@@ -139,6 +144,7 @@ provide them by using `run_fs`. The function signature is:
 async def run_fs(
     runtime: Runtime, entry_path: WASIPath, fs: WASIFS, **kwargs: Options
 ) -> RunResult:
+
 </runno-code>
 
 The `entry_path` is the file you want to run, you'll need to provide that as
@@ -180,6 +186,7 @@ change=datetime.now(),
 })
 
 print(result.tty)
+
 </runno-code>
 
 You can also grab any files written out of the `result`. They'll be packaged up
