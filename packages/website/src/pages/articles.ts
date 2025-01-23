@@ -16,7 +16,7 @@ const articles = [
   {
     slug: "sandbox-python",
     title:
-      "I made it so you can `pip install runno` and run Ruby inside Python",
+      "I made a Python package for sandboxing code",
     markdown: sandboxPythonMarkdown,
     published: new Date("2024-01-25"),
     draft: false,
