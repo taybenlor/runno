@@ -7,11 +7,21 @@ import wasiArticleMarkdown from "./articles/wasi.md?raw";
 import ffmpegArticleMarkdown from "./articles/ffmpeg.md?raw";
 import wasiWebComponentArticleMarkdown from "./articles/wasi-web-component.md?raw";
 import experimentDockerMarkdown from "./articles/experiment-docker.md?raw";
+import sandboxPythonMarkdown from "./articles/sandbox-python.md?raw";
 
 import "../components/article";
 import "../components/docker-playground";
 
 const articles = [
+  {
+    slug: "sandbox-python",
+    title:
+      "I made it so you can `pip install runno` and run Ruby inside Python",
+    markdown: sandboxPythonMarkdown,
+    published: new Date("2024-01-25"),
+    draft: true,
+    author: "Ben Taylor",
+  },
   {
     slug: "experiment-docker",
     title: "Experimental Docker WASI Images",

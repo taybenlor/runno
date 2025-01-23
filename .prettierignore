@@ -3,3 +3,6 @@ build
 coverage
 packages/runtime/src/assets/vendor
 examples/index.html
+
+# Don't format my beautiful indentation
+packages/website/src/pages/articles/sandbox-python.md

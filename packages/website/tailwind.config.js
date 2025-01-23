@@ -78,6 +78,8 @@ module.exports = {
             },
             pre: {
               background: "#24292f",
+              padding: "1rem",
+              borderRadius: "0.5rem",
             },
             code: {
               color: "#ff2ea8",
@@ -87,6 +89,11 @@ module.exports = {
             },
             "code::after": {
               content: "",
+            },
+            "runno-code": {
+              background: "#24292f",
+              padding: "1rem",
+              borderRadius: "0.5rem",
             },
           },
         },
