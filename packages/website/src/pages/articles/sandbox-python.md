@@ -65,16 +65,16 @@ The main thing you can do with the `runno` Python package is use the `run_code`
 function to run code in a bunch of programming languages. `runno` supports the
 following language runtimes:
 
-1. `python` - CPython version `3.11.3` compiled by VMWare Labs [github](https://github.com/vmware-labs/webassembly-language-runtimes)
-2. `ruby` - MRI Ruby version `3.2.0` compiled by VMWare Labs [github](https://github.com/vmware-labs/webassembly-language-runtimes)
-3. `quickjs` - WASMEdge's QuickJS fork [github](https://github.com/second-state/wasmedge-quickjs)
-4. `clang` - Clang fork for WASM by Binji [github](https://github.com/binji/wasm-clang)
+1. `python` - CPython version `3.11.3` compiled by VMWare Labs ([github](https://github.com/vmware-labs/webassembly-language-runtimes))
+2. `ruby` - MRI Ruby version `3.2.0` compiled by VMWare Labs ([github](https://github.com/vmware-labs/webassembly-language-runtimes))
+3. `quickjs` - WASMEdge's QuickJS fork ([github](https://github.com/second-state/wasmedge-quickjs))
+4. `clang` - Clang fork for WASM by Binji ([github](https://github.com/binji/wasm-clang))
 5. `clangpp` - Using the same Clang fork
 
 Plus a couple of bonus spicy ones that work a bit differently:
 
-6. `php-cgi` - PHP CGI version `8.2.0` compiled by VMWare Labs [github](https://github.com/vmware-labs/webassembly-language-runtimes)
-7. `sqlite` - SQLite from WAPM [github](https://github.com/wapm-packages/sqlite)
+6. `php-cgi` - PHP CGI version `8.2.0` compiled by VMWare Labs ([github](https://github.com/vmware-labs/webassembly-language-runtimes))
+7. `sqlite` - SQLite from WAPM ([github](https://github.com/wapm-packages/sqlite))
 
 _Note: All of these runtimes are packaged with the Runno binary and will run locally
 without connecting to the internet._
