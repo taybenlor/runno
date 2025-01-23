@@ -87,7 +87,7 @@ Here's the function signature for `run_code`:
 <runno-code syntax="python">
 
 async def run_code(
-runtime: Runtime, code: str, \*\*kwargs: Options
+  runtime: Runtime, code: str, \*\*kwargs: Options
 ) -> RunResult:
 
 </runno-code>
@@ -147,9 +147,9 @@ code = "while True: pass"
 result = await run_code("python", code, timeout=5)
 
 if result.result_type == "timeout":
-print("Timed out.")
+  print("Timed out.")
 else:
-print("Wow, it ran forever.")
+  print("Wow, it ran forever.")
 
 </runno-code>
 
