@@ -32,7 +32,10 @@ export class PageHome extends TailwindElement {
         </website-starfield>
         <website-header></website-header>
 
-        <img class="absolute bottom-0 right-0 w-1/5" src="/images/sun.svg" />
+        <img
+          class="absolute bottom-0 right-0 w-1/5 pointer-events-none"
+          src="/images/sun.svg"
+        />
         <div class="container mx-auto relative p-4 sm:p-0">
           <h1
             class="
