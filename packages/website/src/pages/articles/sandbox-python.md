@@ -51,12 +51,12 @@ browser. So I decided to use that sandbox as the basis for this sandbox.
 
 In this post I'll talk about:
 
-1. What you can do after you `pip install runno`
-2. How I made the `runno` package using `deno compile`
-3. The architecture of Runno, and what makes it a secure sandbox
-4. Limitations of Runno and the `runno` package
+1. What you can do after you `pip install runno` ([jump](#what-you-can-do-after-you-pip-install-runno))
+2. How I made the `runno` package using `deno compile` ([jump](#how-i-made-the-runno-package-using-deno-compile))
+3. The architecture of Runno, and what makes it a secure sandbox ([jump](#the-architecture-of-runno-and-what-makes-it-a-secure-sandbox))
+4. Limitations of Runno and the `runno` package ([jump](#limitations-of-runno-and-the-runno-package))
 
-## 1. What you can do after you `pip install runno`
+## What you can do after you `pip install runno`
 
 The main thing you can do with the `runno` Python package is use the `run_code`
 function to run code in a bunch of programming languages. `runno` supports the
@@ -228,7 +228,7 @@ you call `run_fs`.
 
 Figuring this out is left as an exercise to the reader.
 
-## 2. How I made the runno package using `deno compile`
+## How I made the runno package using `deno compile`
 
 _Note: I'm going to skip over the bit where I built Runno and what it is. It's
 a tool for running programming languages in the browser. You can find out more
@@ -318,7 +318,7 @@ Wow. We did it!
 
 Now you can install it too, with `pip install runno`.
 
-## 3. The architecture of Runno, and what makes it a secure sandbox
+## The architecture of Runno, and what makes it a secure sandbox
 
 I do want to say up front that Runno is Open Source software with an MIT
 License, which specifically states:
@@ -374,7 +374,7 @@ Anyway point is, there's a lot of layers to this onion which I think is pretty
 good. I've heard onions are good for security. Tell me if you find some holes
 in my onion though, I'm interested!
 
-## 4. Limitations of Runno and the `runno` package
+## Limitations of Runno and the `runno` package
 
 I've talked it up a bit through this post, so now it's time to be real.
 
