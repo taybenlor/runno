@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "license": "MIT",
   "engines": {
-    "node": ">=23"
+    "node": ">=22"
   },
   "workspaces": [
     "packages/*"

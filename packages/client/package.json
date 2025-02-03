@@ -14,7 +14,7 @@
     "access": "public"
   },
   "engines": {
-    "node": ">=23"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "vite",

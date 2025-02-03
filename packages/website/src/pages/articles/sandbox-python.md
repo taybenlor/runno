@@ -5,7 +5,7 @@ it to [PyPI](https://pypi.org/project/runno/). This was a bit of a
 spicy endeavour because Runno is written in TypeScript and works inside the
 browser.
 
-tl;dr - it lets you do this:
+tl;dr - it lets you run Ruby (and other languages) inside Python:
 
 <!-- prettier-ignore -->
 <runno-code syntax="python">
