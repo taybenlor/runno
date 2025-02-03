@@ -89,7 +89,7 @@ export class PageArticles extends TailwindElement {
           <website-route
             route=${`^/articles/${article.slug}/\$`}
             .meta=${{
-              title: `Runno Article - ${article.title}`,
+              title: `Runno - ${article.title}`,
               description: article.description,
               url: `https://runno.dev/articles/${article.slug}`,
               image: "",

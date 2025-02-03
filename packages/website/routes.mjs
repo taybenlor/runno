@@ -73,7 +73,7 @@ export const ROUTES = [
   ...ARTICLES.map((article) => ({
     path: `/articles/${article.slug}/index.html`,
     meta: {
-      title: `Runno Article - ${article.title}`,
+      title: `Runno - ${article.title}`,
       description: article.description ?? "",
       url: `https://runno.dev/articles/${article.slug}`,
       image: "",
