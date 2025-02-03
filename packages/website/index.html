@@ -5,31 +5,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <meta name="title" content="Runno" />
-    <meta name="og:title" property="og:title" content="Runno" />
-    <meta name="og:site_name" property="og:site_name" content="Runno" />
-
-    <meta
-      name="description"
-      content="An open-source sandbox that runs inside and outside the browser."
-    />
-    <meta
-      name="og:description"
-      property="og:description"
-      content="An open-source sandbox that runs inside and outside the browser."
-    />
-
-    <meta
-      name="og:image"
-      property="og:image"
-      content="/images/social-media.png"
-    />
-    <meta name="og:url" property="og:url" content="https://runno.dev" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta
-      name="twitter:image:alt"
-      content="An open-source sandbox that runs inside and outside the browser."
-    />
+    <!-- prerender:meta -->
 
     <title>Runno</title>
 
@@ -49,10 +25,10 @@
       <website-route route="^/$">
         <page-home></page-home>
       </website-route>
-      <website-route route="^/docs$">
+      <website-route route="^/docs/$">
         <page-docs></page-docs>
       </website-route>
-      <website-route route="^/wasi$">
+      <website-route route="^/wasi/$">
         <page-playground></page-playground>
       </website-route>
       <website-route route="^/articles">

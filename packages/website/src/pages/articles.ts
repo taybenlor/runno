@@ -12,6 +12,7 @@ import sandboxPythonMarkdown from "./articles/sandbox-python.md?raw";
 import "../components/article";
 import "../components/docker-playground";
 
+// Keep in sync with /routes.ts
 const articles = [
   {
     slug: "sandbox-python",
@@ -64,7 +65,10 @@ export class PageArticles extends TailwindElement {
       <div class="bg-navy text-white pb-3">
         <website-header></website-header>
       </div>
-      <website-route route="^/articles$" .meta=${{ title: "Runno - Articles" }}>
+      <website-route
+        route="^/articles/$"
+        .meta=${{ title: "Runno - Articles" }}
+      >
         <div class="prose mx-auto my-12">
           <h1>Articles</h1>
           ${articles.map((article) => {
@@ -83,7 +87,7 @@ export class PageArticles extends TailwindElement {
       ${articles.map(
         (article) => html`
           <website-route
-            route=${`^/articles/${article.slug}\$`}
+            route=${`^/articles/${article.slug}/\$`}
             .meta=${{
               title: `Runno Article - ${article.title}`,
               description: article.description,
