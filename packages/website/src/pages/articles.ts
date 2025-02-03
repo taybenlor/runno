@@ -12,11 +12,12 @@ import sandboxPythonMarkdown from "./articles/sandbox-python.md?raw";
 import "../components/article";
 import "../components/docker-playground";
 
+// Keep in sync with /routes.ts
 const articles = [
   {
     slug: "sandbox-python",
-    title:
-      "I made a Python package for sandboxing code",
+    title: "I made a Python package for sandboxing code",
+    description: `Over the holidays I made a version of the Runno sandbox for Python, and released it to PyPI. This was a bit of a spicy endeavour because Runno is written in TypeScript and works inside the browser.`,
     markdown: sandboxPythonMarkdown,
     published: new Date("2024-01-25"),
     draft: false,
@@ -64,7 +65,10 @@ export class PageArticles extends TailwindElement {
       <div class="bg-navy text-white pb-3">
         <website-header></website-header>
       </div>
-      <website-route route="^/articles$">
+      <website-route
+        route="^/articles/$"
+        .meta=${{ title: "Runno - Articles" }}
+      >
         <div class="prose mx-auto my-12">
           <h1>Articles</h1>
           ${articles.map((article) => {
@@ -82,13 +86,24 @@ export class PageArticles extends TailwindElement {
       </website-route>
       ${articles.map(
         (article) => html`
-          <website-article
-            slug="${article.slug}"
-            .markdown=${article.markdown}
-            .draft=${article.draft}
-            .published=${article.published}
-            .author=${article.author}
-          ></website-article>
+          <website-route
+            route=${`^/articles/${article.slug}/\$`}
+            .meta=${{
+              title: `Runno - ${article.title}`,
+              description: article.description,
+              url: `https://runno.dev/articles/${article.slug}`,
+              image: "",
+            }}
+          >
+            <website-article
+              slug="${article.slug}"
+              .title=${article.title}
+              .markdown=${article.markdown}
+              .draft=${article.draft}
+              .published=${article.published}
+              .author=${article.author}
+            ></website-article>
+          </website-route>
         `
       )}
     `;

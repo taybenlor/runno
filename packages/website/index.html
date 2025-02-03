@@ -5,21 +5,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <meta name="title" content="Runno" />
-    <meta name="description" content="Make your code samples Runno." />
-    <meta property="og:title" content="Runno" />
-    <meta
-      property="og:image"
-      content="https://assets.runno.dev/social-media.png"
-    />
-    <meta property="og:url" content="https://runno.dev" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta property="og:description" content="Make your code samples Runno." />
-    <meta property="og:site_name" content="Runno" />
-    <meta
-      name="twitter:image:alt"
-      content="Embed code samples on your website with Runno."
-    />
+    <!-- prerender:meta -->
 
     <title>Runno</title>
 
@@ -39,10 +25,10 @@
       <website-route route="^/$">
         <page-home></page-home>
       </website-route>
-      <website-route route="^/docs$">
+      <website-route route="^/docs/$">
         <page-docs></page-docs>
       </website-route>
-      <website-route route="^/wasi$">
+      <website-route route="^/wasi/$">
         <page-playground></page-playground>
       </website-route>
       <website-route route="^/articles">
