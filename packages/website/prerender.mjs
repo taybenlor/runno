@@ -6,7 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import url from "node:url";
 
-import { ROUTES } from "./routes.ts";
+import { ROUTES } from "./routes.mjs";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 

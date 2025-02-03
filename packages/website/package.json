@@ -17,7 +17,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build:prerender": "node prerender.ts",
+    "build:prerender": "node prerender.mjs",
     "build:package": "tsc && vite build",
     "build": "npm run build:package && npm run build:prerender",
     "serve": "vite preview"

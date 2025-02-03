@@ -1,8 +1,3 @@
-type Route = {
-  path: string;
-  meta: Record<string, string>;
-};
-
 // Path: packages/website/src/pages/articles.ts
 export const ARTICLES = [
   {
@@ -44,7 +39,7 @@ export const ARTICLES = [
   },
 ];
 
-export const ROUTES: Route[] = [
+export const ROUTES = [
   {
     path: "/index.html",
     meta: {
