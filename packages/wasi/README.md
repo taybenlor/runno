@@ -245,13 +245,13 @@ This will build the test programs and download existing test suites.
 _You'll need to have cargo installed to run the tests_
 
 ```sh
-$ npm run test:prepare
+npm run test:prepare
 ```
 
 Then run the test suite:
 
 ```sh
-$ npm run test
+npm run test
 ```
 
 The test suite includes the following tests:
