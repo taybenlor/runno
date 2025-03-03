@@ -1,7 +1,7 @@
 # Experimental Docker WASI Images
 
 Docker has announced a beta of [Wasm workloads](https://docs.docker.com/desktop/wasm/) which introduces
-a WASI runtime that is used to run the entrypoint. OIC images are mostly just a series of tar files,
+a WASI runtime that is used to run the entrypoint. [OCI images](https://opencontainers.org/) are mostly just a series of tar files,
 loaded into a filesystem, which matches well with how the Runno filesystem is used and loaded.
 
 This is an experiment to see if those images can be run in Runno. For prior work see: [Running WASI binaries from your HTML using Web Components](https://runno.dev/articles/wasi-web-component). This experiment is
