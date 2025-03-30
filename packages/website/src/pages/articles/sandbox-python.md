@@ -264,7 +264,7 @@ up your dependencies. You can even include whole folders of assets, and it
 figures out how to grab them from within the resulting binary. I ended up with
 a short command like:
 
-```
+```sh
 $ deno compile --frozen --include langs --output runno bin/main.ts
 ```
 
@@ -310,7 +310,7 @@ Now you can install it too, with `pip install runno`.
 I do want to say up front that Runno is Open Source software with an MIT
 License, which specifically states:
 
-```
+```txt
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND
 ```
 
@@ -392,7 +392,7 @@ Thanks for reading!
 
 Now try out `runno` yourself with `pip install runno`.
 
-```
+```sh
 $ pip install runno
 $ python -m asyncio
 >>> from runno import run_code
