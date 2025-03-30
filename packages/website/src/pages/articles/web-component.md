@@ -24,10 +24,10 @@ And this is how that will display in the browser:
 
 Some details that are important here:
 
-1. You can choose from a handful of runtimes including: `python`, `ruby`, `quickjs`, and `clang`.
-2. The code all runs client-side in the browser - perfect for blogs, docs, and static websites
-3. While running, you can input and output just like a normal terminal
-4. You type code straight into HTML or Markdown and it will get dressed up and syntax highlighted
+1. You can choose from several runtimes including: `python`, `ruby`, `quickjs`, and `clang`.
+2. All code runs client-side in the browser, making it perfect for blogs, docs, and static sites.
+3. The code interacts just like a normal terminal, allowing both input and output.
+4. Code can be written directly into HTML or Markdown with syntax highlighting.
 
 I'm not going to explore all the features of Runno here (I'd encourage you to
 go check out the [docs](/docs/)) but I'll show you a few neat demos.
@@ -39,11 +39,9 @@ use the `runno-file` element:
 
 ```html
 <runno-run runtime="python" controls editor>
-  print('file.txt contains:') print(open("file.txt").read()) print('----')
-  print('other-file.txt contains:') print(open("other-file.txt").read())
+  print('file.txt contains:') print(open("file.txt").read())
 
   <runno-file path="/file.txt"> G'day world. Welcome to Runno. </runno-file>
-  <runno-file path="/other-file.txt"> Another file. </runno-file>
 </runno-run>
 ```
 
@@ -52,27 +50,20 @@ use the `runno-file` element:
 <runno-run runtime="python" controls editor>
   print('file.txt contains:')
   print(open("file.txt").read())
-  print('----')
-  print('other-file.txt contains:')
-  print(open("other-file.txt").read())
 
   <runno-file path="/file.txt">
     G'day world.
     Welcome to Runno.
   </runno-file>
-  <runno-file path="/other-file.txt">
-    Another file.
-  </runno-file>
 </runno-run>
 </div>
 
-Or you can upload a `.tar.gz` file that represents your whole filesystem using
-the `fs-url="/python-package.tar.gz"` attribute.
+You can also preload a complete virtual filesystem by specifying a `.tar.gz` archive using the `fs-url` attribute (like `<runno-run fs-url="/python-package.tar.gz">`).
 
 ## Syntax highlighting without running
 
-Runno also ships a `runno-code` element that you can use to syntax highlight
-without running code:
+If you only need to display formatted code without execution, you can use the
+`runno-code` element:
 
 ```html
 <runno-code syntax="js">import "@runno/runtime"</runno-code>
@@ -85,15 +76,18 @@ without running code:
 
 ## Run code headlessly
 
-You can run code headlessly from JS if you want to do your own custom tasks:
+For scenarios where you need to execute code programmatically without embedding
+a UI, Runno provides a `headlessRunCode` API. This is useful for automating
+tests, grading assignments, or validating user input.
+
+Here's how that works:
 
 ```js
 import { headlessRunCode } from "@runno/runtime";
 const result = await headlessRunCode("python", "print('Hello World!')");
 ```
 
-You could, for example, use this to run tests against the code that a user has
-written. I can see this being really useful for education!
+I can see this being really useful for education!
 
 ## Customise and Compose Runno
 
@@ -102,9 +96,12 @@ Web Components, and the element exposes a JavaScript API for its controls.
 That means you can customise all the styling, or fully rebuild the component to
 your own specifications.
 
+For example, here I've created my own custom run button that I use to run the
+code element:
+
 ```html
 <button onclick="this.nextElementSibling.run()">My Custom Run Button</button>
-<runno-run id="runnoElement" runtime="python" editor>
+<runno-run id="runnoElement" runtime="python">
   print('You clicked the button.')
 </runno-run>
 ```
@@ -115,7 +112,7 @@ your own specifications.
 </button>
 
 <!-- prettier-ignore -->
-<runno-run id="runnoElement" runtime="python" editor class="overflow-hidden">
+<runno-run id="runnoElement" runtime="python" class="overflow-hidden">
   print('You clicked the button.')
 </runno-run>
 </div>
@@ -126,5 +123,5 @@ same docs.
 ## Contributions welcome
 
 I'm still working on Runno and trying to make it better, it's an open source
-project hosted on GitHub. If you'd like to expand the possibilities, I'd love
-to chat about how we can do that!
+project hosted on GitHub. Runno is open source and always evolving! If you’re
+interested in contributing, check out the [GitHub repo](https://github.com/taybenlor/runno).
