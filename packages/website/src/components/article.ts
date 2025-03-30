@@ -123,11 +123,17 @@ export class WebsiteArticle extends TailwindElement {
             by <span class="font-bold">${this.author}</span>
           </p>
 
-          ${unsafeHTML(marked.parse(this.markdown))}
+          ${unsafeHTML(replacePreWithCode(marked.parse(this.markdown)))}
         </article>
       </div>
     `;
   }
+}
+
+function replacePreWithCode(raw: string) {
+  raw = raw.replaceAll(`<pre><code class="language-`, '<runno-code syntax="');
+  raw = raw.replaceAll(`</code></pre>`, "</runno-code>");
+  return raw;
 }
 
 declare global {

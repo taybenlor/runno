@@ -1,6 +1,16 @@
 // Path: packages/website/src/pages/articles.ts
 export const ARTICLES = [
   {
+    slug: "web-component",
+    title: "Runno: The Web Component for Code",
+    description: `Since I released Runno a few years ago, Web Components have become a lot more
+popular. I thought it was time to re-introduce Runno, the Web
+Component for Code. In this article I show how to use it with some demos.`,
+    published: new Date("2025-03-30"),
+    draft: false,
+    author: "Ben Taylor",
+  },
+  {
     slug: "sandbox-python",
     title: "I made a Python package for sandboxing code",
     description: `Over the holidays I made a version of the Runno sandbox for Python, and released it to PyPI. This was a bit of a spicy endeavour because Runno is written in TypeScript and works inside the browser.`,
