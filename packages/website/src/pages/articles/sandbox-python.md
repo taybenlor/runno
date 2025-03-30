@@ -8,9 +8,7 @@ browser.
 tl;dr - it lets you run Ruby (and other languages) inside Python:
 
 <!-- prettier-ignore -->
-<runno-code syntax="python">
-
-```
+```python
 # /// script
 # dependencies = ["runno"]
 # ///
@@ -27,10 +25,7 @@ async def hello():
 
 message = asyncio.run(hello())
 print("Ruby says:", message)
-
 ```
-
-</runno-code>
 
 _Note: you can run that example with `$ uv run example.py` on python 3.13 to try it out._
 
@@ -96,9 +91,7 @@ examples:
 **Doing a calculation in a sandbox**
 
 <!-- prettier-ignore -->
-<runno-code syntax="python">
-
-```
+```python
 # ... asyncio code omitted
 from runno import run_code
 
@@ -109,8 +102,6 @@ async def sandbox(calculation):
 result = sandbox("1 + 1")
 print(f"1 + 1 = {result}")
 ```
-
-</runno-code>
 
 This is slightly less expensive than getting an LLM to do the addition.
 
@@ -174,9 +165,7 @@ as an argument, so if it was python it's doing `$ python <entry_path>`.
 Let's imagine you want to do some calculations with a CSV file, you could do:
 
 <!-- prettier-ignore -->
-<runno-code syntax="python">
-
-```
+```python
 # ... asyncio code omitted
 from runno import run_code
 
@@ -213,8 +202,6 @@ result = await run_fs("python", "program.py", {
 
 print(result.tty)
 ```
-
-</runno-code>
 
 You can also grab any files written out of the `result`. They'll be packaged up
 as the `fs`.
