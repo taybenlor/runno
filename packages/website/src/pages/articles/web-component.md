@@ -4,10 +4,12 @@ Since I released Runno a few years ago, Web Components have become a lot more
 popular. I thought it was time to re-introduce Runno, the Web
 Component for Code. Here's how to use it:
 
+<!-- prettier-ignore -->
 ```html
 <runno-run runtime="python" controls editor>
-  print("Hello, World!") name = input("What's your name? ") print(f"G'day
-  {name}, welcome to Runno.")
+  print("Hello, World!")
+  name = input("What's your name? ")
+  print(f"G'day {name}, welcome to Runno.")
 </runno-run>
 ```
 
@@ -37,11 +39,16 @@ go check out the [docs](/docs/)) but I'll show you a few neat demos.
 If you want your code example to access files in the "filesystem" you can
 use the `runno-file` element:
 
+<!-- prettier-ignore -->
 ```html
 <runno-run runtime="python" controls editor>
-  print('file.txt contains:') print(open("file.txt").read())
+  print('file.txt contains:')
+  print(open("file.txt").read())
 
-  <runno-file path="/file.txt"> G'day world. Welcome to Runno. </runno-file>
+  <runno-file path="/file.txt">
+    G'day world.
+    Welcome to Runno.
+  </runno-file>
 </runno-run>
 ```
 
@@ -84,7 +91,10 @@ Here's how that works:
 
 ```js
 import { headlessRunCode } from "@runno/runtime";
-const result = await headlessRunCode("python", "print('Hello World!')");
+const result = await headlessRunCode(
+  "python",
+  "print('Hello World!')"
+);
 ```
 
 I can see this being really useful for education!
@@ -100,7 +110,9 @@ For example, here I've created my own custom run button that I use to run the
 code element:
 
 ```html
-<button onclick="this.nextElementSibling.run()">My Custom Run Button</button>
+<button onclick="this.nextElementSibling.run()">
+  My Custom Run Button
+</button>
 <runno-run id="runnoElement" runtime="python">
   print('You clicked the button.')
 </runno-run>
