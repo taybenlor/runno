@@ -131,8 +131,7 @@ export class WebsiteArticle extends TailwindElement {
 }
 
 function replacePreWithCode(raw: string) {
-  raw = raw.replaceAll(`<pre><code class="language-`, '<runno-code syntax="');
-  raw = raw.replaceAll(`</code></pre>`, "</runno-code>");
+  raw = raw.replace(/<pre><code class="language-(html|python|js|ruby)">([\s\S]*?)<\/code><\/pre>/g, '<runno-code syntax="$1">$2</runno-code>');
   return raw;
 }
 
