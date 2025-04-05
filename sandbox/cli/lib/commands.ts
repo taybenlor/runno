@@ -31,7 +31,7 @@ export function commandsForRuntime(
     case "python":
       return {
         run: {
-          binaryURL: import.meta.resolve(`../langs/python-3.11.3.wasm`),
+          binaryURL: import.meta.resolve(`../langs/python-3.11.3.wasm.bin`),
           binaryName: "python",
           args: [entryPath],
           env: {},
@@ -43,7 +43,7 @@ export function commandsForRuntime(
     case "ruby":
       return {
         run: {
-          binaryURL: import.meta.resolve(`../langs/ruby-3.2.0.wasm`),
+          binaryURL: import.meta.resolve(`../langs/ruby-3.2.0.wasm.bin`),
           binaryName: "ruby",
           args: ["-r", "/ruby-3.2.0/.rubyopts.rb", entryPath],
           env: {},
@@ -55,7 +55,7 @@ export function commandsForRuntime(
     case "quickjs":
       return {
         run: {
-          binaryURL: import.meta.resolve(`../langs/wasmedge_quickjs.wasm`),
+          binaryURL: import.meta.resolve(`../langs/wasmedge_quickjs.wasm.bin`),
           binaryName: "quickjs",
           args: [entryPath],
           env: {},
@@ -66,7 +66,7 @@ export function commandsForRuntime(
     case "sqlite":
       return {
         run: {
-          binaryURL: import.meta.resolve(`../langs/sqlite.wasm`),
+          binaryURL: import.meta.resolve(`../langs/sqlite.wasm.bin`),
           binaryName: "sqlite",
           args: ["-cmd", `.read ${entryPath}`],
           env: {},
@@ -76,7 +76,7 @@ export function commandsForRuntime(
     case "php-cgi":
       return {
         run: {
-          binaryURL: import.meta.resolve(`../langs/php-cgi-8.2.0.wasm`),
+          binaryURL: import.meta.resolve(`../langs/php-cgi-8.2.0.wasm.bin`),
           binaryName: "php",
           args: [entryPath],
           env: {},
@@ -88,7 +88,7 @@ export function commandsForRuntime(
       return {
         prepare: [
           {
-            binaryURL: import.meta.resolve(`../langs/clang.wasm`),
+            binaryURL: import.meta.resolve(`../langs/clang.wasm.bin`),
             binaryName: "clang",
             args: [
               "-cc1",
@@ -116,7 +116,7 @@ export function commandsForRuntime(
             baseFSURL: import.meta.resolve(`../langs/clang-fs.tar.gz`),
           },
           {
-            binaryURL: import.meta.resolve(`../langs/wasm-ld.wasm`),
+            binaryURL: import.meta.resolve(`../langs/wasm-ld.wasm.bin`),
             binaryName: "wasm-ld",
             args: [
               "--no-threads",
@@ -128,13 +128,13 @@ export function commandsForRuntime(
               "/program.o",
               "-lc",
               "-o",
-              "/program.wasm",
+              "/program.wasm.bin",
             ],
             env: {},
           },
         ],
         run: {
-          fsPath: "/program.wasm",
+          fsPath: "/program.wasm.bin",
           binaryName: "program",
         },
       };
@@ -143,7 +143,7 @@ export function commandsForRuntime(
       return {
         prepare: [
           {
-            binaryURL: import.meta.resolve(`../langs/clang.wasm`),
+            binaryURL: import.meta.resolve(`../langs/clang.wasm.bin`),
             binaryName: "clang",
             args: [
               "-cc1",
@@ -174,7 +174,7 @@ export function commandsForRuntime(
             baseFSURL: import.meta.resolve(`../langs/clang-fs.tar.gz`),
           },
           {
-            binaryURL: import.meta.resolve(`../langs/wasm-ld.wasm`),
+            binaryURL: import.meta.resolve(`../langs/wasm-ld.wasm.bin`),
             binaryName: "wasm-ld",
             args: [
               "--no-threads",
@@ -188,13 +188,13 @@ export function commandsForRuntime(
               "-lc++",
               "-lc++abi",
               "-o",
-              "/program.wasm",
+              "/program.wasm.bin",
             ],
             env: {},
           },
         ],
         run: {
-          fsPath: "/program.wasm",
+          fsPath: "/program.wasm.bin",
           binaryName: "program",
         },
       };
