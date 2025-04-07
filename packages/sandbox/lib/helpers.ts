@@ -1,4 +1,5 @@
 import { extractTarGz } from "./tar.ts";
+import { readFileSync } from "fs";
 
 /**
  * This is used to handle reading files after the sandbox
@@ -13,7 +14,7 @@ export function makeBlobFromPath(path: string): string {
   if (path.startsWith("blob:")) {
     return path;
   }
-  const file = Deno.readFileSync(new URL(path));
+  let file: Uint8Array = new Uint8Array(readFileSync(new URL(path)));
   const blob = new Blob([file], {
     type: path.endsWith(".wasm")
       ? "application/wasm"
