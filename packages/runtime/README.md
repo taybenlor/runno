@@ -12,20 +12,20 @@ without using iframes.
 
 Start by adding `@runno/runtime` to your package:
 
-```
-$ npm install @runno/runtime
+```sh
+npm install @runno/runtime
 ```
 
 Import `@runno/runtime` in whatever place you'll be using the runno elements.
 The simplest is in your entrypoint file (e.g. `main.ts` or `index.ts`).
 
-```
+```js
 import '@runno/runtime';
 ```
 
 Once you've imported them you can use runno elements on the page.
 
-```
+```html
 <runno-run runtime="python" editor controls>
 print('Hello, World!')
 </runno-run>
@@ -44,14 +44,14 @@ These create a [cross-origin isolated context](https://web.dev/cross-origin-isol
 
 Runno supports a headless API.
 
-```
+```js
 import { headlessRunCode, headlessRunFS } from "@runno/runtime";
 ```
 
 You can use this headless API to run code in a particular language without
 having to use the DOM. For example:
 
-```
+```js
 const result = await headlessRunCode("python", "print('Hello World!')");
 ```
 

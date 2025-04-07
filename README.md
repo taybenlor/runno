@@ -37,20 +37,20 @@ The `@runno/runtime` is built on top of the primitives provided by `@runno/wasi`
 
 Start by adding `@runno/runtime` to your package:
 
-```
-$ npm install @runno/runtime
+```sh
+npm install @runno/runtime
 ```
 
 Import `@runno/runtime` in whatever place you'll be using the runno elements.
 The simplest is in your entrypoint file (e.g. `main.ts` or `index.ts`).
 
-```
+```js
 import '@runno/runtime';
 ```
 
 Once you've imported them you can use runno elements on the page.
 
-```
+```html
 <runno-run runtime="python" editor controls>
 print('Hello, World!')
 </runno-run>
@@ -81,7 +81,7 @@ The system supports a number of runtimes based on existing packages published to
 
 The runtime also provides a component for running WASI binaries directly.
 
-```
+```html
 <runno-wasi src="/ffmpeg.wasm" autorun></runno-wasi>
 ```
 
@@ -157,11 +157,11 @@ This repo is broken down into a few packages using [lerna](https://lerna.js.org/
 
 If you're lucky everything should work after doing:
 
-```
-$ npm install
-$ npm run bootstrap
-$ npm run build  # make sure the dependent libraries are built
-$ npm run dev
+```sh
+npm install
+npm run bootstrap
+npm run build  # make sure the dependent libraries are built
+npm run dev
 ```
 
 At that point you should be able to navigate to:
@@ -171,16 +171,16 @@ At that point you should be able to navigate to:
 
 If you're unlucky then you might have to run the two independently. In two different terminal sessions do:
 
-```
-$ cd packages/client
-$ npm run dev
+```sh
+cd packages/client
+npm run dev
 ```
 
 and
 
-```
-$ cd packages/website
-$ npm run dev
+```sh
+cd packages/website
+npm run dev
 ```
 
 If you edit `host`, `terminal`, `wasi` or `runtime` you will need to re-build them with `npm run build`.

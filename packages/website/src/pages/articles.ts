@@ -8,6 +8,7 @@ import ffmpegArticleMarkdown from "./articles/ffmpeg.md?raw";
 import wasiWebComponentArticleMarkdown from "./articles/wasi-web-component.md?raw";
 import experimentDockerMarkdown from "./articles/experiment-docker.md?raw";
 import sandboxPythonMarkdown from "./articles/sandbox-python.md?raw";
+import webComponentMarkdown from "./articles/web-component.md?raw";
 
 import "../components/article";
 import "../components/docker-playground";
@@ -15,11 +16,22 @@ import "../components/docker-playground";
 // Keep in sync with /routes.ts
 const articles = [
   {
+    slug: "web-component",
+    title: "The Web Component for Code",
+    description: `Since I released Runno a few years ago, Web Components have become a lot more
+popular. I thought it was time to re-introduce Runno, the Web
+Component for Code. In this article I show how to use it with some demos.`,
+    markdown: webComponentMarkdown,
+    published: new Date("2025-03-30"),
+    draft: false,
+    author: "Ben Taylor",
+  },
+  {
     slug: "sandbox-python",
     title: "I made a Python package for sandboxing code",
     description: `Over the holidays I made a version of the Runno sandbox for Python, and released it to PyPI. This was a bit of a spicy endeavour because Runno is written in TypeScript and works inside the browser.`,
     markdown: sandboxPythonMarkdown,
-    published: new Date("2024-01-25"),
+    published: new Date("2025-01-25"),
     draft: false,
     author: "Ben Taylor",
   },

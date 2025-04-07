@@ -1,6 +1,6 @@
 {
   "name": "@runno/wasi",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "author": "Ben Taylor <runno@taybenlor.com>",
   "description": "Browser-only WASI implementation",
   "website": "https://runno.dev",
@@ -26,6 +26,7 @@
   "types": "./dist/lib/main.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/lib/main.d.ts",
       "import": "./dist/wasi.js",
       "require": "./dist/wasi.umd.cjs"
     }
