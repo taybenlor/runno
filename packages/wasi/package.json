@@ -26,6 +26,7 @@
   "types": "./dist/lib/main.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/lib/main.d.ts",
       "import": "./dist/wasi.js",
       "require": "./dist/wasi.umd.cjs"
     }

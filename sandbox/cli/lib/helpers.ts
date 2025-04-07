@@ -15,7 +15,7 @@ export function makeBlobFromPath(path: string): string {
   }
   const file = Deno.readFileSync(new URL(path));
   const blob = new Blob([file], {
-    type: path.endsWith(".wasm")
+    type: path.endsWith(".wasm.bin")
       ? "application/wasm"
       : "application/octet-stream",
   });
