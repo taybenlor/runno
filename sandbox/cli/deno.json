@@ -16,7 +16,7 @@
   "tasks": {
     "test": "deno test --allow-read",
     "cli": "deno --allow-net --allow-read src/main.ts",
-    "bootstrap": "cp -R ../../langs .",
+    "bootstrap": "./bootstrap.sh",
     "compile": "deno compile --frozen --include langs --include lib/worker.ts --output runno bin/main.ts"
   },
   "lock": {
