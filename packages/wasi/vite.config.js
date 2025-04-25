@@ -7,10 +7,9 @@ export default defineConfig({
   build: {
     copyPublicDir: false, // Public dir contains testing binaries
     lib: {
+      formats: ["es"],
       entry: resolve(__dirname, "lib/main.ts"),
-      name: "WASI",
-      // the proper extensions will be added
-      fileName: "wasi",
+      fileName: "main",
     },
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
