@@ -7,6 +7,7 @@ export default defineConfig({
   build: {
     copyPublicDir: false, // Public dir contains testing binaries
     lib: {
+      formats: ["es"],
       entry: resolve(__dirname, "lib/main.ts"),
       name: "WASI",
       // the proper extensions will be added
