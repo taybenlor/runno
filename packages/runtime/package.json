@@ -28,11 +28,11 @@
     "dist"
   ],
   "types": "./dist/main.d.ts",
-  "module": "./dist/runtime.js",
+  "module": "./dist/main.js",
   "exports": {
     ".": {
       "types": "./dist/main.d.ts",
-      "import": "./dist/runtime.js"
+      "import": "./dist/main.js"
     }
   },
   "engines": {

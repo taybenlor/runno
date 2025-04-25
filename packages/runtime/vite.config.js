@@ -21,8 +21,7 @@ export default defineConfig({
     lib: {
       formats: ["es"],
       entry: resolve(__dirname, "lib/main.ts"),
-      name: "Runtime",
-      fileName: "runtime",
+      fileName: "main",
     },
   },
   rollupOptions: {

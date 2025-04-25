@@ -22,11 +22,11 @@
     "dist"
   ],
   "types": "./dist/lib/main.d.ts",
-  "module": "./dist/wasi.js",
+  "module": "./dist/main.js",
   "exports": {
     ".": {
       "types": "./dist/lib/main.d.ts",
-      "import": "./dist/wasi.js"
+      "import": "./dist/main.js"
     }
   },
   "scripts": {
