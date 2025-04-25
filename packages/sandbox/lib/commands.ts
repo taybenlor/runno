@@ -1,6 +1,6 @@
 import { WASIFS } from "@runno/wasi";
-import type { Runtime } from "./types.ts";
-import { assertUnreachable } from "./helpers.ts";
+import type { Runtime } from "./types.js";
+import { assertUnreachable } from "./helpers.js";
 
 type CommandSource =
   | {

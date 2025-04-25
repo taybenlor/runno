@@ -1,5 +1,5 @@
 import type { WASIExecutionResult, WASIContextOptions } from "@runno/wasi";
-import type { HostMessage, WorkerMessage } from "./worker.ts";
+import type { HostMessage, WorkerMessage } from "./worker.js";
 
 function sendMessage(worker: Worker, message: WorkerMessage) {
   worker.postMessage(message);

@@ -1,4 +1,4 @@
-import { extractTarGz } from "./tar.ts";
+import { extractTarGz } from "./tar.js";
 import { readFileSync } from "fs";
 
 /**

@@ -7,10 +7,10 @@ import {
   Command,
   commandsForRuntime,
   getBinaryPathFromCommand,
-} from "./commands.ts";
-import { fetchWASIFS, makeBlobFromPath, makeRunnoError } from "./helpers.ts";
-import { CompleteResult, RunResult, Runtime } from "./types.ts";
-import { WASIWorkerHost } from "./host.ts";
+} from "./commands.js";
+import { fetchWASIFS, makeBlobFromPath, makeRunnoError } from "./helpers.js";
+import { CompleteResult, RunResult, Runtime } from "./types.js";
+import { WASIWorkerHost } from "./host.js";
 
 export function runCode(
   runtime: Runtime,
