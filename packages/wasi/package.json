@@ -21,14 +21,12 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/wasi.umd.cjs",
-  "module": "./dist/wasi.js",
   "types": "./dist/lib/main.d.ts",
+  "module": "./dist/wasi.js",
   "exports": {
     ".": {
       "types": "./dist/lib/main.d.ts",
-      "import": "./dist/wasi.js",
-      "require": "./dist/wasi.umd.cjs"
+      "import": "./dist/wasi.js"
     }
   },
   "scripts": {
@@ -47,8 +45,9 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
+    "@rollup/plugin-typescript": "^12.1.2",
     "typedoc": "^0.24.8",
-    "typescript": "^5.1.6",
-    "vite": "^4.4.9"
+    "typescript": "^5.8.3",
+    "vite": "^6.3.3"
   }
 }
