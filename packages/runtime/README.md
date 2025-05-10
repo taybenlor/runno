@@ -20,20 +20,18 @@ Import `@runno/runtime` in whatever place you'll be using the runno elements.
 The simplest is in your entrypoint file (e.g. `main.ts` or `index.ts`).
 
 ```js
-import '@runno/runtime';
+import "@runno/runtime";
 ```
 
 Once you've imported them you can use runno elements on the page.
 
 ```html
-<runno-run runtime="python" editor controls>
-print('Hello, World!')
-</runno-run>
+<runno-run runtime="python" editor controls> print('Hello, World!') </runno-run>
 ```
 
 For the code to run though, you'll need to set some HTTP headers:
 
-```HTTP
+```
 Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
 ```

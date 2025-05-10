@@ -1,5 +1,5 @@
-import { WASIFS } from "../types";
-import { DebugFn } from "./wasi";
+import { WASIFS } from "../types.js";
+import { DebugFn } from "./wasi.js";
 
 export type WASIContextOptions = {
   fs: WASIFS;

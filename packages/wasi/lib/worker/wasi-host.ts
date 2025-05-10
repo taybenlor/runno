@@ -1,6 +1,6 @@
-import type { WASIContextOptions } from "../wasi/wasi-context";
-import type { WASIExecutionResult } from "../types";
-import type { HostMessage, WorkerMessage } from "./wasi-worker";
+import type { WASIContextOptions } from "../wasi/wasi-context.js";
+import type { WASIExecutionResult } from "../types.js";
+import type { HostMessage, WorkerMessage } from "./wasi-worker.js";
 
 import WASIWorker from "./wasi-worker?worker&inline";
 

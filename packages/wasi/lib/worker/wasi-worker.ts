@@ -1,6 +1,6 @@
-import { WASI } from "../wasi/wasi";
-import { WASIContextOptions, WASIContext } from "../wasi/wasi-context";
-import type { WASIExecutionResult } from "../types";
+import { WASI } from "../wasi/wasi.js";
+import { WASIContextOptions, WASIContext } from "../wasi/wasi-context.js";
+import type { WASIExecutionResult } from "../types.js";
 
 type WorkerWASIContext = Partial<
   Omit<WASIContextOptions, "stdin" | "stdout" | "stderr" | "debug">

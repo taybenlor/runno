@@ -9,7 +9,7 @@ export default defineConfig({
     lib: {
       formats: ["es"],
       entry: resolve(__dirname, "lib/main.ts"),
-      fileName: "main",
+      fileName: "lib/main",
     },
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
@@ -24,7 +24,7 @@ export default defineConfig({
   },
   plugins: [
     {
-      ...typescript({ outDir: "dist" }),
+      ...typescript({ outDir: "dist", exclude: ["src"] }),
       apply: "build",
     },
   ],

@@ -21,12 +21,13 @@
   "files": [
     "dist"
   ],
-  "types": "./dist/lib/main.d.ts",
+  "types": "./dist/main.d.ts",
   "module": "./dist/main.js",
   "exports": {
     ".": {
-      "types": "./dist/lib/main.d.ts",
-      "import": "./dist/main.js"
+      "types": "./dist/main.d.ts",
+      "import": "./dist/main.js",
+      "default": "./dist/main.js"
     }
   },
   "scripts": {
@@ -34,7 +35,7 @@
     "build:docs": "typedoc --options typedoc.config.cjs",
     "build:tests": "cd programs && cargo wasi build -r && cd .. && cp programs/target/wasm32-wasi/release/*.wasi.wasm public/bin/tests/",
     "build:vite": "tsc --noEmit && vite build",
-    "build": "npm run build:docs && npm run build:vite",
+    "build": "npm run build:docs && npm run build:vite && rimraf dist/src && mv dist/lib/* dist/ && rmdir dist/lib",
     "test:server": "vite --port 5173",
     "test:cargo": "cargo install cargo-wasi || echo Please install cargo to run the tests",
     "test:mkdir": "mkdir -p public/bin/languages public/bin/tests",
@@ -46,7 +47,8 @@
   "devDependencies": {
     "@playwright/test": "^1.49.1",
     "@rollup/plugin-typescript": "^12.1.2",
-    "typedoc": "^0.24.8",
+    "rimraf": "^6.0.1",
+    "typedoc": "^0.28.4",
     "typescript": "^5.8.3",
     "vite": "^6.3.3"
   }
