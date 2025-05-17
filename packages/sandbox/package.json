@@ -39,6 +39,7 @@
     "url": "git+https://github.com/taybenlor/runno.git"
   },
   "scripts": {
+    "bootstrap": "cp -R ../../langs/ ./public/langs/",
     "test": "vitest run",
     "test:watch": "vitest",
     "build": "tsup && cp -R ./public/langs/ ./dist/langs/"
