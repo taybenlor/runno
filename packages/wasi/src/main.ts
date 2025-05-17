@@ -1,5 +1,5 @@
 import "./style.css";
-import { WASI, WASIContext } from "../lib/main";
+import { WASI, WASIContext } from "../lib/main.js";
 
 (window as any)["WASI"] = WASI;
 (window as any)["WASIContext"] = WASIContext;

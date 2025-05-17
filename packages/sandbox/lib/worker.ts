@@ -1,6 +1,12 @@
-import { WASI } from "../wasi/wasi.js";
-import { WASIContextOptions, WASIContext } from "../wasi/wasi-context.js";
-import type { WASIExecutionResult } from "../types.js";
+import {
+  WASI,
+  WASIContextOptions,
+  WASIContext,
+  WASIExecutionResult,
+} from "@runno/wasi";
+
+import { parentPort, workerData } from "node:worker_threads";
+import { makeURLFromFilePath } from "./helpers.js";
 
 type WorkerWASIContext = Partial<
   Omit<WASIContextOptions, "stdin" | "stdout" | "stderr" | "debug">
@@ -58,9 +64,7 @@ export type HostMessage =
   | ResultHostMessage
   | CrashHostMessage;
 
-onmessage = async (ev: MessageEvent) => {
-  const data = ev.data as WorkerMessage;
-
+parentPort?.on("message", async (data: WorkerMessage) => {
   switch (data.type) {
     case "start":
       try {
@@ -73,6 +77,7 @@ onmessage = async (ev: MessageEvent) => {
       } catch (e) {
         let error;
         if (e instanceof Error) {
+          console.error(e);
           error = {
             message: e.message,
             type: e.constructor.name,
@@ -92,19 +97,19 @@ onmessage = async (ev: MessageEvent) => {
 
       break;
   }
-};
+});
 
 function sendMessage(message: HostMessage) {
-  postMessage(message);
+  parentPort?.postMessage(message);
 }
 
-async function start(
+function start(
   binaryURL: string,
   stdinBuffer: SharedArrayBuffer,
   context: WorkerWASIContext
 ) {
   return WASI.start(
-    fetch(binaryURL),
+    fetch(makeURLFromFilePath(binaryURL)),
     new WASIContext({
       ...context,
       stdout: sendStdout,

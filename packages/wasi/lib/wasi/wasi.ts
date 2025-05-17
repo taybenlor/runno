@@ -14,11 +14,11 @@ import {
   OpenFlags,
   FileDescriptorFlags,
   Whence,
-} from "./snapshot-preview1";
-import { Whence as UnstableWhence } from "./unstable";
-import { WASIExecutionResult } from "../types";
-import { WASIContext, WASIContextOptions } from "./wasi-context";
-import { DriveStat, WASIDrive } from "./wasi-drive";
+} from "./snapshot-preview1.js";
+import { Whence as UnstableWhence } from "./unstable.js";
+import { WASIExecutionResult } from "../types.js";
+import { WASIContext, WASIContextOptions } from "./wasi-context.js";
+import { DriveStat, WASIDrive } from "./wasi-drive.js";
 
 /** Injects a function between implementation and return for debugging */
 export type DebugFn = (

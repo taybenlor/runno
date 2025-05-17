@@ -4,8 +4,8 @@ import {
   OpenFlags,
   Result,
   Whence,
-} from "./snapshot-preview1";
-import { WASIFile, WASIFS, WASIPath, WASITimestamps } from "../types";
+} from "./snapshot-preview1.js";
+import { WASIFile, WASIFS, WASIPath, WASITimestamps } from "../types.js";
 
 type FileDescriptor = number;
 
@@ -637,7 +637,9 @@ class OpenFile {
     let underBuffer: ArrayBuffer;
 
     if (this.buffer.buffer.byteLength === 0) {
-      underBuffer = new ArrayBuffer(requiredBytes < 1024 ? 1024 : requiredBytes * 2);
+      underBuffer = new ArrayBuffer(
+        requiredBytes < 1024 ? 1024 : requiredBytes * 2
+      );
     } else if (requiredBytes > this.buffer.buffer.byteLength * 2) {
       underBuffer = new ArrayBuffer(requiredBytes * 2);
     } else {
