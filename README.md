@@ -162,25 +162,6 @@ npm run build  # make sure the dependent libraries are built
 npm run dev
 ```
 
-At that point you should be able to navigate to:
-
-- `localhost:4321` - Website
-- `localhost:1234` - Client
-
-If you're unlucky then you might have to run the two independently. In two different terminal sessions do:
-
-```sh
-cd packages/client
-npm run dev
-```
-
-and
-
-```sh
-cd packages/website
-npm run dev
-```
-
 If you edit `host`, `terminal`, `wasi` or `runtime` you will need to re-build them with `npm run build`.
 
 ## Testing
