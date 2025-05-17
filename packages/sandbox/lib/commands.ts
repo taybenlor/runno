@@ -118,7 +118,7 @@ export function commandsForRuntime(
               "-cc1",
               "-Werror",
               "-triple",
-              "wasm32-unkown-wasi",
+              "wasm32-unknown-wasi",
               "-isysroot",
               "/sys",
               "-internal-isystem",
