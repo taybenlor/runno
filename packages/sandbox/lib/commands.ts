@@ -253,7 +253,7 @@ export function getBinaryPathFromCommand(command: Command, fs: WASIFS) {
     }
 
     if (file.mode === "binary") {
-      const base64 = new Buffer(file.content).toString("base64");
+      const base64 = Buffer.from(file.content).toString("base64");
       return `data:application/wasm;base64,${base64}`;
     } else {
       throw new Error("Can't create WASM blob from string");

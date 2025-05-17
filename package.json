@@ -23,14 +23,16 @@
     "build:runtime": "cd packages/runtime && npm run build",
     "build:website": "cd packages/website && npm run build",
     "build:sandbox": "npm run bootstrap:sandbox && cd sandbox && hatch build",
-    "build": "npm run build:wasi && npm run build:runtime && npm run build:docs && npm run build:website && npm run build:sandbox",
+    "build:nodesandbox": "cd packages/sandbox && npm run build",
+    "build": "npm run build:wasi && npm run build:runtime && npm run build:docs && npm run build:website && npm run build:sandbox && npm run build:nodesandbox",
     "build:deploy": "npm run bootstrap && npm run build",
     "test:sandbox:hatch": "cd sandbox && hatch build && hatch test",
     "test:sandbox:deno": "cd sandbox/cli && deno task test",
     "test:sandbox": "npm run test:sandbox:deno && npm run test:sandbox:hatch",
     "test:wasi": "cd packages/wasi && npm run test:prepare && npm run test",
     "test:runtime": "cd packages/runtime && npm run test",
-    "test": "npm run test:wasi && npm run test:runtime && npm run test:sandbox"
+    "test:nodesandbox": "cd packages/sandbox && npm run test",
+    "test": "npm run test:wasi && npm run test:runtime && npm run test:sandbox && npm run test:nodesandbox"
   },
   "eslintConfig": {
     "extends": "preact",
