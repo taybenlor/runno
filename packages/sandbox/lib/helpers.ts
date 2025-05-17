@@ -2,25 +2,23 @@ import { extractTarGz } from "./tar.js";
 import { readFileSync } from "fs";
 
 /**
- * This is used to handle reading files after the sandbox
- * has been compiled using `deno compile`. Without this
- * wrapper we get network errors when trying to use fetch
- * to read local files.
+ * This is used to handle reading files from the local
+ * filesystem and converting them to data URLs that can
+ * be fetched in Node.
  *
  * @param path
- * @returns
+ * @returns data URL representing the file contents
  */
-export function makeBlobFromPath(path: string): string {
-  if (path.startsWith("blob:")) {
+export function makeURLFromFilePath(path: string): string {
+  if (path.startsWith("blob:") || path.startsWith("data:")) {
     return path;
   }
-  let file: Uint8Array = new Uint8Array(readFileSync(new URL(path)));
-  const blob = new Blob([file], {
-    type: path.endsWith(".wasm")
-      ? "application/wasm"
-      : "application/octet-stream",
-  });
-  return URL.createObjectURL(blob);
+  let file = readFileSync(new URL(path));
+  const mimeType = path.endsWith(".wasm")
+    ? "application/wasm"
+    : "application/octet-stream";
+  const base64 = file.toString("base64");
+  return `data:${mimeType};base64,${base64}`;
 }
 
 export function stripWhitespace(text: string): string {
@@ -68,7 +66,7 @@ export function stripWhitespace(text: string): string {
  * @param fsURL The URL of the filesystem to fetch
  */
 export async function fetchWASIFS(fsURL: string) {
-  const response = await fetch(makeBlobFromPath(fsURL));
+  const response = await fetch(makeURLFromFilePath(fsURL));
   const buffer = await response.arrayBuffer();
   return await extractTarGz(new Uint8Array(buffer));
 }
@@ -87,6 +85,7 @@ export function isErrorObject(
 }
 
 export function makeRunnoError(e: unknown): { type: string; message: string } {
+  console.error(e);
   if (e instanceof Error) {
     return {
       message: e.message,

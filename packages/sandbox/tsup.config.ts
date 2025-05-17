@@ -2,7 +2,10 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["lib/main.ts"],
+  entry: {
+    index: "lib/main.ts",
+    worker: "lib/worker.ts",
+  },
   format: ["esm"],
   experimentalDts: true, // generate .d.ts files
   sourcemap: true,

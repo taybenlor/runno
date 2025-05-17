@@ -8,7 +8,7 @@ import {
   commandsForRuntime,
   getBinaryPathFromCommand,
 } from "./commands.js";
-import { fetchWASIFS, makeBlobFromPath, makeRunnoError } from "./helpers.js";
+import { fetchWASIFS, makeURLFromFilePath, makeRunnoError } from "./helpers.js";
 import { CompleteResult, RunResult, Runtime } from "./types.js";
 import { WASIWorkerHost } from "./host.js";
 
@@ -212,7 +212,10 @@ async function _startWASIWithLimits(
   limits: Partial<Limits>
 ): Promise<WASIExecutionResultWithLimits> {
   const startTime = performance.now();
-  const workerHost = new WASIWorkerHost(makeBlobFromPath(binaryPath), context);
+  const workerHost = new WASIWorkerHost(
+    makeURLFromFilePath(binaryPath),
+    context
+  );
 
   if (context.stdin) {
     workerHost.pushStdin(context.stdin);

@@ -1,5 +1,6 @@
 import type { WASIExecutionResult, WASIContextOptions } from "@runno/wasi";
 import type { HostMessage, WorkerMessage } from "./worker.js";
+import { Worker } from "node:worker_threads";
 
 function sendMessage(worker: Worker, message: WorkerMessage) {
   worker.postMessage(message);
@@ -33,12 +34,9 @@ export class WASIWorkerHost {
 
     this.result = new Promise<WASIExecutionResult>((resolve, reject) => {
       this.reject = reject;
-      this.worker = new Worker(new URL("./worker.ts", import.meta.url), {
-        type: "module",
-      });
+      this.worker = new Worker("./dist/worker.js", {});
 
-      this.worker.addEventListener("message", (messageEvent) => {
-        const message: HostMessage = messageEvent.data;
+      this.worker.on("message", (message: HostMessage) => {
         switch (message.type) {
           case "stdout":
             this.context.stdout?.(message.text);

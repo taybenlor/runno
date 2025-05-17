@@ -32,14 +32,14 @@ export function commandsForRuntime(
       return {
         run: {
           binaryURL: new URL(
-            `../langs/python-3.11.3.wasm`,
+            `../dist/langs/python-3.11.3.wasm`,
             import.meta.url
           ).toString(),
           binaryName: "python",
           args: [entryPath],
           env: {},
           baseFSURL: new URL(
-            `../langs/python-3.11.3.tar.gz`,
+            `../dist/langs/python-3.11.3.tar.gz`,
             import.meta.url
           ).toString(),
         },
@@ -50,14 +50,14 @@ export function commandsForRuntime(
       return {
         run: {
           binaryURL: new URL(
-            `../langs/ruby-3.2.0.wasm`,
+            `../dist/langs/ruby-3.2.0.wasm`,
             import.meta.url
           ).toString(),
           binaryName: "ruby",
           args: ["-r", "/ruby-3.2.0/.rubyopts.rb", entryPath],
           env: {},
           baseFSURL: new URL(
-            `../langs/ruby-3.2.0.tar.gz`,
+            `../dist/langs/ruby-3.2.0.tar.gz`,
             import.meta.url
           ).toString(),
         },
@@ -68,7 +68,7 @@ export function commandsForRuntime(
       return {
         run: {
           binaryURL: new URL(
-            `../langs/wasmedge_quickjs.wasm`,
+            `../dist/langs/wasmedge_quickjs.wasm`,
             import.meta.url
           ).toString(),
           binaryName: "quickjs",
@@ -82,7 +82,7 @@ export function commandsForRuntime(
       return {
         run: {
           binaryURL: new URL(
-            `../langs/sqlite.wasm`,
+            `../dist/langs/sqlite.wasm`,
             import.meta.url
           ).toString(),
           binaryName: "sqlite",
@@ -95,7 +95,7 @@ export function commandsForRuntime(
       return {
         run: {
           binaryURL: new URL(
-            `../langs/php-cgi-8.2.0.wasm`,
+            `../dist/langs/php-cgi-8.2.0.wasm`,
             import.meta.url
           ).toString(),
           binaryName: "php",
@@ -110,7 +110,7 @@ export function commandsForRuntime(
         prepare: [
           {
             binaryURL: new URL(
-              `../langs/clang.wasm`,
+              `../dist/langs/clang.wasm`,
               import.meta.url
             ).toString(),
             binaryName: "clang",
@@ -138,13 +138,13 @@ export function commandsForRuntime(
             ],
             env: {},
             baseFSURL: new URL(
-              `../langs/clang-fs.tar.gz`,
+              `../dist/langs/clang-fs.tar.gz`,
               import.meta.url
             ).toString(),
           },
           {
             binaryURL: new URL(
-              `../langs/wasm-ld.wasm`,
+              `../dist/langs/wasm-ld.wasm`,
               import.meta.url
             ).toString(),
             binaryName: "wasm-ld",
@@ -174,7 +174,7 @@ export function commandsForRuntime(
         prepare: [
           {
             binaryURL: new URL(
-              `../langs/clang.wasm`,
+              `../dist/langs/clang.wasm`,
               import.meta.url
             ).toString(),
             binaryName: "clang",
@@ -205,13 +205,13 @@ export function commandsForRuntime(
             ],
             env: {},
             baseFSURL: new URL(
-              `../langs/clang-fs.tar.gz`,
+              `../dist/langs/clang-fs.tar.gz`,
               import.meta.url
             ).toString(),
           },
           {
             binaryURL: new URL(
-              `../langs/wasm-ld.wasm`,
+              `../dist/langs/wasm-ld.wasm`,
               import.meta.url
             ).toString(),
             binaryName: "wasm-ld",
@@ -253,8 +253,8 @@ export function getBinaryPathFromCommand(command: Command, fs: WASIFS) {
     }
 
     if (file.mode === "binary") {
-      const blob = new Blob([file.content], { type: "application/wasm" });
-      return URL.createObjectURL(blob);
+      const base64 = new Buffer(file.content).toString("base64");
+      return `data:application/wasm;base64,${base64}`;
     } else {
       throw new Error("Can't create WASM blob from string");
     }
