@@ -1,10 +1,10 @@
 import type { BinaryWASIFS } from "@runno/wasi";
-import { UntarStream } from "@std/tar/untar-stream";
+import * as tar from "tar";
+import { Readable } from "node:stream";
+import { gunzipSync } from "zlib";
 
 /**
  * Extract a .tar.gz file.
- *
- * Only works for ustar format.
  *
  * @param binary .tar.gz file
  * @returns
@@ -12,62 +12,106 @@ import { UntarStream } from "@std/tar/untar-stream";
 export const extractTarGz = async (
   binary: Uint8Array
 ): Promise<BinaryWASIFS> => {
-  const stream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(binary);
-      controller.close();
-    },
-  });
-
   const fs: BinaryWASIFS = {};
-  for await (const entry of stream
-    .pipeThrough(new DecompressionStream("gzip"))
-    .pipeThrough(new UntarStream())) {
-    if (!entry.readable) {
-      continue;
-    }
 
-    const content = streamToUint8Array(entry.readable);
+  return new Promise((resolve, reject) => {
+    // Create a readable stream from the binary data
+    const stream = Readable.from(gunzipSync(binary));
 
-    // HACK: Make sure each file name starts with /
-    const name = entry.path.replace(/^([^/])/, "/$1");
-    fs[name] = {
-      path: name,
-      timestamps: {
-        change: new Date(entry.header.mtime * 1000),
-        access: new Date(entry.header.mtime * 1000),
-        modification: new Date(entry.header.mtime * 1000),
-      },
-      mode: "binary",
-      content: await content,
+    let entriesCompleted = 0;
+    let entriesStarted = 0;
+    let finished = false;
+
+    const checkIfComplete = () => {
+      if (finished && entriesCompleted === entriesStarted) {
+        resolve(fs);
+      }
     };
-  }
 
-  return fs;
+    const extraction = stream.pipe(
+      tar.t({
+        onwarn: (message) => {
+          console.warn(`Tar extraction warning: ${message}`);
+        },
+        onentry: (entry) => {
+          entriesStarted++;
+
+          if (entry.type !== "File") {
+            // Skip non-file entries (directories, symlinks, etc.)
+            entry.resume();
+            entriesCompleted++;
+            checkIfComplete();
+            return;
+          }
+
+          // Make sure each file name starts with /
+          const name = entry.path.replace(/^([^/])/, "/$1");
+
+          const collectedData: Buffer[] = [];
+
+          entry.on("data", (data) => {
+            collectedData.push(data);
+          });
+
+          entry.on("end", () => {
+            // Add the file to our filesystem object
+            fs[name] = {
+              path: name,
+              timestamps: {
+                change: entry.header.mtime
+                  ? new Date(entry.header.mtime.getTime())
+                  : new Date(),
+                access: entry.header.atime
+                  ? new Date(entry.header.atime.getTime())
+                  : new Date(),
+                modification: entry.header.mtime
+                  ? new Date(entry.header.mtime.getTime())
+                  : new Date(),
+              },
+              mode: "binary",
+              content: new Uint8Array(Buffer.concat(collectedData)),
+            };
+
+            entriesCompleted++;
+            checkIfComplete();
+          });
+
+          entry.on("error", (err) => {
+            reject(new Error(`Error processing entry ${name}: ${err}`));
+          });
+        },
+      })
+    );
+
+    // Handle successful completion
+    extraction.on("end", () => {
+      finished = true;
+      checkIfComplete();
+    });
+
+    // Handle errors in the extraction pipeline
+    extraction.on("error", (err) => {
+      reject(new Error(`Tar extraction error: ${err}`));
+    });
+
+    // Handle errors in the input stream
+    stream.on("error", (err) => {
+      reject(new Error(`Stream error during tar extraction: ${err}`));
+    });
+
+    // Set a timeout to prevent hanging
+    const timeout = setTimeout(() => {
+      stream.destroy();
+      reject(new Error("Tar extraction timed out after 60 seconds"));
+    }, 60000);
+
+    // Clear the timeout when done
+    extraction.on("end", () => {
+      clearTimeout(timeout);
+    });
+
+    extraction.on("error", () => {
+      clearTimeout(timeout);
+    });
+  });
 };
-
-async function streamToUint8Array(
-  readableStream: ReadableStream<Uint8Array>
-): Promise<Uint8Array> {
-  const reader = readableStream.getReader();
-  const chunks: Uint8Array[] = [];
-  let totalLength = 0;
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) {
-      break;
-    }
-    chunks.push(value);
-    totalLength += value.length;
-  }
-
-  const result = new Uint8Array(totalLength);
-  let offset = 0;
-  for (const chunk of chunks) {
-    result.set(chunk, offset);
-    offset += chunk.length;
-  }
-
-  return result;
-}
