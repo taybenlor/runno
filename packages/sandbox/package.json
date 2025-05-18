@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "@runno/wasi": "^0.10.0",
-    "@std/tar": "npm:@jsr/std__tar@^0.1.3"
+    "tar": "^7.4.3"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.52.7",
