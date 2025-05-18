@@ -105,7 +105,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       timeout: TIMEOUT,
     });
 
-    switch (result.resultType) {
+    const type = result.resultType;
+    switch (type) {
       case "complete":
         return {
           content: [
@@ -150,6 +151,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             },
           ],
         };
+      default:
+        const unknownType = type satisfies never;
+        throw new Error(`Unexpected result type: ${unknownType}`);
     }
   }
   throw new Error("Tool not found");

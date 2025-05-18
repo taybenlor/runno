@@ -40,9 +40,8 @@
   },
   "scripts": {
     "build": "tsup",
-    "prepare": "npm run build",
-    "start": "node dist/index.js",
-    "dev": "npx @modelcontextprotocol/inspector node dist/index.js"
+    "start": "tsup && node dist/index.js",
+    "dev": "tsup && npx @modelcontextprotocol/inspector node dist/index.js"
   },
   "bugs": {
     "url": "https://github.com/taybenlor/runno/issues"
