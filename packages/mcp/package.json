@@ -1,6 +1,6 @@
 {
   "name": "@runno/mcp",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "MCP Server for the Runno Sandbox",
   "keywords": [
     "sandbox",
@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.11.4",
-    "@runno/sandbox": "^0.10.0",
+    "@runno/sandbox": "^0.10.1",
     "zod-to-json-schema": "^3.24.5"
   },
   "devDependencies": {
