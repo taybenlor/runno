@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { runCode } from "../../lib/main.js";
+import { runCode } from "@runno/sandbox";
 
 describe("@runno/sandbox runtime", () => {
   it("should run Python code successfully", async () => {
