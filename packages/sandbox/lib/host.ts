@@ -34,7 +34,7 @@ export class WASIWorkerHost {
 
     this.result = new Promise<WASIExecutionResult>((resolve, reject) => {
       this.reject = reject;
-      this.worker = new Worker("./dist/worker.js", {});
+      this.worker = new Worker(new URL("./worker.js", import.meta.url), {});
 
       this.worker.on("message", (message: HostMessage) => {
         switch (message.type) {
