@@ -1,6 +1,6 @@
 # `@runno/mcp`
 
-Overview
+## Overview
 
 `@runno/mcp` is a Model Context Protocol (MCP) server that provides a secure code execution environment for AI assistants. It enables models to execute code in various programming languages inside a sandboxed environment using WebAssembly, offering a safe way to run code snippets during AI interactions.
 
@@ -12,16 +12,21 @@ Overview
 - **Simple CLI Tool**: Easy to run via npx without complex setup
 - **Standard I/O Communication**: Uses stdio for communication with the client
 
+## Examples
+
+In this example I gave Claude a leetcode problem. It solved it by writing Python: [Leetcode problem](https://claude.ai/share/04393426-e2c1-4fce-a779-ad538512da66).
+
+In this example I told Claude to efficiently calculate 5000 primes. It solved it by writing Python. Then when I told it to use C, it rewrote the solution in C (and ran it): [5000 primes](https://claude.ai/share/dc1011a0-5ea5-429e-99da-095d98be1997).
+
+In this example I asked Claude to tell me the p75 of a short list of numbers. It solved it by first writing Python with Numpy (which didn't work) but then re-orienting and writing just using the standard library: [p75 calculation](https://claude.ai/share/69bb7cee-ff7d-4773-9e01-efc5b24a8cdf).
+
 ## How It Works
 
-The `@runno/mcp` server provides a `run_code` tool that AI assistants can use to execute code snippets in various programming languages. It leverages the `@runno/sandbox` package, which uses WebAssembly to create isolated environments for code execution.
+The `@runno/mcp` server provides a `run_code` tool that AI assistants can use to execute code snippets in various programming languages. It leverages the `@runno/sandbox` package, which uses WebAssembly to create isolated environments for code execution. The result of the code execution is provided over STDIO.
 
-When an AI assistant calls the `run_code` tool, the server:
+The `@runno/sandbox` uses precompiled WebAssembly binaries for multiple programming languages. It then executes those binaries against a virtual file system using the `@runno/wasi` implementation of WASI preview1.
 
-1. Validates the request parameters (runtime and code)
-2. Executes the code in the specified runtime environment
-3. Returns the execution results, including stdout, stderr, and exit code
-4. Handles various execution outcomes (completion, crash, termination, timeout)
+You can read more about how the Runno sandbox works in my article [I made a Python package for sandboxing code](https://runno.dev/articles/sandbox-python/). This is for an older version of the sandbox, but it works basically the same way.
 
 ## Supported Runtimes
 
@@ -73,53 +78,25 @@ This will start the server on stdio, making it immediately available for integra
 
 ### Integration with MCP Clients
 
-To use the Runno MCP server with an MCP client, you need to:
+To use the Runno MCP server with an MCP client, you simply need to configure it to run `npx @runno/mcp`.
 
-1. Start the server using the command above
-2. Configure your MCP client to connect to the server's stdio
-3. The client can then use the `run_code` tool to execute code
+For Claude you can edit the [MCP Config](https://modelcontextprotocol.io/quickstart/user):
 
-### Example MCP Client Integration
-
-While the specific integration depends on the MCP client you're using, here's a general outline:
-
-```javascript
-// Example of how an MCP client might connect to the Runno MCP server
-const { spawn } = require("child_process");
-const mcpProcess = spawn("npx", ["@runno/mcp"]);
-
-// Set up communication channels
-mcpProcess.stdout.on("data", (data) => {
-  // Process MCP responses
-});
-
-// Send requests to the MCP server
-mcpProcess.stdin.write(
-  JSON.stringify({
-    jsonrpc: "2.0",
-    id: "1",
-    method: "mcp.callTool",
-    params: {
-      name: "run_code",
-      arguments: {
-        runtime: "python",
-        code: 'print("Hello, world!")',
-      },
-    },
-  })
-);
 ```
+{
+  "mcpServers": {
+    "runno": {
+      "command": "/usr/local/bin/npx",
+      "args": ["@runno/mcp"]
+    }
+  }
+}
+```
+
+_Note: To get the right path for `npx` run `which npx`._
 
 ## Security Considerations
 
 - The Runno MCP server provides strong isolation of executed code through WebAssembly
 - However, resource consumption (CPU, memory) should still be monitored
 - For production use, consider implementing additional controls such as timeouts and resource limits
-
-## Installation
-
-If you want to install the package locally:
-
-```bash
-npm install @runno/mcp
-```
