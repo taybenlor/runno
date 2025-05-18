@@ -1,6 +1,6 @@
 {
   "name": "@runno/sandbox",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "Run code inside the Runno WebAssembly sandbox.",
   "keywords": [
     "wasm",
