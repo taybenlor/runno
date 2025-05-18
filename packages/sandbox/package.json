@@ -45,7 +45,6 @@
     "url": "https://github.com/taybenlor/runno/issues"
   },
   "dependencies": {
-    "@cliffy/command": "npm:@jsr/cliffy__command@^1.0.0-rc.7",
     "@runno/wasi": "^0.10.0",
     "@std/tar": "npm:@jsr/std__tar@^0.1.3"
   },
