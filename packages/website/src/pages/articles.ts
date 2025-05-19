@@ -9,12 +9,22 @@ import wasiWebComponentArticleMarkdown from "./articles/wasi-web-component.md?ra
 import experimentDockerMarkdown from "./articles/experiment-docker.md?raw";
 import sandboxPythonMarkdown from "./articles/sandbox-python.md?raw";
 import webComponentMarkdown from "./articles/web-component.md?raw";
+import sandboxMarkdown from "./articles/sandbox.md?raw";
 
 import "../components/article";
 import "../components/docker-playground";
 
 // Keep in sync with /routes.ts
 const articles = [
+  {
+    slug: "sandbox",
+    title: "Introducing @runno/sandbox: A WebAssembly Sandbox for Running Code",
+    description: `The Runno sandbox gives you a secure WebAssembly-based sandbox for running code in various programming languages. It works in Node.js and other JavaScript runtimes, providing protection when running potentially risky code.`,
+    markdown: sandboxMarkdown,
+    published: new Date("2025-05-20"),
+    draft: false,
+    author: "Ben Taylor",
+  },
   {
     slug: "web-component",
     title: "The Web Component for Code",

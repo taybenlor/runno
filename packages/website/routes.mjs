@@ -1,6 +1,14 @@
 // Path: packages/website/src/pages/articles.ts
 export const ARTICLES = [
   {
+    slug: "sandbox",
+    title: "Introducing @runno/sandbox: A WebAssembly Sandbox for Running Code",
+    description: `The Runno sandbox gives you a secure WebAssembly-based sandbox for running code in various programming languages. It works in Node.js and other JavaScript runtimes, providing protection when running potentially risky code.`,
+    published: new Date("2025-05-20"),
+    draft: false,
+    author: "Ben Taylor",
+  },
+  {
     slug: "web-component",
     title: "Runno: The Web Component for Code",
     description: `Since I released Runno a few years ago, Web Components have become a lot more

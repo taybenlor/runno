@@ -1,37 +1,34 @@
 👨‍💻 **Use Runno** 👉 [Runno.dev](https://runno.dev/)
 
-📖 **Documentation** 👉 [Runno.dev](https://runno.dev/#know-runno)
+📖 **Documentation** 👉 [Runno.dev](https://runno.dev/docs/)
 
 # Runno
 
-Runno helps you make runnable code examples that can be embedded in web pages.
+Runno is a collection of JavaScript Packages for running code in various languages
+inside a sandbox. It's made of the following packages:
+
+- [`@runno/runtime`](https://github.com/taybenlor/runno/tree/main/packages/runtime) - web components and headless tools for running code examples in the browser.
+- [`@runno/sandbox`](https://github.com/taybenlor/runno/tree/main/packages/sandbox) - a secure sandbox for running code examples in Node and other JS Runtimes.
+- [`@runno/wasi`](https://github.com/taybenlor/runno/tree/main/packages/wasi) - an isomorphic package for running WebAssembly WASI binaries inside a sandbox.
+- [`@runno/mcp`](https://github.com/taybenlor/runno/tree/main/packages/mcp) - an MCP Server for running code using the `@runno/sandbox` package.
+
+There's also a Python package called [`runno`](https://github.com/taybenlor/runno/tree/main/sandbox)
+that works like the sandbox package.
 
 This project is powered by [WASI](https://wasi.dev) the Web Assembly System
 Interface. It provides a standard way for programs to interact with an
 operating system. By emulating this interface, we can provide a fake file system
-and operating system, all running within the browser. Then we can run
-programming languages in the browser, without modification.
+and operating system, all running within JavaScript.
+
+# Using `@runno/runtime`
+
+The `@runno/runtime` package provides Web Components for running code in the browser.
 
 This is very handy for programming education it means:
 
 - No need for newbies to install complex programming tools to run code
 - Programming examples can be made runnable in the browser with no server
 - Simple programs can be tested for correctness inside a sandbox on the user's machine
-
-Runno also ships its own WASI runtime ([`@runno/wasi`](https://github.com/taybenlor/runno/tree/main/packages/wasi)) which is used to power
-Runno under the hood. It can be used independently to run WASI binaries in the
-browser.
-
-## Two parts to Runno
-
-There are two main parts to runno:
-
-1. `@runno/runtime` - web components and headless tools for running code examples in the browser.
-2. `@runno/wasi` - a sandboxed implementation of WASI made for the browser that works on the server.
-
-The `@runno/runtime` is built on top of the primitives provided by `@runno/wasi`.
-
-# Using `@runno/runtime`
 
 ## Quickstart
 
@@ -89,9 +86,49 @@ There are more examples for how to use Runno in the `examples` directory in this
 repo. It includes practical ways you can use Runno, and how to configure it to
 run.
 
-# Full documentation
+## Full documentation
 
 Visit [`@runno/runtime`](https://github.com/taybenlor/runno/tree/main/packages/runtime) to read the full documentation.
+
+## How does it work?
+
+Runno uses Web Assembly to run code from JavaScript. Code runs in a unix-like sandbox that connects to a web-based terminal emulator. This means it behaves a lot like running code natively on a linux terminal. It's not perfect, but it's handy for making code examples run.
+
+Plus it's pretty cool that you can just run code in your browser!
+
+# Using `@runno/sandbox`
+
+## Quickstart
+
+Install the sandbox with `npm install @runno/sandbox`. Then use it to run code
+like:
+
+```ts
+import { runCode } from "@runno/sandbox";
+
+const result = await runCode("ruby", "puts 'Hello, world!'");
+
+if (result.resultType === "complete") {
+  console.log(result.stdout);
+} else {
+  console.log("Oh no!");
+}
+```
+
+You can also do more complicated things, like run against a virtual file system
+with `runFS`:
+
+```ts
+function runFS(
+  runtime: Runtime,
+  entryPath: string,
+  fs: WASIFS,
+  options?: {
+    stdin?: string;
+    timeout?: number;
+  }
+): Promise<RunResult>;
+```
 
 # Using `@runno/wasi`
 
@@ -148,8 +185,8 @@ This repo is broken down into a few packages using [lerna](https://lerna.js.org/
 - `website` - the runno website that includes instructions and examples
 - `runtime` - a library that provides web components and helpers that can be bundled into your own project for using runno without an iframe
 - `wasi` - a library for running WASI binaries in the browser
-- `client` - **DEPRECATED** a static website that exposes the runno runtime to be embedded as an iframe
-- `host` - **DEPRECATED** helpers for running code on the client from another website
+- `sandbox` - a sandbox for running programming languages from any JavaScript runtime
+- `mcp` - an MCP Server implementation built on the `sandbox`
 
 ## Running locally
 
@@ -162,31 +199,15 @@ npm run build  # make sure the dependent libraries are built
 npm run dev
 ```
 
-If you edit `host`, `terminal`, `wasi` or `runtime` you will need to re-build them with `npm run build`.
-
 ## Testing
 
-Coming soon!
+Runno has a small suite of tests, mostly focused on end-to-end integration. The `wasi` package has the most extensive suite of tests, comprehensively testing the WASI preview1 implementation. The other packages mostly have a few smoke tests to make sure they're working.
 
 # About Runno
 
-## How does it work?
-
-Runno uses Web Assembly to run code in the browser. Code runs in a unix-like sandbox that connects to a web-based terminal emulator. This means it behaves a lot like running code natively on a linux terminal. It's not perfect, but it's handy for making code examples run.
-
-When you click run on a Runno example the web assembly binary for that programming language is collected from [WAPM](wapm.io) (the Web Assembly Package Manager). It's then run in a Web Worker, inside a sandbox with an in-memory file system. It's connected up to a terminal emulator and simple IO is routed back and forth.
-
-## Why run in the browser?
-
-The way Runno is built shifts the work of running code examples from the server to the client. Running code examples on your server is risky, it means having to implement protections from potentially hostile clients and limiting resources. This means that it's difficult to build a system that is open for anyone to use.
-
-If you're just writing a blog post, your own course, or writing documentation it's going to be difficult to implement this. You really want to use something that someone else has built. But that would mean running on their servers, which is going to cost them money! By running on the client you eliminate needing any third party involvement.
-
-Plus it's pretty cool that you can just run code in your browser!
-
 ## Limitations
 
-The programming languages available are limited by what has already been compiled to Web Assembly using WASI and uploaded to WAPM. A great way to help more languages become available would be to compile your favourite programming language tools to Web Assembly and upload them to WAPM.
+The programming languages available are limited by what has already been compiled to Web Assembly using WASI. A great way to help more languages become available would be to compile your favourite programming language tools to Web Assembly and upload them to WAPM.
 
 WASI doesn't provide a full linux environment, so most system based interfaces won't work. Packages and modules are also difficult to install inside the Runno environment. If you want to import code, you'll need to provide that code alongside your example.
 
@@ -194,20 +215,47 @@ Runno is best for small code examples that use STDIN and STDOUT. That is typical
 
 ## Security
 
-Running arbitrary code is always going to have some security risks, even if you're running it on the client. The goal of the Runno sandbox is to make it as safe as possible for a client to press run. They should be able to trust that their browser won't do anything they don't expect it to do.
+I do want to say up front that Runno is Open Source software with an MIT
+License, which specifically states:
 
-Because Runno runs within the browser on the client, you don't have to worry about it damaging your servers. But we also need to make sure Runno won't damage your clients.
+```
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND
+```
 
-There are two main layers of sandboxing that help make Runno secure:
+I stand by that lack of a warranty. But I also think the sandbox is pretty good
+and I'd love to make it really good. It's fun.
 
-1. By running as WebAssembly we create a layer of sandboxing, any system resources that the binary wants have to be passed through a layer of JavaScript that Runno controls.
-2. By embedding Runno inside an iframe from another domain we sandbox it from any secrets inside your webpage. This prevents Runno from having access to cookies or from making API calls as a user.
+The main way that the Runno sandbox isolates code is by running it as
+WebAssembly inside V8. WebAssembly has some neat properties:
 
-With these two layers combined it's difficult for a user to hurt themselves, for you to hurt a user, or for users to hurt each other. But that doesn't mean Runno is 100% safe.
+1. Execution is all virtualised, it's not running directly on your CPU and RAM
+2. Code and Data are seperate, you can't jump into data
+3. The only interface with the outside world is via user-provided functions
 
-Runno can quite easily be used to hog resources on a client. An infinite loop can lock up a tab. Large binaries can potentially be dynamically loaded from WAPM, using surprising amounts of bandwidth. While not ideal, these are typical risks a user has in navigating to any website.
+That last point (3) is the most important one. If you run a WebAssembly binary
+and don't provide it with any functions it literally cannot do anything. It's
+like a box with no windows or doors, nothing can get in or out.
 
-The intention is for Runno to either disclose security risks upfront, or to fix them. So if you find a security issue with the way Runno works, please [contact me](security@make.expert)!
+But we do want some things to get in and out. That's what WASI is for. WASI is a
+specification for an interface (the WebAssembly System Interface) that defines
+a standard set of functions that a WebAssembly binary can call like they are
+system calls. Mostly they do things like read and write files.
+
+_Note: this is actually a definition of WASI preview1, preview2 / 0.2 is a
+different beast and is very cool but currently out of scope._
+
+Runno at it's core is an implementation of WASI preview1. It's kind of like a
+very lightweight Operating System implemented in TypeScript. It has a virtual
+file system which is made up of virtual files (basically just byte arrays stored
+in memory). So it never accesses your real file system either. It also has no
+network access or anything else like that.
+
+So 1) it's a virtual machine, 2) it's a virtual file system, and 3) it has no
+network access. That's pretty good.
+
+There's a lot of layers to this onion which I think is pretty good. I've heard
+onions are good for security. Tell me if you find some holes in my onion though,
+I'm interested! Email [security@taybenlor.com](mailto:security@taybenlor.com).
 
 # Big thanks to
 
