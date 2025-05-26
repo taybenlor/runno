@@ -37,7 +37,6 @@
     "test": "npm run test:wasi && npm run test:runtime && npm run test:sandbox && npm run test:nodesandbox"
   },
   "eslintConfig": {
-    "extends": "preact",
     "ignorePatterns": [
       "build/"
     ]
@@ -49,7 +48,7 @@
     "husky": "^7.0.4",
     "lerna": "^7.0.0",
     "lint-staged": "^11.0.0",
-    "prettier": "^2.3.1",
+    "prettier": "^3.5.3",
     "typescript": "^5.8.3"
   }
 }
