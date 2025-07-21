@@ -10,12 +10,23 @@ import experimentDockerMarkdown from "./articles/experiment-docker.md?raw";
 import sandboxPythonMarkdown from "./articles/sandbox-python.md?raw";
 import webComponentMarkdown from "./articles/web-component.md?raw";
 import sandboxMarkdown from "./articles/sandbox.md?raw";
+import mcpMarkdown from "./articles/mcp.md?raw";
 
 import "../components/article";
 import "../components/docker-playground";
 
 // Keep in sync with /routes.ts
 const articles = [
+  {
+    slug: "mcp",
+    title:
+      "MCP Servers are surprisingly easy. I made one that runs code in a sandbox.",
+    description: `It lets LLMs run code in a safe environment, using the Runno sandbox, and it was surprisingly easy to build. I'll show you how in here.`,
+    markdown: mcpMarkdown,
+    published: new Date("2025-07-21"),
+    draft: false,
+    author: "Ben Taylor",
+  },
   {
     slug: "sandbox",
     title: "Introducing @runno/sandbox: A WebAssembly Sandbox for Running Code",
@@ -126,7 +137,7 @@ export class PageArticles extends TailwindElement {
               .author=${article.author}
             ></website-article>
           </website-route>
-        `
+        `,
       )}
     `;
   }
