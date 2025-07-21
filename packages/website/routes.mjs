@@ -1,6 +1,15 @@
 // Path: packages/website/src/pages/articles.ts
 export const ARTICLES = [
   {
+    slug: "mcp",
+    title:
+      "MCP Servers are surprisingly easy. I made one that runs code in a sandbox.",
+    description: `It lets LLMs run code in a safe environment, using the Runno sandbox, and it was surprisingly easy to build. I'll show you how in here.`,
+    published: new Date("2025-07-21"),
+    draft: false,
+    author: "Ben Taylor",
+  },
+  {
     slug: "sandbox",
     title: "Introducing @runno/sandbox: A WebAssembly Sandbox for Running Code",
     description: `The Runno sandbox gives you a secure WebAssembly-based sandbox for running code in various programming languages. It works in Node.js and other JavaScript runtimes, providing protection when running potentially risky code.`,
