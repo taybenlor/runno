@@ -356,7 +356,7 @@ const server = new Server(
 
 server.setRequestHandler(ListToolsRequestSchema, async (request) => {
   return {
-    tools: [runCodeTool, runFilesTool],
+    tools: [runCodeTool],
   };
 });
 
