@@ -331,8 +331,8 @@ export class PageDocs extends TailwindElement {
             </p>
             <p>
               Also big thanks to my friends who tolerate me constantly talking
-              about WASM. Thanks especially to Shelley, Katie, Jesse, Jim, Odin,
-              Hailey, Sam and other Sam.
+              about WASM. Thanks especially to Katie, Jesse, Jim, Odin, Hailey,
+              Sam and other Sam.
             </p>
           </section>
         </article>
