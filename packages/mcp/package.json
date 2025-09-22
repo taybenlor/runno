@@ -15,6 +15,7 @@
   "types": "./dist/index.d.ts",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
+  "mcpName": "io.github.taybenlor/runno",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
