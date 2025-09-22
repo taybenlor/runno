@@ -12,7 +12,7 @@ jobs:
       - uses: denoland/setup-deno@v2
         id: deno
         with:
-          deno-version: "v2.x"
+          deno-version: "v2.1.1"
       - name: Install Hatch
         uses: pypa/hatch@install
       - run: "npm run build:deploy"
