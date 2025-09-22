@@ -45,7 +45,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@playwright/test": "^1.55.0",
+    "@playwright/test": "^1.49.1",
     "@rollup/plugin-typescript": "^12.1.2",
     "rimraf": "^6.0.1",
     "typedoc": "^0.28.4",

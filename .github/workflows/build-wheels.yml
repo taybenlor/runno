@@ -17,7 +17,7 @@ jobs:
       - uses: denoland/setup-deno@v2
         id: deno
         with:
-          deno-version: "v2.1.1"
+          deno-version: "v2.x"
       - run: cd sandbox/cli && deno task bootstrap
 
       - name: Set up QEMU
