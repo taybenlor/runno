@@ -126,7 +126,7 @@ function runFS(
   options?: {
     stdin?: string;
     timeout?: number;
-  }
+  },
 ): Promise<RunResult>;
 ```
 
@@ -175,6 +175,41 @@ a terminal command, you write `cat somefile` the name of the binary is `cat`._
 
 Visit [`@runno/wasi`](https://github.com/taybenlor/runno/tree/main/packages/wasi) to read the full documentation including instructions for running inside a worker, and how the
 virtual file-system works.
+
+# Using `@runno/sandbox`
+
+## Quickstart
+
+The sandbox exports a `runCode` function you can use to run code. First install it with `npm install @runno/sandbox` or however you are installing packages. Then do something like:
+
+```ts
+import { runCode } from "@runno/sandbox";
+
+const result = await runCode("ruby", "puts 'Hello JavaScript!'");
+
+console.log("Ruby says:", result.stdout);
+```
+
+There's an [introduction article](https://runno.dev/articles/sandbox/) you can use to learn more.
+
+# Using `@runno/mcp`
+
+## Quickstart
+
+Depending on how your MCP server is configured, you can add Runno with:
+
+```json
+{
+  "mcpServers": {
+    "runno": {
+      "command": "npx",
+      "args": ["@runno/mcp"]
+    }
+  }
+}
+```
+
+There's an [introduction article](https://runno.dev/articles/mcp/) you can use to learn more.
 
 # Development
 
@@ -273,4 +308,4 @@ A number of open-source projects and standards have been used to make Runno poss
 
 Thanks to everyone who has built compatibility layers for the web. The web becomes a better platform with every new piece of software we can run on it!
 
-Also big thanks to my friends who tolerate me constantly talking about WASM. Thanks especially to Shelley, Katie, Jesse, Jim, Odin, Hailey, Sam and other Sam.
+Also big thanks to my friends who tolerate me constantly talking about WASM. Thanks especially to Katie, Jesse, Jim, Odin, Hailey, Sam and other Sam.
