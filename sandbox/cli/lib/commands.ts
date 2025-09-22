@@ -24,7 +24,7 @@ export type RuntimeCommands = {
 
 export function commandsForRuntime(
   name: Runtime,
-  entryPath: string
+  entryPath: string,
 ): RuntimeCommands {
   switch (name) {
     // Python from VMWare https://github.com/vmware-labs/webassembly-language-runtimes
@@ -214,7 +214,8 @@ export function getBinaryPathFromCommand(command: Command, fs: WASIFS) {
     }
 
     if (file.mode === "binary") {
-      const blob = new Blob([file.content], { type: "application/wasm" });
+      const content = new Uint8Array(file.content);
+      const blob = new Blob([content], { type: "application/wasm" });
       return URL.createObjectURL(blob);
     } else {
       throw new Error("Can't create WASM blob from string");
