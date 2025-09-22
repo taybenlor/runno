@@ -19,7 +19,7 @@
     "type": "git",
     "url": "git://github.com/taybenlor/runno.git"
   },
-  "version": "0.10.0",
+  "version": "0.10.3",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
@@ -72,7 +72,7 @@
     "@codemirror/rectangular-selection": "^0.19.2",
     "@codemirror/view": "^0.19.31",
     "@obsidize/tar-browserify": "^3.0.0",
-    "@runno/wasi": "^0.10.0",
+    "@runno/wasi": "^0.10.3",
     "lit": "^2.7.6",
     "pako": "^1.0.11",
     "runno-codemirror-lang-ruby": "^0.0.2",
