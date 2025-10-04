@@ -1,6 +1,6 @@
 {
   "name": "@runno/mcp",
-  "version": "0.10.3",
+  "version": "0.10.4",
   "description": "MCP Server for the Runno Sandbox",
   "keywords": [
     "sandbox",
