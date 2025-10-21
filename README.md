@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/taybenlor-runno-badge.png)](https://mseep.ai/app/taybenlor-runno)
+
 👨‍💻 **Use Runno** 👉 [Runno.dev](https://runno.dev/)
 
 📖 **Documentation** 👉 [Runno.dev](https://runno.dev/docs/)
