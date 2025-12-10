@@ -12,7 +12,7 @@ inside a sandbox. It's made of the following packages:
 - [`@runno/wasi`](https://github.com/taybenlor/runno/tree/main/packages/wasi) - an isomorphic package for running WebAssembly WASI binaries inside a sandbox.
 - [`@runno/mcp`](https://github.com/taybenlor/runno/tree/main/packages/mcp) - an MCP Server for running code using the `@runno/sandbox` package.
 
-There's also a Python package called [`runno`](https://github.com/taybenlor/runno/tree/main/sandbox)
+There's also a deprecated Python package called [`runno`](https://github.com/taybenlor/runno/tree/main/sandbox)
 that works like the sandbox package.
 
 This project is powered by [WASI](https://wasi.dev) the Web Assembly System
