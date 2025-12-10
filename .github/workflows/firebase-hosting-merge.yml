@@ -15,8 +15,6 @@ jobs:
         id: deno
         with:
           deno-version: "v2.1.1"
-      - name: Install Hatch
-        uses: pypa/hatch@install
       - run: "npm run build:deploy"
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
