@@ -10,13 +10,12 @@ jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: denoland/setup-deno@v2
-        id: deno
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          deno-version: "v2.1.1"
-      - name: Install Hatch
-        uses: pypa/hatch@install
+          node-version: "22"
+      - name: Install dependencies
+        run: npm run bootstrap
       - run: "npm run build:deploy"
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
