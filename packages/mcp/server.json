@@ -6,13 +6,13 @@
     "url": "https://github.com/taybenlor/runno",
     "source": "github"
   },
-  "version": "0.10.2",
+  "version": "0.10.6",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@runno/mcp",
-      "version": "0.10.2",
+      "version": "0.10.6",
       "transport": {
         "type": "stdio"
       },
