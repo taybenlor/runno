@@ -21,6 +21,7 @@ export class WASIWorkerHost {
   result?: Promise<WASIExecutionResult>;
   worker?: Worker;
   reject?: (reason?: unknown) => void;
+  isRunning: boolean = false;
 
   constructor(binaryURL: string, context: WASIWorkerHostContext) {
     this.binaryURL = binaryURL;
@@ -32,6 +33,7 @@ export class WASIWorkerHost {
       throw new Error("WASIWorker Host can only be started once");
     }
 
+    this.isRunning = true;
     this.result = new Promise<WASIExecutionResult>((resolve, reject) => {
       this.reject = reject;
       this.worker = new Worker(new URL("./worker.js", import.meta.url), {});
@@ -49,7 +51,7 @@ export class WASIWorkerHost {
               message.name,
               message.args,
               message.ret,
-              message.data
+              message.data,
             );
             break;
           case "result":
@@ -74,15 +76,23 @@ export class WASIWorkerHost {
         fs: this.context.fs,
         isTTY: this.context.isTTY,
       });
-    }).then((result) => {
-      this.worker?.terminate();
-      return result;
-    });
+    })
+      .then((result) => {
+        this.isRunning = false;
+        this.worker?.terminate();
+        return result;
+      })
+      .catch((err) => {
+        this.isRunning = false;
+        this.worker?.terminate();
+        throw err;
+      });
 
     return this.result;
   }
 
   kill() {
+    this.isRunning = false;
     if (!this.worker) {
       throw new Error("WASIWorker has not started");
     }
@@ -98,6 +108,9 @@ export class WASIWorkerHost {
 
     // first four bytes (Int32) is the length of the text
     while (view.getInt32(0) !== 0) {
+      if (!this.isRunning) {
+        return;
+      }
       // TODO: Switch to Atomics.waitAsync when supported by firefox
       await new Promise((resolve) => setTimeout(resolve, 0));
     }
@@ -117,6 +130,9 @@ export class WASIWorkerHost {
 
     // TODO: Switch to Atomics.waitAsync when supported by firefox
     while (view.getInt32(0) !== 0) {
+      if (!this.isRunning) {
+        return;
+      }
       await new Promise((resolve) => setTimeout(resolve, 0));
     }
 

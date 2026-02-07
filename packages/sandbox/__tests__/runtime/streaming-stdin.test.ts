@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { runFS } from "@runno/sandbox";
 import type { WASIFS } from "@runno/wasi";
 
-describe("@runno/sandbox streaming stdin", () => {
+describe("@runno/sandbox streaming stdin", { timeout: 30000 }, () => {
   let testFS: WASIFS;
 
   beforeEach(() => {
@@ -181,9 +181,25 @@ for line in sys.stdin:
 
   describe("Backward compatibility", () => {
     it("should still accept plain string stdin", async () => {
-      const result = await runFS("python", "/program.py", testFS, {
-        stdin: "backward_compat\n",
-      });
+      const result = await runFS(
+        "python",
+        "/program.py",
+        {
+          "/program.py": {
+            path: "program.py",
+            content: `print(f"Got: {input()}")`,
+            mode: "string",
+            timestamps: {
+              access: new Date(),
+              modification: new Date(),
+              change: new Date(),
+            },
+          },
+        },
+        {
+          stdin: "backward_compat\n",
+        },
+      );
 
       expect(result.resultType).toBe("complete");
       if (result.resultType === "complete") {
@@ -398,7 +414,10 @@ for line in sys.stdin:
         // Check that output file was created
         expect(result.fs["/output.txt"]).toBeDefined();
         if (result.fs["/output.txt"]) {
-          const content = result.fs["/output.txt"].content as string;
+          let content = result.fs["/output.txt"].content;
+          if (content instanceof Uint8Array) {
+            content = new TextDecoder().decode(content);
+          }
           expect(content).toContain("Processed: data1");
           expect(content).toContain("Processed: data2");
         }
@@ -435,6 +454,130 @@ for line in sys.stdin:
       expect(result2.resultType).toBe("complete");
       if (result2.resultType === "complete") {
         expect(result2.stdout).toContain("Got: second");
+      }
+    });
+  });
+
+  describe("Edge Case: Timeout & Errors", () => {
+    it("should respect timeout when using streaming input", async () => {
+      async function* infiniteStream() {
+        while (true) {
+          yield "still going...\n";
+          await new Promise((resolve) => setTimeout(resolve, 10));
+        }
+      }
+
+      const result = await runFS("python", "/program.py", testFS, {
+        stdin: () => infiniteStream(),
+        timeout: 0.2,
+      });
+      expect(result.resultType).toBe("timeout");
+    });
+
+    it("should handle errors in the input stream", async () => {
+      async function* errorStream() {
+        yield "part 1\n";
+        throw new Error("Stream exploded");
+      }
+
+      const result = await runFS("python", "/program.py", testFS, {
+        stdin: errorStream(),
+      });
+
+      // It should either be a complete result (if program finished fast) or a crash
+      if (result.resultType === "crash") {
+        expect(result.error.message).toContain("Stream exploded");
+      } else {
+        expect(result.resultType).toBe("complete");
+      }
+    });
+
+    it("should handle extremely large string stdin via unified chunking", async () => {
+      // Create a 100KB string to exceed the 8KB buffer many times
+      const massiveString = "A".repeat(100 * 1024) + "\n";
+      const result = await runFS("python", "/program.py", testFS, {
+        stdin: massiveString,
+      });
+
+      expect(result.resultType).toBe("complete");
+      if (result.resultType === "complete") {
+        expect(result.stdout).toContain("Got: ");
+        expect(result.exitCode).toBe(0);
+      }
+    });
+
+    it("should handle slow consumer and backpressure", async () => {
+      // Create a program that reads input slowly using a busy loop
+      const slowFS: WASIFS = {
+        "/program.py": {
+          path: "program.py",
+          content: `
+import sys
+def busy_wait(iterations):
+    # Just a simple loop to consume CPU time
+    for _ in range(iterations):
+        pass
+for line in sys.stdin:
+    # Use a busy loop instead of time.sleep to simulate slow processing
+    busy_wait(100000)
+    print(f"Read: {line.strip()}")
+`,
+          mode: "string",
+          timestamps: {
+            access: new Date(),
+            modification: new Date(),
+            change: new Date(),
+          },
+        },
+      };
+
+      async function* fastStream() {
+        for (let i = 0; i < 20; i++) {
+          yield `line${i}\n`; // Produce faster than it can be consumed
+        }
+      }
+
+      const result = await runFS("python", "/program.py", slowFS, {
+        stdin: fastStream(),
+      });
+
+      expect(result.resultType).toBe("complete");
+      if (result.resultType === "complete") {
+        expect(result.stdout).toContain("Read: line19");
+        expect(result.exitCode).toBe(0);
+      }
+    });
+
+    it("should handle empty chunks within stream", async () => {
+      async function* withEmpty() {
+        yield "a\n";
+        yield "";
+        yield "";
+        yield "b\n";
+      }
+      const result = await runFS("python", "/program.py", testFS, {
+        stdin: withEmpty(),
+      });
+      expect(result.resultType).toBe("complete");
+      if (result.resultType === "complete") {
+        expect(result.stdout).toContain("Got: a");
+        expect(result.stdout).toContain("Got: b");
+      }
+    });
+
+    it("should support factory functions returning ReadableStream", async () => {
+      const result = await runFS("python", "/program.py", testFS, {
+        stdin: () =>
+          new ReadableStream<string>({
+            start(controller) {
+              controller.enqueue("factory_stream\n");
+              controller.close();
+            },
+          }),
+      });
+      expect(result.resultType).toBe("complete");
+      if (result.resultType === "complete") {
+        expect(result.stdout).toContain("Got: factory_stream");
       }
     });
   });
