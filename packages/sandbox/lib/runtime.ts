@@ -18,7 +18,7 @@ export function runCode(
   options: {
     stdin?: string;
     timeout?: number;
-  } = {}
+  } = {},
 ): Promise<RunResult> {
   const fs: WASIFS = {
     "/program": {
@@ -41,9 +41,14 @@ export async function runFS(
   entryPath: string,
   fs: WASIFS,
   options: {
-    stdin?: string;
+    // Accept string (existing behaviour) or stream-like types for streaming stdin.
+    stdin?:
+      | string
+      | AsyncIterable<string>
+      | ReadableStream<string>
+      | (() => AsyncIterable<string>);
     timeout?: number;
-  } = {}
+  } = {},
 ): Promise<RunResult> {
   const commands = commandsForRuntime(runtime, entryPath);
 
@@ -80,13 +85,21 @@ export async function runFS(
   }
 
   try {
-    const resultWithLimits = await _startWASIWithLimits(
-      binaryPath,
-      {
+    // If caller passed a streaming stdin (AsyncIterable / ReadableStream / function),
+    // use WASIWorkerHost directly so we can push chunks as they arrive.
+    let resultWithLimits: { result: WASIExecutionResult } | undefined;
+
+    const isStreamInput =
+      options.stdin != null &&
+      (isAsyncIterable(options.stdin) ||
+        isReadableStream(options.stdin) ||
+        typeof options.stdin === "function");
+
+    if (isStreamInput) {
+      const workerHost = new WASIWorkerHost(binaryPath, {
         args: [run.binaryName, ...(run.args ?? [])],
         env: run.env,
         fs,
-        stdin: options.stdin,
         stdout: (out: string) => {
           prepare.stdout += out;
           prepare.tty += out;
@@ -95,14 +108,79 @@ export async function runFS(
           prepare.stderr += err;
           prepare.tty += err;
         },
-      },
-      {
-        timeout: options.timeout,
-      }
-    );
+      });
 
-    prepare.fs = { ...fs, ...resultWithLimits.result.fs };
-    prepare.exitCode = resultWithLimits.result.exitCode;
+      // Start the worker (returns a Promise that resolves to WASIExecutionResult)
+      const runPromise = workerHost.start();
+
+      // push chunks asynchronously (do not await the entire runPromise here)
+      (async () => {
+        try {
+          // normalize to AsyncIterable<string>
+          let asyncIter: AsyncIterable<string> | undefined;
+
+          if (isAsyncIterable(options.stdin)) {
+            asyncIter = options.stdin as AsyncIterable<string>;
+          } else if (isReadableStream(options.stdin)) {
+            const reader = (
+              options.stdin as ReadableStream<string>
+            ).getReader();
+            async function* fromReader() {
+              try {
+                while (true) {
+                  const { value, done } = await reader.read();
+                  if (done) break;
+                  if (value != null) yield value;
+                }
+              } finally {
+                reader.releaseLock();
+              }
+            }
+            asyncIter = fromReader();
+          } else if (typeof options.stdin === "function") {
+            asyncIter = (options.stdin as () => AsyncIterable<string>)();
+          }
+
+          if (asyncIter) {
+            for await (const chunk of asyncIter) {
+              // Use safe splitter: will split large chunk into multiple UTF-8-safe sub-strings
+              await pushStringSafely(workerHost, chunk);
+            }
+          }
+        } finally {
+          // signal EOF
+          await workerHost.pushEOF();
+        }
+      })();
+
+      // wait for run to finish
+      resultWithLimits = await runPromise.then((r) => ({ result: r }));
+    } else {
+      // old behaviour: string stdin (or undefined) -> use existing helper
+      resultWithLimits = await _startWASIWithLimits(
+        binaryPath,
+        {
+          args: [run.binaryName, ...(run.args ?? [])],
+          env: run.env,
+          fs,
+          stdin: options.stdin as string | undefined,
+          stdout: (out: string) => {
+            prepare.stdout += out;
+            prepare.tty += out;
+          },
+          stderr: (err: string) => {
+            prepare.stderr += err;
+            prepare.tty += err;
+          },
+        },
+        {
+          timeout: options.timeout,
+        },
+      );
+    }
+
+    prepare.fs = { ...fs, ...resultWithLimits!.result.fs };
+    prepare.exitCode = resultWithLimits!.result.exitCode;
 
     return prepare;
   } catch (e) {
@@ -139,7 +217,7 @@ export class PrepareError extends Error {
 export async function headlessPrepareFS(
   prepareCommands: Command[],
   fs: WASIFS,
-  limits: Partial<Limits> = {}
+  limits: Partial<Limits> = {},
 ) {
   const prepare: CompleteResult = {
     resultType: "complete",
@@ -174,7 +252,7 @@ export async function headlessPrepareFS(
           prepare.tty += err;
         },
       },
-      limits
+      limits,
     );
 
     prepare.fs = resultWithLimits.result.fs;
@@ -187,7 +265,7 @@ export async function headlessPrepareFS(
       // If a prepare step fails then we stop.
       throw new PrepareError(
         "Prepare step returned a non-zero exit code",
-        prepare
+        prepare,
       );
     }
   }
@@ -209,12 +287,12 @@ type Context = Omit<WASIContextOptions, "stdin"> & { stdin: string };
 async function _startWASIWithLimits(
   binaryPath: string,
   context: Partial<Context>,
-  limits: Partial<Limits>
+  limits: Partial<Limits>,
 ): Promise<WASIExecutionResultWithLimits> {
   const startTime = performance.now();
   const workerHost = new WASIWorkerHost(
     makeURLFromFilePath(binaryPath),
-    context
+    context,
   );
 
   if (context.stdin) {
@@ -224,7 +302,7 @@ async function _startWASIWithLimits(
   let result: WASIExecutionResult | "timeout";
   if (limits.timeout) {
     const timeoutPromise: Promise<"timeout"> = new Promise((resolve) =>
-      setTimeout(() => resolve("timeout"), limits.timeout! * 1000)
+      setTimeout(() => resolve("timeout"), limits.timeout! * 1000),
     );
 
     result = await Promise.race([workerHost.start(), timeoutPromise]);
@@ -252,5 +330,72 @@ async function _startWASIWithLimits(
 class TimeoutError extends Error {
   constructor() {
     super("Execution timed out");
+  }
+}
+
+/*
+  Helper utilities for streaming stdin support
+*/
+
+// Type guards
+function isAsyncIterable(x: any): x is AsyncIterable<string> {
+  return !!x && typeof x[Symbol.asyncIterator] === "function";
+}
+
+function isReadableStream(x: any): x is ReadableStream<string> {
+  return !!x && typeof (x as any).getReader === "function";
+}
+
+// Split a Uint8Array into chunks <= maxBytes, ensuring we don't cut in the middle
+// of a UTF-8 multi-byte sequence (by avoiding continuation bytes 0x80..0xBF at chunk end).
+function splitUint8ArrayIntoUtf8SafeSlices(
+  bytes: Uint8Array,
+  maxBytes: number,
+): Uint8Array[] {
+  const out: Uint8Array[] = [];
+  let offset = 0;
+  while (offset < bytes.length) {
+    // Proposed end
+    let end = Math.min(offset + maxBytes, bytes.length);
+
+    // If end is at bytes.length we're done; otherwise ensure end is not a UTF-8 continuation byte.
+    if (end < bytes.length) {
+      // Move end left until not a continuation byte (0b10xxxxxx)
+      while (end > offset && (bytes[end] & 0b1100_0000) === 0b1000_0000) {
+        end -= 1;
+      }
+      // Edge case: if we couldn't move (a single codepoint > maxBytes), fall back to forcing split
+      // at maxBytes (this will likely produce replacement chars, but unavoidable unless buffer bigger).
+      if (end === offset) {
+        end = Math.min(offset + maxBytes, bytes.length);
+      }
+    }
+
+    out.push(bytes.slice(offset, end));
+    offset = end;
+  }
+  return out;
+}
+
+// Safely push a JS string to workerHost by splitting it into UTF-8-safe sub-strings
+// that fit into the workerHost.stdinBuffer (availableBytes = buffer.byteLength - 4).
+async function pushStringSafely(host: WASIWorkerHost, str: string) {
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(str);
+  // compute max payload bytes (subtract 4 bytes used as header)
+  const totalBytes = (host.stdinBuffer as SharedArrayBuffer).byteLength;
+  const maxPayload = Math.max(0, totalBytes - 4);
+  if (bytes.length <= maxPayload) {
+    // small enough, push whole string
+    await host.pushStdin(str);
+    return;
+  }
+
+  // split into safe byte slices, then decode each slice back to string before pushing
+  const slices = splitUint8ArrayIntoUtf8SafeSlices(bytes, maxPayload);
+  const decoder = new TextDecoder();
+  for (const s of slices) {
+    const subStr = decoder.decode(s);
+    await host.pushStdin(subStr);
   }
 }
