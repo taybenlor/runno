@@ -23,7 +23,11 @@ Executes a code snippet in the specified runtime environment.
 - `runtime`: The runtime environment to use (e.g., "python", "quickjs", "sqlite", "clang", "clangpp", "ruby", "php-cgi")
 - `code`: The code string to execute
 - `options`: Optional configuration:
-  - `stdin`: Input to be passed to the standard input
+  - `stdin`: Input to be passed to the standard input. Supports:
+    - `string`: Plain text input
+    - `AsyncIterable<string>`: Asynchronous stream of chunks
+    - `ReadableStream<string>`: Web Streams API stream
+    - `() => AsyncIterable<string> | ReadableStream<string>`: Factory function to prevent premature execution
   - `timeout`: Maximum execution time in seconds
 
 **Returns:** A Promise that resolves to a `RunResult`, which could be:
@@ -52,7 +56,7 @@ Executes code from a virtual filesystem in the specified runtime environment.
 - `entryPath`: The path to the entry file in the filesystem
 - `fs`: A WASI filesystem structure defining files and directories
 - `options`: Optional configuration:
-  - `stdin`: Input to be passed to the standard input
+  - `stdin`: Input to be passed to the standard input. Supports `string`, `AsyncIterable<string>`, `ReadableStream<string>`, or a factory function.
   - `timeout`: Maximum execution time in seconds
 
 **Returns:** A Promise that resolves to a `RunResult` (same structure as `runCode`)
@@ -114,6 +118,22 @@ const completeFS = {
 
 const result = await runFS("python", "/myprogram.py", completeFS);
 console.log(result.stdout);
+```
+
+### Streaming stdin
+
+You can stream input to a running sandbox using an `AsyncIterable` or `ReadableStream`. This is useful for interactive programs or processing large amounts of data without loading it all into memory.
+
+```javascript
+async function* inputSource() {
+  yield "first line\n";
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  yield "second line\n";
+}
+
+const result = await runCode("python", "import sys; print(sys.stdin.read())", {
+  stdin: inputSource(),
+});
 ```
 
 ## Supported Runtimes
