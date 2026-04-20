@@ -57,18 +57,26 @@ New root exports from `@runno/wasi`:
 // Core
 export { WASIX, WASIXContext, WASIXWorkerHost } from "./wasix/...";
 
-// Raw provider interfaces — host implements these for deep control
+// Raw provider interfaces — always synchronous, consumed by `WASIX`
 export type {
   ClockProvider, RandomProvider,
   TTYProvider, ThreadsProvider, FutexProvider,
   SignalsProvider, SocketsProvider, ProcProvider,
 } from "./wasix/providers.js";
 
+// Async-capable variants — accepted only by WASIXWorkerHost
+export type {
+  AsyncClockProvider, AsyncRandomProvider,
+  AsyncTTYProvider, AsyncThreadsProvider, AsyncFutexProvider,
+  AsyncSignalsProvider, AsyncSocketsProvider, AsyncProcProvider,
+  AsyncCapable,
+} from "./wasix/providers/async.js";
+
 // Ergonomic providers — concrete classes hosts can drop in
 export {
-  HTTPProvider,        // implements SocketsProvider
-  FileSystemProvider,  // wraps WASIDrive, replaceable
-  ConsoleTTYProvider,  // implements TTYProvider
+  HTTPProvider,        // AsyncSocketsProvider (Fetch-style) — worker-only
+  FileSystemProvider,  // wraps WASIDrive; sync + async variants
+  ConsoleTTYProvider,  // TTYProvider (sync)
 } from "./wasix/providers/ergonomic.js";
 ```
 
@@ -139,13 +147,14 @@ type WASIXContextOptions = {
   fs: WASIFS;
   args: string[];
   env: Record<string, string>;
-  stdin: (maxByteLength: number) => string | null | Promise<string | null>;
-  stdout: (out: string) => void | Promise<void>;
-  stderr: (err: string) => void | Promise<void>;
+  stdin: (maxByteLength: number) => string | null;
+  stdout: (out: string) => void;
+  stderr: (err: string) => void;
   isTTY: boolean;
   debug?: DebugFn;
 
-  // Providers — all optional, all async-capable
+  // Providers — all sync. Async variants are configured via
+  // WASIXWorkerHostOptions; see "Async-capable providers" below.
   clock?:   ClockProvider;    // clock_time_get, clock_res_get
   random?:  RandomProvider;   // random_get
   tty?:     TTYProvider;      // tty_get, tty_set
@@ -161,76 +170,72 @@ Every method uses JS-native shapes — `Uint8Array`, `bigint`, plain objects
 for structured types like `SockAddr`. **Raw pointers never leave the
 `WASIX` class.**
 
+**Every provider method is synchronous.** The WASM guest calls imports
+synchronously and the `WASIX` class never awaits, so the provider API has
+no Promise shape at all. A method returns a value or throws — nothing
+else. This applies to raw interfaces and to the ergonomic providers built
+on top of them.
+
 These are **raw interfaces** — close to the WASIX ABI (fds, `sockaddr`,
 signo). A host can implement any raw interface directly if it wants deep
 control over that slot. For most hosts Runno ships **ergonomic providers**
 (see below) that wrap the raw interfaces in web-native shapes. Both levels
 coexist — ergonomic is the one-liner, raw is the escape hatch.
 
-Provider methods may return `T` or `Promise<T>` at the type level, but the
-runtime rule depends on how the `WASIX` instance is driven:
-
-- **Main thread (`WASIX.start(...)`):** sync providers only. The WASM guest
-  calls imports synchronously; the main thread owns the event loop where
-  any Promise would settle, so it can't block mid-syscall. An async
-  provider configured on the main thread is a config-time error. This
-  matches existing `WASI` behaviour — today's `WASI` main-thread path is
-  fully synchronous.
-- **Worker (`WASIXWorkerHost`):** both sync and async providers work.
-  Async providers go through the syscall bridge (see
-  [Async syscall bridge](#async-syscall-bridge)).
+Async resources — HTTP requests, IndexedDB, anything that yields to the
+event loop — are handled at the `WASIXWorkerHost` layer, which takes
+**async-capable** provider variants (see
+[Async-capable providers](#async-capable-providers-worker-only) below) and
+converts them back into sync providers via the syscall bridge. The inner
+`WASIX` class only ever sees sync providers.
 
 Raw interface shapes (final forms pinned during implementation):
 
 ```ts
 interface ClockProvider {
-  now(id: ClockId): bigint | Promise<bigint>;        // nanoseconds
-  resolution(id: ClockId): bigint | Promise<bigint>;
+  now(id: ClockId): bigint;                  // nanoseconds
+  resolution(id: ClockId): bigint;
 }
 
 interface RandomProvider {
-  fill(buf: Uint8Array): void | Promise<void>;
+  fill(buf: Uint8Array): void;
 }
 
 interface ThreadsProvider {
-  spawn(startArg: number): number | Promise<number>;    // tid
-  join(tid: number): number | Promise<number>;          // exit code
+  spawn(startArg: number): number;    // tid
+  join(tid: number): number;          // exit code
   exit(code: number): void;
-  sleep(durationNs: bigint): void | Promise<void>;
+  sleep(durationNs: bigint): void;
   id(): number;
   parallelism(): number;
-  signal(tid: number, signo: number): Result | Promise<Result>;
+  signal(tid: number, signo: number): Result;
 }
 
 interface FutexProvider {
-  wait(addr: number, expected: number, timeoutNs: bigint | null)
-    : number | Promise<number>;
-  wake(addr: number, count: number): number | Promise<number>;
+  wait(addr: number, expected: number, timeoutNs: bigint | null): number;
+  wake(addr: number, count: number): number;
 }
 
 interface SocketsProvider {
-  open(af: number, type: number, proto: number): number | Promise<number>;
-  bind(fd: number, addr: SockAddr): Result | Promise<Result>;
-  connect(fd: number, addr: SockAddr): Result | Promise<Result>;
-  listen(fd: number, backlog: number): Result | Promise<Result>;
-  accept(fd: number): number | Promise<number>;
-  send(fd: number, bufs: Uint8Array[], flags: number)
-    : number | Promise<number>;
-  recv(fd: number, bufs: Uint8Array[], flags: number)
-    : SockRecvResult | Promise<SockRecvResult>;
-  shutdown(fd: number, how: number): Result | Promise<Result>;
-  addrResolve(host: string, port: number, hints: AddrHints)
-    : SockAddr[] | Promise<SockAddr[]>;
+  open(af: number, type: number, proto: number): number;
+  bind(fd: number, addr: SockAddr): Result;
+  connect(fd: number, addr: SockAddr): Result;
+  listen(fd: number, backlog: number): Result;
+  accept(fd: number): number;
+  send(fd: number, bufs: Uint8Array[], flags: number): number;
+  recv(fd: number, bufs: Uint8Array[], flags: number): SockRecvResult;
+  shutdown(fd: number, how: number): Result;
+  addrResolve(host: string, port: number, hints: AddrHints): SockAddr[];
   // …getsockopt/setsockopt, addr_local/peer, status
 }
 
 interface ProcProvider {
   id(): number;
   parentId(): number;
-  fork(): ProcForkResult | Promise<ProcForkResult>;
-  spawn(req: ProcSpawnRequest): number | Promise<number>;
-  exec(req: ProcExecRequest): Result | Promise<Result>;
-  join(pid: number): ProcExitInfo | Promise<ProcExitInfo>;
+  fork(): ProcForkResult;
+  spawn(req: ProcSpawnRequest): number;
+  exec(req: ProcExecRequest): Result;
+  join(pid: number): ProcExitInfo;
 }
 
 // fork / spawn / exec receive plain-data requests — opaque JS objects
@@ -239,15 +244,47 @@ interface ProcProvider {
 // directly; it decides on its own what "starting a new process" means.
 
 interface SignalsProvider {
-  register(signo: number, handler: number): Result | Promise<Result>;
-  raiseInterval(signo: number, intervalNs: bigint): Result | Promise<Result>;
+  register(signo: number, handler: number): Result;
+  raiseInterval(signo: number, intervalNs: bigint): Result;
 }
 
 interface TTYProvider {
-  get(): TTYState | Promise<TTYState>;       // cols, rows, pixel size, echo, line, raw, …
-  set(state: TTYState): Result | Promise<Result>;
+  get(): TTYState;       // cols, rows, pixel size, echo, line, raw, …
+  set(state: TTYState): Result;
 }
 ```
+
+### Async-capable providers (worker-only)
+
+A single utility type lifts any raw provider into an async-capable variant
+by making every method optionally return a Promise:
+
+```ts
+type AsyncCapable<T> = {
+  [K in keyof T]: T[K] extends (...args: infer A) => infer R
+    ? (...args: A) => R | Promise<R>
+    : T[K];
+};
+
+type AsyncClockProvider   = AsyncCapable<ClockProvider>;
+type AsyncSocketsProvider = AsyncCapable<SocketsProvider>;
+// …one per raw provider
+```
+
+`WASIXWorkerHost` accepts these variants in its options (stdio callbacks
+likewise). At runtime it runs the inner `WASIX` in a dedicated worker;
+when a syscall fires, the bridge (see
+[Async syscall bridge](#async-syscall-bridge)) hops to the main thread,
+invokes the host's async-capable provider, awaits the Promise if one comes
+back, and returns the resolved value to the worker. The worker unblocks on
+`Atomics.wait` and passes the value into the sync inner `WASIX` as a
+normal return.
+
+From the guest and from `WASIX`, there is no async. From the host's
+perspective, any provider method may return a Promise.
+
+The main-thread `WASIX(...)` entry point takes sync providers only —
+async-capable variants are a type error there.
 
 ### Ergonomic providers (bundled)
 
@@ -257,8 +294,8 @@ in terms of web-native primitives. Opt-in — the host picks which level of
 engagement they want per concern. Deep control over sockets while using the
 bundled clock and filesystem is a normal configuration.
 
-- **`HTTPProvider` (implements `SocketsProvider`).** Most hosts care about
-  HTTP, not raw TCP/UDP. `HTTPProvider` exposes two handlers:
+- **`HTTPProvider` (implements `AsyncSocketsProvider`).** Most hosts care
+  about HTTP, not raw TCP/UDP. `HTTPProvider` exposes two handlers:
   ```ts
   new HTTPProvider({
     outgoing: (req: Request) => Response | Promise<Response>,   // guest-initiated
@@ -267,14 +304,16 @@ bundled clock and filesystem is a normal configuration.
   ```
   Internally it translates socket-level calls (`connect`, `send`, `recv`)
   into Fetch-style request/response pairs and parses HTTP on the wire.
-  Hosts that need raw TCP still implement `SocketsProvider` directly.
+  Because the handlers return Promises, `HTTPProvider` is
+  **async-capable** and usable only on `WASIXWorkerHost`. Hosts that need
+  raw TCP implement `SocketsProvider` (or its async variant) directly.
 - **`FileSystemProvider`.** Promotes the existing `WASIDrive` from an
-  internal implementation detail to a public provider. Hosts can swap it
-  wholesale — e.g. to back files with IndexedDB or a server sync protocol —
-  without touching `fd_*` syscalls. Default: today's in-memory drive.
+  internal implementation detail to a public provider. Sync by default
+  (today's in-memory drive); an `AsyncFileSystemProvider` variant ships for
+  hosts backing files with IndexedDB or a server sync protocol (worker-only).
 - **`ConsoleTTYProvider` (implements `TTYProvider`).** Reflects the
   existing `isTTY` / `stdin` / `stdout` / `stderr` surface — what preview1
-  hosts configure today, lifted into the provider model.
+  hosts configure today, lifted into the provider model. Sync.
 
 Some raw interfaces are already at the right level and don't get an
 ergonomic wrapper: `ClockProvider`, `RandomProvider`, `ThreadsProvider`,
@@ -284,12 +323,10 @@ directly. Runno still ships bundled simulations for each (see
 
 ## Async syscall bridge
 
-Async providers are only supported inside a `WASIXWorker`. The WASM guest
-is synchronous from its own point of view — imports return a value, not a
-Promise — so when a provider returns a Promise mid-syscall, the worker
-thread has to block until it resolves. The main thread can't block (it owns
-the event loop where the Promise would settle), which is why async is
-worker-only and the main thread is restricted to sync providers.
+The bridge is how `WASIXWorkerHost` turns a host's async-capable provider
+into the sync provider the inner `WASIX` class consumes. It's an
+implementation detail of the worker host — neither `WASIX` nor provider
+authors see it; the inner guest runs against pure sync providers.
 
 Mechanism — a generalised version of the existing `stdin` pattern:
 
@@ -311,12 +348,13 @@ single-threaded within its worker. When multiple TIDs run in separate workers
 This replaces the bespoke `stdin` `SharedArrayBuffer` with a generic
 syscall-bridge protocol; `stdin` becomes one opcode among many.
 
-On the main thread there is no bridge. `WASIX.start(...)` is still async —
-it awaits module fetch and instantiation — but once the guest is running,
-every provider call is invoked synchronously. An async provider wired into
-a main-thread `WASIX` fails at config time. Host picks the mode up front:
-`await WASIX.start(...)` for sync-only runs, `new WASIXWorkerHost(...)` for
-runs that need async providers.
+On the main thread there is no bridge. `WASIX.start(...)` is still async
+— it awaits module fetch and instantiation — but once the guest is
+running, every provider call is invoked synchronously. Host picks the mode
+up front: `await WASIX.start(...)` for runs where every provider is sync,
+or `new WASIXWorkerHost(...)` for runs where any provider may return a
+Promise. The types enforce the split — an async-capable provider passed to
+`WASIX(...)` is a type error.
 
 ## Thread / memory model
 
