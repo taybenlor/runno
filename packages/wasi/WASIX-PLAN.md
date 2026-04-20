@@ -24,27 +24,27 @@ All of that is a host-side decision; the runtime is unaware.
   execution).
 - **Pass the upstream WASIX integration test suite
   ([`wasmerio/wasix-integration-tests`](https://github.com/wasmerio/wasix-integration-tests))**
-  under a reference provider configuration shipped with the package. See
+  using the simulation providers shipped with the package. See
   [Validation](#validation).
 
 Every WASIX syscall has a provider slot. Unwired slots return `ENOSYS`.
 
 **Non-goals.**
 
-- Tests requiring in-place resumption of WASM execution — principally
-  `proc_fork`, asynchronous (pre-empting) signal delivery, and cross-frame
-  `setjmp`/`longjmp`. These need the guest's call stack and program counter
-  to be reified from outside, which WebAssembly does not expose to JS.
-  Wasmer works around it with whole-module Asyncify instrumentation plus its
-  journaling runtime; a provider can't do either at call time. Tests that
-  depend on resume-after-fork are tracked as known-skipped. See
-  [Future: pause/resume support](#future-pauseresume-support) for the path
-  to lifting this.
+- Tests requiring Asyncify (or JSPI) instrumentation on the guest module —
+  principally `proc_fork` asserting on post-fork execution, asynchronously
+  delivered signals that pre-empt running code, and cross-frame
+  `setjmp`/`longjmp` across a JS-imported call. These need the guest's call
+  stack and program counter reified from outside, which WebAssembly does not
+  expose to JS. A provider can't supply that at call time. Tracked as
+  known-skipped. See [Future: Asyncify opt-in](#future-asyncify-opt-in) for
+  the path to lifting this.
 - `proc_exec` and `proc_spawn` are **not** in this category — they start a
   fresh instance, which a provider can do. Expected to pass.
-- Real socket / fork / exec implementations baked into the runtime. Those live
-  in providers — some of which Runno ships (enough to pass the suite), some of
-  which are the host's.
+- Real socket / process / thread implementations baked into the runtime *or*
+  shipped as Runno providers. Runno is a sandbox; its providers are
+  simulations. A host that wants real-world semantics wires its own
+  providers — Runno does not ship them.
 - `wasix_64v1` (Memory64 / wasm64). No existing toolchain output drives demand;
   the `wasix-libc` chain targets wasm32 in practice. Deferred — the handler
   code would mostly overlap with `wasix_32v1`, so picking it up later is cheap.
@@ -108,6 +108,18 @@ A WASIX binary that imports both `wasix_32v1` and `wasi_snapshot_preview1`
 sees a consistent filesystem / env / stdio across the two, because both sets
 of handlers are backed by the same `WASIDrive` and `WASIXContext`.
 Memory is owned by the WASIX instance and passed to the internal WASI.
+
+### ABI
+
+Mirrors the preview1 approach: `lib/wasix/wasix-32v1.ts` holds the ABI as
+TypeScript — enum members, flag masks, struct layouts, errno values — parallel
+to how `lib/wasi/snapshot-preview1.ts` defines preview1 today. The `WASIX`
+class reads from and writes to guest memory using those definitions; no raw
+magic numbers appear in the syscall handlers.
+
+Keeping the ABI in a dedicated module means a future `wasix_64v1` can reuse
+the same type definitions with wider pointer offsets, rather than forking the
+whole class.
 
 ## Context & providers
 
@@ -192,6 +204,11 @@ interface ProcProvider {
   join(pid: number): ProcExitInfo | Promise<ProcExitInfo>;
 }
 
+// fork / spawn / exec receive plain-data requests — opaque JS objects
+// containing the argv / env / fd table / memory snapshot the provider needs.
+// The provider never sees a live `WASIX` instance or the WebAssembly.Memory
+// directly; it decides on its own what "starting a new process" means.
+
 interface SignalsProvider {
   register(signo: number, handler: number): Result | Promise<Result>;
   raiseInterval(signo: number, intervalNs: bigint): Result | Promise<Result>;
@@ -260,6 +277,22 @@ providers can use if they want the "real worker" path — handles memory
 import wiring, `wasi_thread_start` invocation, and exit reporting. Providers
 that model threads differently never touch it.
 
+### Memory: auto-detect at load time
+
+WASIX binaries differ in whether they import or export memory. The runtime
+inspects the compiled module's imports before instantiation:
+
+- `env.memory` present in imports → runtime constructs a
+  `WebAssembly.Memory({ initial, maximum, shared })` matching the declared
+  limits and passes it in. `shared` follows the import's shared flag.
+- Otherwise → runtime lets the module export its memory and reads it from
+  `instance.exports.memory` after instantiation.
+
+A host can override auto-detection by passing `WASIXContextOptions.memory`
+(e.g. to reuse a shared `WebAssembly.Memory` across sibling workers in a
+threaded configuration). If supplied, it must satisfy whichever mode the
+module expects.
+
 ## Determinism
 
 With `clock` and `random` as providers, a host can pin either or both for
@@ -283,51 +316,61 @@ the upstream WASIX integration suite.
 
 This shapes the design in two concrete ways.
 
-### Reference providers ship with the package
+### Simulation providers ship with the package
 
-To run the suite end-to-end, a consuming host needs working threads, futex,
-sockets, TTY, signals, clock, and random semantics. The runtime alone cannot
-supply those (it's the sandbox — it never does real work). So the package
-ships two provider tiers:
+The runtime has no semantics of its own. To run the upstream suite end-to-end,
+the package ships a set of **simulation** providers — in-process, sandboxed,
+self-contained. They are not "reference implementations" of real Linux-style
+semantics; they model just enough behaviour to satisfy the test harness
+without ever touching a real socket, real process, or real OS thread.
 
 ```
 lib/wasix/providers/
-├── reference/      real-world semantics, enough to pass the upstream suite
-│   ├── worker-threads.ts        real Worker-backed ThreadsProvider
-│   ├── atomics-futex.ts         Atomics.wait/notify on shared memory
-│   ├── node-sockets.ts          node:net / node:dgram SocketsProvider (node only)
-│   ├── ws-proxy-sockets.ts      WebSocket-proxy SocketsProvider (browser)
-│   ├── system-clock.ts          Date.now() / performance.now()
-│   ├── web-crypto-random.ts     crypto.getRandomValues()
-│   ├── passthrough-tty.ts       reflects WASIXContext.isTTY + reasonable winsize
-│   └── self-signal.ts           signal_register + in-process dispatch
-└── deterministic/  test-friendly providers
-    ├── fixed-clock.ts
-    ├── seeded-random.ts
-    ├── mock-sockets.ts
-    ├── mock-threads.ts
-    └── …
+├── cooperative-threads.ts   cooperative scheduler, single worker, no preemption
+├── simulated-futex.ts       in-memory wait queues keyed by address
+├── loopback-sockets.ts      in-process TCP/UDP fabric; connects speak to peers
+│                            registered in the same WASIX instance
+├── passthrough-tty.ts       reflects WASIXContext.isTTY + canned winsize
+├── self-signal.ts           signal_register + in-process dispatch
+├── in-process-proc.ts       proc_spawn / proc_exec launch new WASIX instances
+│                            in the same JS realm; proc_join awaits their result
+├── system-clock.ts          Date.now() / performance.now() — overridable
+└── system-random.ts         crypto.getRandomValues() — overridable
 ```
 
-Both tiers are exported publicly but importing is opt-in — nothing is wired
-into `WASIXContext` by default. The integration suite runner configures a
-`WASIX` instance with the `reference/` providers; a unit test can use
-`deterministic/` providers or its own fakes.
+Every file above is importable on its own. Nothing is wired into
+`WASIXContext` by default — the host picks providers explicitly. The
+integration suite runner configures a `WASIX` instance from this set; a unit
+test can swap in a `FixedClockProvider`, a `SeededRandomProvider`, or its own
+fakes.
 
-This keeps the "Runno emulates, you simulate" design intact: the runtime has
-no semantics; the *reference providers* do, and they're just one possible
-host configuration among many.
+This is the design point: *simulations are enough to pass the suite.* The
+tests exercise API shape and errno behaviour, not real-world networking or
+real OS process semantics. A host that needs real behaviour plugs in its own
+providers (e.g. a `node-sockets.ts` backed by `node:net`) — but Runno doesn't
+ship those, because Runno is a sandbox.
 
 ### Known-skipped tests
 
-A small set of tests depends on resuming WASM execution at a specific frame
-from the outside — principally `proc_fork`, asynchronous signal pre-emption,
-and cross-frame `setjmp`/`longjmp`. See [the reasoning below](#why-those-tests-cant-be-passed-by-providers-alone)
-for why these aren't achievable with a provider alone. The test harness
-carries an explicit skip list with a one-line justification per entry. Any
-test that *can* be made to pass with sufficiently capable providers —
-including `proc_exec`, `proc_spawn`, threads, futex, sockets, and TTY — is
-not in this list.
+**Skip rule: a test is skipped iff it requires Asyncify (or JSPI)
+instrumentation on the guest module.** No other reason justifies a skip. If
+a simulation provider can be written to make a test pass, we write one.
+
+In practice that rule carves out exactly three categories:
+
+- `proc_fork` asserting on post-fork guest execution.
+- Asynchronous signal pre-emption — a signal delivered from outside the
+  guest's current call, pre-empting running code mid-frame.
+- Cross-frame `setjmp`/`longjmp` across a JS-imported call.
+
+See [the reasoning below](#why-those-tests-cant-be-passed-by-providers-alone)
+for why these three need Asyncify. Everything else — `proc_exec`,
+`proc_spawn`, threads, futex, sockets, TTY, self-raised signals at yield
+points, clocks, random — is implementable with simulation providers and
+expected to pass.
+
+The test harness carries an explicit skip list with a one-line
+"requires-Asyncify" justification per entry.
 
 ### Why those tests can't be passed by providers alone
 
@@ -369,13 +412,13 @@ The same limitation hits two related syscalls:
 In all three, the root cause is identical: **WASM execution state is not
 reifiable from JS**.
 
-Both workarounds described in [Future: pause/resume support](#future-pauseresume-support)
+Both workarounds described in [Future: Asyncify opt-in](#future-asyncify-opt-in)
 operate below the provider layer. Asyncify moves the stack *into* guest
 memory where JS can see it; JSPI adds a first-class pause/resume primitive
 at the engine. Neither is something a provider can do at call time — which
 is why v1 ships with these tests skipped rather than working around them.
 
-### Future: pause/resume support
+### Future: Asyncify opt-in
 
 The fork/pre-emption limitation is not permanent. Two paths lift it without
 changing the provider API:
@@ -392,10 +435,12 @@ provider capability bit. Out of scope for v1.
 
 ### CI
 
-The integration suite runs in CI against both provider configurations:
-- Node — `reference/` + `node-sockets`.
-- Browser (Playwright, COOP/COEP) — `reference/` + `ws-proxy-sockets` backed
-  by a local proxy started for the test run.
+One provider configuration — the simulation set from
+[Simulation providers ship with the package](#simulation-providers-ship-with-the-package) —
+runs in CI against both Node and browser (Playwright, COOP/COEP). Because
+the sockets provider is loopback-only and all processes live in the same JS
+realm, there is nothing environment-specific to branch on. Both runs execute
+the same suite minus the Asyncify-only skip list.
 
 ## Error model
 
@@ -412,16 +457,7 @@ The integration suite runs in CI against both provider configurations:
 
 ## Open questions
 
-- Exact ABI layout for each WASIX syscall — pinned during implementation
-  against the WASIX C headers.
-- `proc_fork` / `proc_spawn` provider shape: does the provider receive an
-  opaque snapshot of module state (so it could in principle continue execution
-  elsewhere) or just a notification with args? Leaning opaque-snapshot to keep
-  options open, but the shape needs worked examples before we commit.
-- Module init order when `env.memory` is host-supplied vs module-exported.
-  WASIX binaries vary; we need a clean story for both.
-- Do we expose the syscall-bridge opcodes publicly, so third parties can
-  implement providers out-of-process (e.g. over a websocket to a remote host)?
-  Attractive for future work; leave closed initially.
+- Exact ABI values and struct layouts for each WASIX syscall — pinned during
+  implementation against the WASIX C headers into `lib/wasix/wasix-32v1.ts`.
 - Exact skip list from `wasix-integration-tests`. Enumerate once the runtime
-  boots the suite end-to-end; revisit per test rather than guessing ahead.
+  boots the suite end-to-end and apply the "requires Asyncify" rule per test.
