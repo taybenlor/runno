@@ -17,17 +17,23 @@ All of that is a host-side decision; the runtime is unaware.
 
 ## Scope
 
-- Full WASIX import surface (`wasix_32v1`, `wasix_64v1`) wired up.
+- WASIX `wasix_32v1` import namespace fully wired up.
 - Existing preview1 and unstable imports continue to work for WASIX binaries
   (they import both).
 - Clock and Random become overridable providers (enables deterministic
   execution).
 
-Nothing in WASIX is intrinsically out of scope: every syscall has a provider
-slot. Unwired slots return `ENOSYS`.
+Every WASIX syscall has a provider slot. Unwired slots return `ENOSYS`.
 
-**Non-goals.** Parity with Wasmer's WASIX runtime semantics. Real socket /
-fork / exec implementations inside the runtime. Those are host concerns.
+**Non-goals.**
+
+- Parity with Wasmer's WASIX runtime semantics. Runno is a sandbox; behaviour
+  is whatever the host models.
+- Real socket / fork / exec implementations inside the runtime. Those are
+  host concerns.
+- `wasix_64v1` (Memory64 / wasm64). No existing toolchain output drives demand;
+  the `wasix-libc` chain targets wasm32 in practice. Deferred — the handler
+  code would mostly overlap with `wasix_32v1`, so picking it up later is cheap.
 
 ## Public surface
 
@@ -78,8 +84,7 @@ WASIX.
 
 ```ts
 {
-  wasix_32v1:             { …all WASIX syscalls, 32-bit pointers },
-  wasix_64v1:             { …same handlers, 64-bit pointer decode },
+  wasix_32v1:             { …all WASIX syscalls },
   wasi_snapshot_preview1: <delegated to internal WASI>,
   wasi_unstable:          <delegated to internal WASI>,
 }
@@ -89,9 +94,6 @@ A WASIX binary that imports both `wasix_32v1` and `wasi_snapshot_preview1`
 sees a consistent filesystem / env / stdio across the two, because both sets
 of handlers are backed by the same `WASIDrive` and `WASIXContext`.
 Memory is owned by the WASIX instance and passed to the internal WASI.
-
-`wasix_64v1` differs from `wasix_32v1` only in pointer width — handlers are
-shared; pointer decoding is parameterised.
 
 ## Context & providers
 
