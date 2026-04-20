@@ -79,8 +79,8 @@ for future `WASIPreview2` / `WASIPreview3` classes alongside.
       │                                  │
 ┌───────────────┐                  ┌───────────────┐
 │  WASI         │                  │  WASIX        │
-│  (preview1 +  │  <── delegates ──│  (wasix_32v1 +│
-│   unstable)   │     preview1/    │   wasix_64v1) │
+│  (preview1 +  │  <── delegates ──│  (wasix_32v1) │
+│   unstable)   │     preview1/    │               │
 │               │     unstable     │               │
 └───────────────┘                  └───────────────┘
 ```
@@ -423,5 +423,5 @@ The integration suite runs in CI against both provider configurations:
 - Do we expose the syscall-bridge opcodes publicly, so third parties can
   implement providers out-of-process (e.g. over a websocket to a remote host)?
   Attractive for future work; leave closed initially.
-- Exact skip list from `wasix-integration-tests`. Enumerate once PR 1 boots
-  the suite end-to-end; revisit per test rather than guessing ahead.
+- Exact skip list from `wasix-integration-tests`. Enumerate once the runtime
+  boots the suite end-to-end; revisit per test rather than guessing ahead.
