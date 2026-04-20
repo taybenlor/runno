@@ -54,12 +54,22 @@ Every WASIX syscall has a provider slot. Unwired slots return `ENOSYS`.
 New root exports from `@runno/wasi`:
 
 ```ts
+// Core
 export { WASIX, WASIXContext, WASIXWorkerHost } from "./wasix/...";
+
+// Raw provider interfaces — host implements these for deep control
 export type {
   ClockProvider, RandomProvider,
   TTYProvider, ThreadsProvider, FutexProvider,
   SignalsProvider, SocketsProvider, ProcProvider,
 } from "./wasix/providers.js";
+
+// Ergonomic providers — concrete classes hosts can drop in
+export {
+  HTTPProvider,        // implements SocketsProvider
+  FileSystemProvider,  // wraps WASIDrive, replaceable
+  ConsoleTTYProvider,  // implements TTYProvider
+} from "./wasix/providers/ergonomic.js";
 ```
 
 Existing `WASI`, `WASIContext`, `WASIWorkerHost`, and the
@@ -147,11 +157,30 @@ type WASIXContextOptions = {
 };
 ```
 
-All provider methods may be sync or async. Every method uses JS-native shapes
-— `Uint8Array`, `bigint`, `Promise<T>`, plain objects for structured types
-like `SockAddr`. **Raw pointers never leave the `WASIX` class.**
+Every method uses JS-native shapes — `Uint8Array`, `bigint`, plain objects
+for structured types like `SockAddr`. **Raw pointers never leave the
+`WASIX` class.**
 
-Example interface shapes (final forms pinned during implementation):
+These are **raw interfaces** — close to the WASIX ABI (fds, `sockaddr`,
+signo). A host can implement any raw interface directly if it wants deep
+control over that slot. For most hosts Runno ships **ergonomic providers**
+(see below) that wrap the raw interfaces in web-native shapes. Both levels
+coexist — ergonomic is the one-liner, raw is the escape hatch.
+
+Provider methods may return `T` or `Promise<T>` at the type level, but the
+runtime rule depends on how the `WASIX` instance is driven:
+
+- **Main thread (`WASIX.start(...)`):** sync providers only. The WASM guest
+  calls imports synchronously; the main thread owns the event loop where
+  any Promise would settle, so it can't block mid-syscall. An async
+  provider configured on the main thread is a config-time error. This
+  matches existing `WASI` behaviour — today's `WASI` main-thread path is
+  fully synchronous.
+- **Worker (`WASIXWorkerHost`):** both sync and async providers work.
+  Async providers go through the syscall bridge (see
+  [Async syscall bridge](#async-syscall-bridge)).
+
+Raw interface shapes (final forms pinned during implementation):
 
 ```ts
 interface ClockProvider {
@@ -220,12 +249,47 @@ interface TTYProvider {
 }
 ```
 
+### Ergonomic providers (bundled)
+
+Raw interfaces are close to the WASIX ABI, which is right for control but
+verbose. Runno ships ergonomic providers that implement the raw interfaces
+in terms of web-native primitives. Opt-in — the host picks which level of
+engagement they want per concern. Deep control over sockets while using the
+bundled clock and filesystem is a normal configuration.
+
+- **`HTTPProvider` (implements `SocketsProvider`).** Most hosts care about
+  HTTP, not raw TCP/UDP. `HTTPProvider` exposes two handlers:
+  ```ts
+  new HTTPProvider({
+    outgoing: (req: Request) => Response | Promise<Response>,   // guest-initiated
+    incoming: (port: number) => ReadableStream<Request>,         // guest-bound service
+  });
+  ```
+  Internally it translates socket-level calls (`connect`, `send`, `recv`)
+  into Fetch-style request/response pairs and parses HTTP on the wire.
+  Hosts that need raw TCP still implement `SocketsProvider` directly.
+- **`FileSystemProvider`.** Promotes the existing `WASIDrive` from an
+  internal implementation detail to a public provider. Hosts can swap it
+  wholesale — e.g. to back files with IndexedDB or a server sync protocol —
+  without touching `fd_*` syscalls. Default: today's in-memory drive.
+- **`ConsoleTTYProvider` (implements `TTYProvider`).** Reflects the
+  existing `isTTY` / `stdin` / `stdout` / `stderr` surface — what preview1
+  hosts configure today, lifted into the provider model.
+
+Some raw interfaces are already at the right level and don't get an
+ergonomic wrapper: `ClockProvider`, `RandomProvider`, `ThreadsProvider`,
+`FutexProvider`, `SignalsProvider`, `ProcProvider`. Hosts implement them
+directly. Runno still ships bundled simulations for each (see
+[Validation](#validation)).
+
 ## Async syscall bridge
 
-All provider calls can return a Promise. On the main thread this is trivial —
-the `WASIX` class awaits before returning to the guest. Inside a
-`WASIXWorker`, the WASM guest is synchronous from its own point of view and
-needs a way to block until the host-side promise resolves.
+Async providers are only supported inside a `WASIXWorker`. The WASM guest
+is synchronous from its own point of view — imports return a value, not a
+Promise — so when a provider returns a Promise mid-syscall, the worker
+thread has to block until it resolves. The main thread can't block (it owns
+the event loop where the Promise would settle), which is why async is
+worker-only and the main thread is restricted to sync providers.
 
 Mechanism — a generalised version of the existing `stdin` pattern:
 
@@ -247,9 +311,12 @@ single-threaded within its worker. When multiple TIDs run in separate workers
 This replaces the bespoke `stdin` `SharedArrayBuffer` with a generic
 syscall-bridge protocol; `stdin` becomes one opcode among many.
 
-On the main thread (no worker), there is no bridge: `WASIX.start` is an async
-function that awaits provider Promises directly. The public API makes this
-explicit — `await WASIX.start(...)` vs `new WASIXWorkerHost(...)`.
+On the main thread there is no bridge. `WASIX.start(...)` is still async —
+it awaits module fetch and instantiation — but once the guest is running,
+every provider call is invoked synchronously. An async provider wired into
+a main-thread `WASIX` fails at config time. Host picks the mode up front:
+`await WASIX.start(...)` for sync-only runs, `new WASIXWorkerHost(...)` for
+runs that need async providers.
 
 ## Thread / memory model
 
