@@ -33,7 +33,7 @@
   "scripts": {
     "dev": "vite --port 5173",
     "build:docs": "typedoc --options typedoc.config.cjs",
-    "build:tests": "cd programs && cargo wasi build -r && cd .. && cp programs/target/wasm32-wasi/release/*.wasi.wasm public/bin/tests/",
+    "build:tests": "cd programs && cargo wasi build -r && cd .. && cp programs/target/wasm32-wasi/release/*.wasi.wasm public/bin/tests/ && wat2wasm programs/wasix-hello/wasix-hello.wat -o public/bin/tests/wasix-hello.wasm",
     "build:vite": "tsc --noEmit && vite build",
     "build": "npm run build:docs && npm run build:vite && rimraf dist/src && mv dist/lib/* dist/ && rmdir dist/lib",
     "test:server": "vite --port 5173",
