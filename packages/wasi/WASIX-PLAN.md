@@ -31,12 +31,17 @@ Every WASIX syscall has a provider slot. Unwired slots return `ENOSYS`.
 
 **Non-goals.**
 
-- Tests requiring whole-module state snapshot semantics (`proc_fork`,
-  `proc_exec` that continue execution with a mutated memory image). Wasmer's
-  implementation uses its journaling/snapshot machinery for these; Runno's
-  provider model gives the host an opaque snapshot handle but does not itself
-  implement snapshot-and-resume. Specific tests dependent on that are tracked
-  as known-skipped.
+- Tests requiring in-place resumption of WASM execution — principally
+  `proc_fork`, asynchronous (pre-empting) signal delivery, and cross-frame
+  `setjmp`/`longjmp`. These need the guest's call stack and program counter
+  to be reified from outside, which WebAssembly does not expose to JS.
+  Wasmer works around it with whole-module Asyncify instrumentation plus its
+  journaling runtime; a provider can't do either at call time. Tests that
+  depend on resume-after-fork are tracked as known-skipped. See
+  [Future: pause/resume support](#future-pauseresume-support) for the path
+  to lifting this.
+- `proc_exec` and `proc_spawn` are **not** in this category — they start a
+  fresh instance, which a provider can do. Expected to pass.
 - Real socket / fork / exec implementations baked into the runtime. Those live
   in providers — some of which Runno ships (enough to pass the suite), some of
   which are the host's.
@@ -315,13 +320,29 @@ host configuration among many.
 
 ### Known-skipped tests
 
-A small set of tests depends on WASIX semantics that Runno's provider model
-cannot meaningfully simulate without implementing Wasmer-style journaling in
-the runtime itself — principally those exercising `proc_fork` / `proc_exec`
-that then assert on continued execution with a mutated memory image. These
-will be enumerated in a skip list in the test harness, with a one-line
-justification each. Any test that *can* be made to pass with sufficiently
-capable providers is not in this list.
+A small set of tests depends on resuming WASM execution at a specific frame
+from the outside — principally `proc_fork`, asynchronous signal pre-emption,
+and cross-frame `setjmp`/`longjmp`. See the non-goals section above for why
+these aren't achievable with a provider alone. The test harness carries an
+explicit skip list with a one-line justification per entry. Any test that
+*can* be made to pass with sufficiently capable providers — including
+`proc_exec`, `proc_spawn`, threads, futex, sockets, and TTY — is not in
+this list.
+
+### Future: pause/resume support
+
+The fork/pre-emption limitation is not permanent. Two paths lift it without
+changing the provider API:
+
+1. **Asyncify opt-in.** Users asyncify their WASIX binary at build time (or
+   Runno runs the Binaryen pass at load time behind a flag). Providers gain
+   a pause/resume hook that uses Asyncify's save/restore to unwind and
+   re-enter the guest. `proc_fork` becomes a provider-implementable syscall.
+2. **JS Promise Integration (JSPI).** Once JSPI is widely available, it
+   supplies the same pause/resume capability without module rewriting.
+
+Either is additive: a new optional flag on `WASIXContextOptions`, a new
+provider capability bit. Out of scope for v1.
 
 ### CI
 
