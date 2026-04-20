@@ -322,12 +322,58 @@ host configuration among many.
 
 A small set of tests depends on resuming WASM execution at a specific frame
 from the outside — principally `proc_fork`, asynchronous signal pre-emption,
-and cross-frame `setjmp`/`longjmp`. See the non-goals section above for why
-these aren't achievable with a provider alone. The test harness carries an
-explicit skip list with a one-line justification per entry. Any test that
-*can* be made to pass with sufficiently capable providers — including
-`proc_exec`, `proc_spawn`, threads, futex, sockets, and TTY — is not in
-this list.
+and cross-frame `setjmp`/`longjmp`. See [the reasoning below](#why-those-tests-cant-be-passed-by-providers-alone)
+for why these aren't achievable with a provider alone. The test harness
+carries an explicit skip list with a one-line justification per entry. Any
+test that *can* be made to pass with sufficiently capable providers —
+including `proc_exec`, `proc_spawn`, threads, futex, sockets, and TTY — is
+not in this list.
+
+### Why those tests can't be passed by providers alone
+
+Take `proc_fork` as the canonical case. The syscall requires:
+
+1. The **parent** resumes after the fork() import call with `pid = <child>`.
+2. A **child** — a separate WASM instance — resumes after the same fork() call
+   with `pid = 0`, with a clone of the parent's memory, and with every local
+   variable in every active frame preserved.
+
+(1) is free — it's a normal import return. (2) is the blocker.
+
+When a provider is handling an import, the guest is paused inside that call.
+Via `WebAssembly.Instance` the provider can see:
+
+- `memory.buffer` — readable, cloneable.
+- Exports (globals, tables, functions) — readable, callable from the beginning.
+
+It cannot see the guest's **call stack** or **program counter**. WebAssembly
+does not expose these to JS. Engines implement the stack differently —
+V8 uses the native C stack, Wasmtime its own, SpiderMonkey different again —
+and the spec deliberately leaves it opaque so engines can optimise freely.
+There is no API for it, public or private.
+
+Entering a WASM instance from JS means calling an export from its start.
+There is no "resume at frame N, instruction M." So a provider can clone
+memory but cannot tell the child instance *where to begin*.
+
+The same limitation hits two related syscalls:
+
+- **Async signal delivery.** "Pause the running guest, jump to the registered
+  handler, then resume where we were" has the same resume-at-frame need.
+  Self-raised signals that happen at controlled yield points are fine;
+  signals delivered from outside the guest's current call are not.
+- **Cross-frame `setjmp`/`longjmp`.** Unwinding from inside a JS-imported
+  call back to a target several WASM frames up requires popping the guest
+  stack from outside. Same blocker.
+
+In all three, the root cause is identical: **WASM execution state is not
+reifiable from JS**.
+
+Both workarounds described in [Future: pause/resume support](#future-pauseresume-support)
+operate below the provider layer. Asyncify moves the stack *into* guest
+memory where JS can see it; JSPI adds a first-class pause/resume primitive
+at the engine. Neither is something a provider can do at call time — which
+is why v1 ships with these tests skipped rather than working around them.
 
 ### Future: pause/resume support
 
