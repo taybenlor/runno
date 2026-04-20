@@ -22,15 +22,24 @@ All of that is a host-side decision; the runtime is unaware.
   (they import both).
 - Clock and Random become overridable providers (enables deterministic
   execution).
+- **Pass the upstream WASIX integration test suite
+  ([`wasmerio/wasix-integration-tests`](https://github.com/wasmerio/wasix-integration-tests))**
+  under a reference provider configuration shipped with the package. See
+  [Validation](#validation).
 
 Every WASIX syscall has a provider slot. Unwired slots return `ENOSYS`.
 
 **Non-goals.**
 
-- Parity with Wasmer's WASIX runtime semantics. Runno is a sandbox; behaviour
-  is whatever the host models.
-- Real socket / fork / exec implementations inside the runtime. Those are
-  host concerns.
+- Tests requiring whole-module state snapshot semantics (`proc_fork`,
+  `proc_exec` that continue execution with a mutated memory image). Wasmer's
+  implementation uses its journaling/snapshot machinery for these; Runno's
+  provider model gives the host an opaque snapshot handle but does not itself
+  implement snapshot-and-resume. Specific tests dependent on that are tracked
+  as known-skipped.
+- Real socket / fork / exec implementations baked into the runtime. Those live
+  in providers — some of which Runno ships (enough to pass the suite), some of
+  which are the host's.
 - `wasix_64v1` (Memory64 / wasm64). No existing toolchain output drives demand;
   the `wasix-libc` chain targets wasm32 in practice. Deferred — the handler
   code would mostly overlap with `wasix_32v1`, so picking it up later is cheap.
@@ -262,6 +271,65 @@ const wasix = new WASIX({
 No provider supplied → runtime falls back to `Date.now()` and
 `crypto.getRandomValues()` — identical to today's `WASI` defaults.
 
+## Validation
+
+Correctness bar: [`wasmerio/wasix-integration-tests`](https://github.com/wasmerio/wasix-integration-tests),
+the upstream WASIX integration suite.
+
+This shapes the design in two concrete ways.
+
+### Reference providers ship with the package
+
+To run the suite end-to-end, a consuming host needs working threads, futex,
+sockets, TTY, signals, clock, and random semantics. The runtime alone cannot
+supply those (it's the sandbox — it never does real work). So the package
+ships two provider tiers:
+
+```
+lib/wasix/providers/
+├── reference/      real-world semantics, enough to pass the upstream suite
+│   ├── worker-threads.ts        real Worker-backed ThreadsProvider
+│   ├── atomics-futex.ts         Atomics.wait/notify on shared memory
+│   ├── node-sockets.ts          node:net / node:dgram SocketsProvider (node only)
+│   ├── ws-proxy-sockets.ts      WebSocket-proxy SocketsProvider (browser)
+│   ├── system-clock.ts          Date.now() / performance.now()
+│   ├── web-crypto-random.ts     crypto.getRandomValues()
+│   ├── passthrough-tty.ts       reflects WASIXContext.isTTY + reasonable winsize
+│   └── self-signal.ts           signal_register + in-process dispatch
+└── deterministic/  test-friendly providers
+    ├── fixed-clock.ts
+    ├── seeded-random.ts
+    ├── mock-sockets.ts
+    ├── mock-threads.ts
+    └── …
+```
+
+Both tiers are exported publicly but importing is opt-in — nothing is wired
+into `WASIXContext` by default. The integration suite runner configures a
+`WASIX` instance with the `reference/` providers; a unit test can use
+`deterministic/` providers or its own fakes.
+
+This keeps the "Runno emulates, you simulate" design intact: the runtime has
+no semantics; the *reference providers* do, and they're just one possible
+host configuration among many.
+
+### Known-skipped tests
+
+A small set of tests depends on WASIX semantics that Runno's provider model
+cannot meaningfully simulate without implementing Wasmer-style journaling in
+the runtime itself — principally those exercising `proc_fork` / `proc_exec`
+that then assert on continued execution with a mutated memory image. These
+will be enumerated in a skip list in the test harness, with a one-line
+justification each. Any test that *can* be made to pass with sufficiently
+capable providers is not in this list.
+
+### CI
+
+The integration suite runs in CI against both provider configurations:
+- Node — `reference/` + `node-sockets`.
+- Browser (Playwright, COOP/COEP) — `reference/` + `ws-proxy-sockets` backed
+  by a local proxy started for the test run.
+
 ## Error model
 
 - Provider slot empty for a given syscall → return `Result.ENOSYS` without
@@ -288,3 +356,5 @@ No provider supplied → runtime falls back to `Date.now()` and
 - Do we expose the syscall-bridge opcodes publicly, so third parties can
   implement providers out-of-process (e.g. over a websocket to a remote host)?
   Attractive for future work; leave closed initially.
+- Exact skip list from `wasix-integration-tests`. Enumerate once PR 1 boots
+  the suite end-to-end; revisit per test rather than guessing ahead.
