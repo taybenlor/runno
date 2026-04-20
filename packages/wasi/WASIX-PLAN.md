@@ -522,6 +522,43 @@ the same suite minus the Asyncify-only skip list.
 - `proc_exit` and uncaught `WebAssembly.RuntimeError` keep their current
   `WASI` behaviour (exit code, 134 respectively).
 
+## Follow-up: refactor WASI to the provider model
+
+The two-tier provider shape applies cleanly to the existing preview1 +
+unstable implementation. Recommended as a follow-up PR once WASIX lands
+and validates the pattern in anger.
+
+What moves:
+
+- `WASIContext`'s `stdin` / `stdout` / `stderr` callbacks → `ConsoleTTYProvider`.
+- `WASIDrive` (currently internal) → `FileSystemProvider`, promoted to
+  a public ergonomic provider. Internal consumers switch to calling through
+  the provider.
+- Hard-coded `Date.now()` / `crypto.getRandomValues()` inside `WASI` →
+  `ClockProvider` / `RandomProvider` with the same defaults. Determinism
+  knob comes along for free.
+- preview1's `sock_*` family (`send`, `recv`, `shutdown` on accepted fds) →
+  served by the same `SocketsProvider`, so `HTTPProvider` works for WASI
+  too.
+
+Why it's worth doing:
+
+- One extension-point model across preview1, unstable, and wasix_32v1.
+  Fewer concepts for hosts to learn.
+- `HTTPProvider`, `FileSystemProvider`, `ConsoleTTYProvider`, and the
+  determinism knobs become available to existing Runno demos without
+  opting into WASIX.
+- The `WASI` and `WASIX` classes stop being asymmetric siblings — both
+  sit on the same provider substrate, only the import surface differs.
+
+Backward compatibility: the current `WASIContext` surface stays as a
+convenience shim that constructs the equivalent providers internally. No
+host code breaks; hosts that want the new model opt in explicitly.
+
+Sequencing: WASIX first because it's what forces the provider shape. Once
+WASIX ships and the provider set is stable, the refactor mirrors the same
+substrate backward into WASI in its own PR.
+
 ## Open questions
 
 - Exact ABI values and struct layouts for each WASIX syscall — pinned during
