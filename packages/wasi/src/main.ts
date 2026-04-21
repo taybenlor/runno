@@ -1,14 +1,16 @@
 import "./style.css";
-import { WASI, WASIContext } from "../lib/main.js";
+import { WASI, WASIContext, WASIX, WASIXContext } from "../lib/main.js";
 
 (window as any)["WASI"] = WASI;
 (window as any)["WASIContext"] = WASIContext;
+(window as any)["WASIX"] = WASIX;
+(window as any)["WASIXContext"] = WASIXContext;
 
 const programSelect = document.getElementById("program")! as HTMLSelectElement;
 const argsInput = document.getElementById("args")! as HTMLInputElement;
 const runButton = document.getElementById("run")! as HTMLButtonElement;
 const runReactorButton = document.getElementById(
-  "run-reactor"
+  "run-reactor",
 )! as HTMLButtonElement;
 
 const exitCode = document.getElementById("exit-code")! as HTMLElement;
@@ -62,7 +64,7 @@ runButton.addEventListener("click", async () => {
           content: "gday odin\nhow are you goen?\n",
         },
       },
-    })
+    }),
   );
   exitCode.textContent = result.exitCode.toString();
 });

@@ -39,3 +39,8 @@ export type WASIExecutionResult = {
   exitCode: number;
   fs: WASIFS;
 };
+
+export type WASIXExecutionResult = {
+  exitCode: number;
+  fs: WASIFS;
+};
