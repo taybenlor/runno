@@ -7,7 +7,9 @@ test.beforeEach(async ({ page }) => {
   await page.waitForLoadState("domcontentloaded");
 });
 
-test("wasix-hello: exits 0 and prints hello, world", async ({ page }) => {
+test("WASIX runs a WASI preview1 hello-world: exits 0, prints to stdout", async ({
+  page,
+}) => {
   const result = await page.evaluate(async function () {
     while (window["WASIX"] === undefined) {
       await new Promise((resolve) => setTimeout(resolve));
@@ -19,7 +21,7 @@ test("wasix-hello: exits 0 and prints hello, world", async ({ page }) => {
     let stdout = "";
 
     const wasiResult = await W.start(
-      fetch("/bin/tests/wasix-hello.wasm"),
+      fetch("/bin/tests/hello-world.wasi.wasm"),
       new WC({
         args: [],
         stdout: (out: string) => {
@@ -35,5 +37,5 @@ test("wasix-hello: exits 0 and prints hello, world", async ({ page }) => {
   });
 
   expect(result.exitCode).toBe(0);
-  expect(result.stdout).toBe("hello, world\n");
+  expect(result.stdout).toBe("Hello, World!\n");
 });
