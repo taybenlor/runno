@@ -23,13 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
-# Generated test binaries and downloaded test suites — not committed
-public/bin/languages/
-public/bin/wasi-test-suite-main/
-public/bin/tests/*.wasm
-public/bin/tests/*.wasi.wasm
-# Exception: pre-built binaries committed as test artifacts
-!public/bin/tests/wasix-hello.wasm
+# These are built with npm run build:programs
+public/bin
 
 # Playwright
 playwright-report

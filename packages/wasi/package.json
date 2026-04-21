@@ -33,15 +33,14 @@
   "scripts": {
     "dev": "vite --port 5173",
     "build:docs": "typedoc --options typedoc.config.cjs",
-    "build:tests": "cd programs && cargo wasi build -r && cd .. && cp programs/target/wasm32-wasi/release/*.wasi.wasm public/bin/tests/ && wat2wasm programs/wasix-hello/wasix-hello.wat -o public/bin/tests/wasix-hello.wasm",
+    "build:tests": "cd programs && cargo wasi build -r && cd .. && cp programs/target/wasm32-wasi/release/*.wasi.wasm public/bin/tests/",
     "build:vite": "tsc --noEmit && vite build",
     "build": "npm run build:docs && npm run build:vite && rimraf dist/src && mv dist/lib/* dist/ && rmdir dist/lib",
     "test:server": "vite --port 5173",
     "test:cargo": "cargo install cargo-wasi || echo Please install cargo to run the tests",
-    "test:wabt": "which wat2wasm > /dev/null || echo 'Please install wabt (brew install wabt / apt install wabt) to rebuild wasix-hello.wasm from wat'",
     "test:mkdir": "mkdir -p public/bin/languages public/bin/tests",
     "test:download": "wget --directory-prefix=public/bin/ https://github.com/caspervonb/wasi-test-suite/archive/refs/heads/main.zip && unzip -u public/bin/main.zip -d public/bin/ && rm public/bin/main.zip",
-    "test:prepare": "npm run test:mkdir && npm run test:download && npm run test:cargo && npm run test:wabt && npm run build:tests",
+    "test:prepare": "npm run test:mkdir && npm run test:download && npm run test:cargo && npm run build:tests",
     "test": "playwright test",
     "preview": "vite preview"
   },
