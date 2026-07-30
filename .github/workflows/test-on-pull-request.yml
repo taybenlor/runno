@@ -15,8 +15,8 @@ jobs:
           node-version: "22"
       - name: Install wabt (wat2wasm)
         # `packages/wasi`'s `build:tests` step needs wat2wasm to compile
-        # the hand-written WAT smoke binaries (the wasix clock/random ones
-        # and the bridge unit-test binary) into wasm before Playwright
+        # the hand-written WAT smoke binaries (wasix-clock-random,
+        # wasix-deterministic, wasix-errno) into wasm before Playwright
         # runs.
         run: sudo apt-get update && sudo apt-get install -y wabt
       - name: Install dependencies
@@ -54,12 +54,16 @@ jobs:
           version: v0.4.3
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Probe wasixcc
+        # The suite build needs both wasixcc (C tests) and wasix++
+        # (C++ tests: exception, setjmp-longjmp).
         run: |
           set -euxo pipefail
-          if ! command -v wasixcc >/dev/null 2>&1; then
-            echo "::error::wasixcc not on PATH after install."
-            exit 1
-          fi
+          for tool in wasixcc wasix++; do
+            if ! command -v "$tool" >/dev/null 2>&1; then
+              echo "::error::$tool not on PATH after install."
+              exit 1
+            fi
+          done
           wasixcc --version || true
       - name: Fetch + build wasix suite binaries
         working-directory: packages/wasi

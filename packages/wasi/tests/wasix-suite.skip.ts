@@ -2,7 +2,15 @@
 //
 // Each entry is keyed by the test directory name (matching the `.wasm`
 // stem under `public/bin/wasix-tests/`). Tests listed here are marked
-// `test.fixme()` by the Playwright spec with a structured reason token.
+// `test.fail()` by the Playwright spec with a structured reason token —
+// they still RUN, so the report flags "passed unexpectedly" the moment a
+// capability lands and an entry goes stale.
+//
+// Scope rule (enforced by `wasix-suite-consistency.spec.ts`): every key
+// here must be a member of `WASIX_INCLUDE_DIRS` — i.e. a test that is
+// actually built and executed. Tests that cannot even be built live in
+// `WASIX_BUILD_EXCLUDES` in the constants file instead; tests that don't
+// exist in the vendored checkout must not appear anywhere.
 //
 // Reason tokens are drawn from the fixed union below. The token names are
 // a grep contract: `grep requires-provider-sockets` is meant to return
@@ -15,16 +23,17 @@
  * tokens are shared across the whole suite.
  *
  * - `requires-asyncify`            — needs Asyncify (e.g. post-fork longjmp).
- * - `requires-provider-sockets`    — needs SocketProvider.
+ * - `requires-provider-sockets`    — needs SocketsProvider.
  * - `requires-provider-threads`    — needs ThreadsProvider.
  * - `requires-provider-futex`      — needs FutexProvider.
- * - `requires-provider-signals`    — needs SignalProvider.
- * - `requires-provider-proc`       — needs ProcessProvider / proc_fork /
+ * - `requires-provider-signals`    — needs SignalsProvider.
+ * - `requires-provider-proc`       — needs ProcProvider / proc_fork /
  *                                    proc_exec / proc_spawn.
- * - `requires-future-feature`      — capability scheduled for a later
- *                                    change where no single provider
- *                                    token fits (e.g. TTY, poll/epoll,
- *                                    drive extraction).
+ * - `requires-drive-feature`       — needs a WASIDrive capability that is
+ *                                    not modelled yet (mmap/msync,
+ *                                    symlinks, hard links, mount, fd-table
+ *                                    extraction). See WASIX-PLAN.md
+ *                                    "Drive feature workstream".
  */
 export type SkipReason =
   | "requires-asyncify"
@@ -33,7 +42,7 @@ export type SkipReason =
   | "requires-provider-futex"
   | "requires-provider-signals"
   | "requires-provider-proc"
-  | "requires-future-feature";
+  | "requires-drive-feature";
 
 export type SkipEntry = {
   reason: SkipReason;
@@ -45,44 +54,26 @@ export type SkipEntry = {
  * Skip map: `<test-name>` → skip reason.
  *
  * Keep entries alphabetised; `wasix-suite.spec.ts` reads this map and
- * marks each matching test `test.fixme(true, reason)`.
- *
- * Classification notes:
- *   - `fork*` / `spawn` / `pipe` / `unix-pipe` / `fd-pipe` →
- *     `requires-provider-proc`. `fork-longjmp` additionally needs
- *     Asyncify, which is the harder blocker so it picks
- *     `requires-asyncify` instead.
- *   - `multi-threading` → `requires-provider-threads`.
- *   - `socket-*`, `sockets` → `requires-provider-sockets`.
- *   - `signals`, `fork-signals` → `requires-provider-signals`.
- *   - `epoll` / `eventfd` / `poll` / `poll-fifo` → poll surface
- *     (`requires-future-feature`).
- *   - `tty` / `ptyname` / `ioctl` → TTY work (`requires-future-feature`).
- *   - `link`, `mount`, `readlink`, `symlink`, `shm`, `procfs` → drive
- *     features not yet represented (`requires-future-feature`).
- *   - `close-preopen`, `dup` → fd-table re-binding via `fd_renumber`,
- *     stubbed ENOSYS at the WASIX layer pending the fd-table extraction
- *     (`requires-future-feature`).
+ * marks each matching test `test.fail(true, reason)`.
  */
-// Slice 3.5 closed out the FS-category carve-outs at the drive level
-// (`./` normalisation, parent-dir-exists / parent-type validation,
-// preopen retention across `close`, `.`/`..` synthesis in readdir, and
-// the harness-side mount seeding for `/tmp` and `--volume host:guest`
-// targets). The remaining entries below are non-drive gaps —
-// fd-table extraction, sockets, mmap, proc, etc.
-
 export const WASIX_SUITE_SKIPS: Record<string, SkipEntry> = {
-  "close-preopen": {
-    reason: "requires-future-feature",
-    note:
-      "fd-table re-binding after closing a preopen needs fd_renumber, " +
-      "currently stubbed ENOSYS pending the WASIDrive fd-table extraction.",
+  cloexec: {
+    reason: "requires-asyncify",
+    note: "fork + popen; post-fork child execution needs stack reification.",
   },
-  dup: {
-    reason: "requires-future-feature",
+  "closing-pre-opened-dirs": {
+    reason: "requires-drive-feature",
     note:
-      "dup2 = fd_renumber, deliberately stubbed ENOSYS — fd-table mgmt " +
-      "is co-located with WASIDrive and will lift later.",
+      "guest fcloses stdout and expects later writes to vanish; stdio " +
+      "fds route to host callbacks and never close. Surfaced by the " +
+      "stdout-diff assertion (previously passed vacuously on exit code " +
+      "alone). Pending the fd-table extraction.",
+  },
+  "context-switching": {
+    reason: "requires-asyncify",
+    note:
+      "userspace context_create/context_switch — needs the guest stack " +
+      "reified, same blocker class as Asyncify. Also uses fork/vfork.",
   },
   "fd-close": {
     reason: "requires-provider-sockets",
@@ -91,37 +82,43 @@ export const WASIX_SUITE_SKIPS: Record<string, SkipEntry> = {
       "expects close(fd) plus EBADF on second close. Needs " +
       "SocketsProvider + /bin preopen.",
   },
-  "fs-mount": {
-    reason: "requires-future-feature",
-    note: "mount syscall; Runno has a single preopen root.",
+  fork: {
+    reason: "requires-asyncify",
+    note: "post-fork execution in the child needs stack reification.",
   },
-  "mount-tmp-locally": {
-    reason: "requires-future-feature",
-    note: "mount syscall; Runno has a single preopen root.",
+  "fs-mount": {
+    reason: "requires-drive-feature",
+    note:
+      "mount syscall; Runno has a single preopen root. Only the " +
+      "--volume invocation of upstream run.sh is replicated here.",
   },
   "msync-end-of-file": {
-    reason: "requires-future-feature",
+    reason: "requires-drive-feature",
     note: "mmap / msync — WASIDrive doesn't model file-backed mappings.",
   },
   "msync-middle-of-file": {
-    reason: "requires-future-feature",
+    reason: "requires-drive-feature",
     note: "mmap / msync — WASIDrive doesn't model file-backed mappings.",
   },
   "msync-start-of-file": {
-    reason: "requires-future-feature",
+    reason: "requires-drive-feature",
     note: "mmap / msync — WASIDrive doesn't model file-backed mappings.",
   },
   "munmap-sync-end-of-file": {
-    reason: "requires-future-feature",
+    reason: "requires-drive-feature",
     note: "mmap / munmap — WASIDrive doesn't model file-backed mappings.",
   },
   "munmap-sync-middle-of-file": {
-    reason: "requires-future-feature",
+    reason: "requires-drive-feature",
     note: "mmap / munmap — WASIDrive doesn't model file-backed mappings.",
   },
   "munmap-sync-start-of-file": {
-    reason: "requires-future-feature",
+    reason: "requires-drive-feature",
     note: "mmap / munmap — WASIDrive doesn't model file-backed mappings.",
+  },
+  pipes: {
+    reason: "requires-asyncify",
+    note: "fork/vfork-based pipe plumbing.",
   },
   popen: {
     reason: "requires-provider-proc",
@@ -131,99 +128,57 @@ export const WASIX_SUITE_SKIPS: Record<string, SkipEntry> = {
     reason: "requires-provider-proc",
     note: "needs proc_spawn2 + proc_join (proc provider).",
   },
+  "proc-exec": {
+    reason: "requires-asyncify",
+    note: "fork then execv; the child resumes post-fork before exec.",
+  },
+  "proc-exec2": {
+    reason: "requires-asyncify",
+    note: "fork then execve; the child resumes post-fork before exec.",
+  },
   "read-after-munmap": {
-    reason: "requires-future-feature",
+    reason: "requires-drive-feature",
     note: "mmap / munmap — WASIDrive doesn't model file-backed mappings.",
   },
+  "share-tmp-after-fork": {
+    reason: "requires-asyncify",
+    note: "fork-based; child resumes post-fork.",
+  },
+  "share-tmp-after-proc-exec": {
+    reason: "requires-asyncify",
+    note: "fork + execv; child resumes post-fork before exec.",
+  },
+  "share-tmp-after-proc-exec2": {
+    reason: "requires-asyncify",
+    note: "fork + execve; child resumes post-fork before exec.",
+  },
+  "shared-fd": {
+    reason: "requires-asyncify",
+    note: "fork-based fd sharing; child resumes post-fork.",
+  },
+  signal: {
+    reason: "requires-asyncify",
+    note:
+      "fork-based signal delivery between processes; fork is the " +
+      "harder blocker so it wins the token over provider-signals.",
+  },
   "symlink-open-read-write": {
-    reason: "requires-future-feature",
-    note: "symlinks are not represented in WASIDrive.",
+    reason: "requires-drive-feature",
+    note:
+      "symlinks are not represented in WASIDrive. When unskipped, the " +
+      "harness must also pre-seed target.txt ('host-prefix:') and " +
+      "post-assert its content — see run.sh.",
   },
   udp: {
     reason: "requires-provider-sockets",
-    note: "raw UDP send/recv — needs SocketsProvider.",
+    note: "raw UDP send/recv across 4 subcommand invocations.",
   },
   vfork: {
     reason: "requires-provider-proc",
     note:
       "needs proc_fork_env + proc_exec3 (proc provider). Distinct from " +
-      "POSIX vfork — wasix-libc reuses proc_fork semantics.",
+      "POSIX vfork — wasix-libc reuses proc_fork semantics. Upstream " +
+      "also builds a wasm-exceptions variant (main-eh.wasm) that this " +
+      "harness does not reproduce.",
   },
-  epoll: {
-    reason: "requires-future-feature",
-    note: "epoll surface lands with the poll feature.",
-  },
-  eventfd: {
-    reason: "requires-future-feature",
-    note: "eventfd surface lands with the poll feature.",
-  },
-  "fd-pipe": {
-    reason: "requires-provider-proc",
-    note: "anonymous pipe pair — needs process/pipe plumbing.",
-  },
-  fork: { reason: "requires-provider-proc" },
-  "fork-and-exec": { reason: "requires-provider-proc" },
-  "fork-longjmp": {
-    // Needs both Asyncify (post-fork longjmp) and the process provider.
-    // Asyncify is the harder blocker so it wins the token.
-    reason: "requires-asyncify",
-    note: "post-fork longjmp requires Asyncify.",
-  },
-  "fork-pipes": { reason: "requires-provider-proc" },
-  "fork-signals": {
-    reason: "requires-provider-signals",
-    note: "signal delivery across fork — signals provider drives this.",
-  },
-  ioctl: {
-    reason: "requires-future-feature",
-    note: "TTY ioctls — lands with TTY work.",
-  },
-  link: {
-    reason: "requires-future-feature",
-    note: "hard links; WASIDrive has no link table.",
-  },
-  mount: {
-    reason: "requires-future-feature",
-    note: "mount syscall; Runno has a single preopen root.",
-  },
-  "multi-threading": { reason: "requires-provider-threads" },
-  pipe: { reason: "requires-provider-proc" },
-  poll: {
-    reason: "requires-future-feature",
-    note: "poll surface lands with the poll feature.",
-  },
-  "poll-fifo": {
-    reason: "requires-future-feature",
-    note: "poll surface lands with the poll feature.",
-  },
-  procfs: {
-    reason: "requires-future-feature",
-    note: "Wasmer-specific /proc view — deferred alongside drive extraction.",
-  },
-  ptyname: {
-    reason: "requires-future-feature",
-    note: "TTY feature — lands with TTY work.",
-  },
-  readlink: {
-    reason: "requires-future-feature",
-    note: "Symlinks are not represented in WASIDrive.",
-  },
-  shm: {
-    reason: "requires-future-feature",
-    note: "POSIX shared memory — deferred alongside drive extraction.",
-  },
-  signals: { reason: "requires-provider-signals" },
-  "socket-tcp": { reason: "requires-provider-sockets" },
-  "socket-udp": { reason: "requires-provider-sockets" },
-  sockets: { reason: "requires-provider-sockets" },
-  spawn: { reason: "requires-provider-proc" },
-  symlink: {
-    reason: "requires-future-feature",
-    note: "Symlinks are not represented in WASIDrive.",
-  },
-  tty: {
-    reason: "requires-future-feature",
-    note: "TTY semantics — lands with TTY work.",
-  },
-  "unix-pipe": { reason: "requires-provider-proc" },
 };

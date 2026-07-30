@@ -7,17 +7,25 @@
 //     at the SHA pinned in `wasix-suite.constants.ts`.
 //   - `wasixcc` is on PATH. Locally: `npm run wasix:install-tools`.
 //
-// Behaviour:
-//   - For each directory in `resolveWasixIncludeDirs()`, build
-//     `tests/wasix-vendor/wasmer/tests/wasix/<dir>/main.c` into
-//     `public/bin/wasix-tests/<dir>.wasm`.
-//   - If the source directory has no C sources, log and continue (the
-//     vendored upstream may have non-C subdirs we don't compile).
+// Behaviour mirrors upstream `wasmer/tests/wasix/test.sh`:
+//   - C tests build with `wasixcc -sWASM_EXCEPTIONS=false <sources>`,
+//     C++ tests (main.cc) with `wasix++ <sources>`. Per-test extra
+//     flags come from an optional `.flags` file, exactly like upstream.
+//   - Upstream `.no-build` tests compile inside their own run.sh with
+//     equivalent flags (WASIXCC_WASM_EXCEPTIONS=no ≈
+//     -sWASM_EXCEPTIONS=false); we build them with the plain invocation,
+//     which matches the non-exceptions variant that our spec replicates.
 //   - If `wasixcc` is missing, the vendor dir is missing, or any
 //     individual build fails, exit non-zero. Build failures are not
 //     silently absorbed: the fix is to repair the build, not to skip.
 
-import { existsSync, mkdirSync, readdirSync, statSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+} from "node:fs";
 import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -69,29 +77,37 @@ for (const name of WASIX_INCLUDE_DIRS) {
     process.exit(1);
   }
 
-  const sources = collectSources(srcDir);
-  if (sources.length === 0) {
+  const cSources = collectSources(srcDir, ".c");
+  const cppSources = collectSources(srcDir, ".cc");
+  if (cSources.length === 0 && cppSources.length === 0) {
     console.error(
-      `[build-wasix-suite] include-list entry has no C sources: ${name}\n` +
+      `[build-wasix-suite] include-list entry has no C/C++ sources: ${name}\n` +
         "  Drop it from WASIX_INCLUDE_DIRS or fix the vendored checkout.",
     );
     process.exit(1);
   }
 
   const outPath = join(outDir, `${name}.wasm`);
-  // Several upstream wasmer tests call fork() / etc. without including
-  // the right wasix-libc headers. wasixcc's clang (C99+) rejects the
-  // implicit declarations as errors; demote to warnings so the
-  // resulting binaries still link against the wasix-libc symbols.
+  const extraFlags = readFlags(srcDir);
+
+  // Mirror upstream test.sh:
+  //   wasix++ main.cc -o main.wasm ${extra_flags}          (C++ tests)
+  //   wasixcc -sWASM_EXCEPTIONS=false main.c ... ${flags}  (C tests)
+  // Plus -Wno-error=implicit-function-declaration: several upstream
+  // tests call fork() etc. without the right headers and wasixcc's
+  // clang rejects the implicit declarations as errors by default.
+  const isCpp = cppSources.length > 0;
+  const compiler = isCpp ? "wasix++" : wasixcc;
   const args = [
-    "-O2",
+    ...(isCpp ? [] : ["-sWASM_EXCEPTIONS=false"]),
     "-Wno-error=implicit-function-declaration",
     "-o",
     outPath,
-    ...sources,
+    ...(isCpp ? cppSources : cSources),
+    ...extraFlags,
   ];
 
-  const result = spawnSync(wasixcc, args, {
+  const result = spawnSync(compiler, args, {
     stdio: ["ignore", "inherit", "inherit"],
   });
 
@@ -133,13 +149,22 @@ function resolveWasixcc(): string | null {
   return probe.status === 0 ? "wasixcc" : null;
 }
 
-/** Collect `.c` files directly under `dir` (non-recursive). */
-function collectSources(dir: string): string[] {
+/** Collect source files with the given extension directly under `dir`. */
+function collectSources(dir: string, ext: ".c" | ".cc"): string[] {
   const out: string[] = [];
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
     if (!statSync(full).isFile()) continue;
-    if (entry.endsWith(".c")) out.push(full);
+    if (entry.endsWith(ext)) out.push(full);
   }
   return out;
+}
+
+/** Read the upstream per-test `.flags` file (whitespace-separated). */
+function readFlags(dir: string): string[] {
+  const flagsPath = join(dir, ".flags");
+  if (!existsSync(flagsPath)) return [];
+  return readFileSync(flagsPath, "utf8")
+    .split(/\s+/)
+    .filter((f) => f.length > 0);
 }
