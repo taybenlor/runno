@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@runno/component test host</title>
+  </head>
+  <body>
+    <h1>@runno/component</h1>
+    <p>
+      Test host page. The Playwright suite drives this page and calls into the
+      runtime via <code>window.RunnoComponent</code>.
+    </p>
+    <script type="module">
+      import * as RunnoComponent from "/lib/main.ts";
+
+      window.RunnoComponent = RunnoComponent;
+
+      /**
+       * Instantiates a component served from the dev server and calls one
+       * exported function with the given arguments. Used by tests.
+       */
+      window.runComponentExport = async (path, exportName, args, imports) => {
+        const response = await fetch(path);
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        const { exports } = await RunnoComponent.instantiateComponent(
+          bytes,
+          imports ?? {},
+        );
+        let target = exports;
+        for (const part of exportName.split(".").slice(0, -1)) {
+          target = target[part];
+        }
+        const name = exportName.split(".").at(-1);
+        return target[name](...(args ?? []));
+      };
+
+      window.componentReady = true;
+    </script>
+  </body>
+</html>
