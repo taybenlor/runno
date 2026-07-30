@@ -4,6 +4,7 @@ import {
   linkComponent,
   rawHostValue,
   type Entity,
+  type InstanceEntity,
 } from "./runtime/linker.ts";
 import type { ParsedComponent } from "./parser/ast.ts";
 
@@ -15,6 +16,7 @@ export {
   UnsupportedFeatureError,
 } from "./runtime/errors.ts";
 export { GuestResource } from "./runtime/canonical.ts";
+export type { Entity, InstanceEntity } from "./runtime/linker.ts";
 export type * from "./parser/ast.ts";
 
 export interface ComponentInstance {
@@ -24,6 +26,12 @@ export interface ComponentInstance {
    * Kebab-case export names also get camelCase aliases (jco convention).
    */
   exports: Record<string, unknown>;
+  /**
+   * Entity-level exports for composing components: pass this as an
+   * entity import to another instantiation to link components together
+   * without losing type identity (resources, core modules, ...).
+   */
+  entity: InstanceEntity;
 }
 
 /**
@@ -44,10 +52,11 @@ export type ComponentImports = Record<string, unknown>;
 export async function instantiateComponent(
   bytes: Uint8Array | ArrayBuffer,
   imports: ComponentImports = {},
+  entityImports?: Map<string, Entity>,
 ): Promise<ComponentInstance> {
   const data = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
   const parsed = parseComponent(data);
-  return instantiateParsedComponent(parsed, imports);
+  return instantiateParsedComponent(parsed, imports, entityImports);
 }
 
 /**
@@ -56,11 +65,20 @@ export async function instantiateComponent(
 export async function instantiateParsedComponent(
   parsed: ParsedComponent,
   imports: ComponentImports = {},
+  entityImports?: Map<string, Entity>,
 ): Promise<ComponentInstance> {
   const args = new Map<string, Entity>();
+  if (entityImports) {
+    for (const [name, entity] of entityImports) {
+      args.set(name, entity);
+    }
+  }
   for (const [name, value] of Object.entries(imports)) {
     args.set(name, rawHostValue(value));
   }
   const scope = await linkComponent(parsed, args);
-  return { exports: buildExportsObject(scope) };
+  return {
+    exports: buildExportsObject(scope),
+    entity: { exports: scope.exports },
+  };
 }

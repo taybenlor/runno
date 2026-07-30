@@ -1,0 +1,7 @@
+node_modules
+dist
+test-results
+playwright-report
+# Downloaded external test suites (rebuilt by `npm run test:prepare`)
+tests/external/wast-src
+tests/fixtures/external

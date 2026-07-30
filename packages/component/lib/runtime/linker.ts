@@ -29,7 +29,9 @@ import {
   HostResourceTable,
   liftFlatValues,
   lowerFlatValues,
+  makeErrorContextBuiltins,
   type FlatValue,
+  type HandleEntry,
   type InstanceState,
 } from "./canonical.ts";
 import {
@@ -140,7 +142,7 @@ function newScope(parent?: Scope): Scope {
     components: [],
     instances: [],
     parent,
-    state: { handles: new Table<ResourceHandle>(), mayLeave: true },
+    state: { handles: new Table<HandleEntry>(), mayLeave: true },
     exports: new Map(),
   };
 }
@@ -385,10 +387,17 @@ function canonLift(
     if (canon.options.postReturnIdx !== undefined) {
       const postReturn = scope.core.funcs[canon.options.postReturnIdx];
       trapIf(postReturn === undefined, "post-return function is missing");
-      if (rawResult === undefined) {
-        (postReturn as () => void)();
-      } else {
-        (postReturn as (v: FlatValue) => void)(rawResult as FlatValue);
+      // The instance may not be left (no builtins, no reentrance) while
+      // post-return runs.
+      scope.state.mayLeave = false;
+      try {
+        if (rawResult === undefined) {
+          (postReturn as () => void)();
+        } else {
+          (postReturn as (v: FlatValue) => void)(rawResult as FlatValue);
+        }
+      } finally {
+        scope.state.mayLeave = true;
       }
     }
     cx.scope!.exit();
@@ -496,6 +505,7 @@ function rewrapResult(v: unknown): unknown {
 
 function resourceNew(scope: Scope, resource: RTResource): CallableFunction {
   return (rep: number): number => {
+    trapIf(!scope.state.mayLeave, "cannot leave component instance");
     return scope.state.handles.add(
       new ResourceHandle(resource, rep >>> 0, true),
     );
@@ -504,7 +514,10 @@ function resourceNew(scope: Scope, resource: RTResource): CallableFunction {
 
 function resourceDrop(scope: Scope, resource: RTResource): CallableFunction {
   return (i: number): void => {
-    const h = scope.state.handles.remove(i >>> 0);
+    trapIf(!scope.state.mayLeave, "cannot leave component instance");
+    const entry = scope.state.handles.remove(i >>> 0);
+    trapIf(!(entry instanceof ResourceHandle), "handle is not a resource");
+    const h = entry as ResourceHandle;
     trapIf(h.rt !== resource, "resource.drop on wrong resource type");
     trapIf(h.numLends !== 0, "cannot drop a lent handle");
     if (h.own) {
@@ -517,7 +530,9 @@ function resourceDrop(scope: Scope, resource: RTResource): CallableFunction {
 
 function resourceRep(scope: Scope, resource: RTResource): CallableFunction {
   return (i: number): number => {
-    const h = scope.state.handles.get(i >>> 0);
+    const entry = scope.state.handles.get(i >>> 0);
+    trapIf(!(entry instanceof ResourceHandle), "handle is not a resource");
+    const h = entry as ResourceHandle;
     trapIf(h.rt !== resource, "resource.rep on wrong resource type");
     return h.rep;
   };
@@ -596,7 +611,7 @@ function bindImport(
       );
       return { kind: "component", component: value as ComponentClosure };
     case "core-module":
-      trap("core module imports from the host are not supported yet");
+      return { kind: "core-module", module: hostCoreModule(name.name, value) };
   }
 }
 
@@ -614,6 +629,23 @@ function makeHostResource(name: string, hostClass: unknown): RTResource {
     obj?.[Symbol.dispose]?.();
   };
   return resource;
+}
+
+/**
+ * Accepts a host-supplied core module as raw wasm bytes or a compiled
+ * WebAssembly.Module.
+ */
+function hostCoreModule(name: string, value: unknown): CoreModuleSlot {
+  if (value instanceof Uint8Array) {
+    return { bytes: value };
+  }
+  if (
+    typeof WebAssembly !== "undefined" &&
+    value instanceof WebAssembly.Module
+  ) {
+    return { bytes: new Uint8Array(0), compiled: Promise.resolve(value) };
+  }
+  trap(`import "${name}" must be wasm bytes or a WebAssembly.Module`);
 }
 
 const METHOD_PREFIX = "[method]";
@@ -733,6 +765,11 @@ function bindHostExport(
         ),
       };
     }
+    case "core-module":
+      return {
+        kind: "core-module",
+        module: hostCoreModule(name, obj[name] ?? obj[toCamelCase(name)]),
+      };
     default:
       trap(`unsupported host instance export kind: ${externType.kind}`);
   }
@@ -962,6 +999,24 @@ async function evaluateDefinition(
           scope.core.funcs.push(resourceRep(scope, resource));
           return;
         }
+        case "error-context.new": {
+          const cx = makeCanonContext(scope, canon.options);
+          scope.core.funcs.push(makeErrorContextBuiltins(cx).new);
+          return;
+        }
+        case "error-context.debug-message": {
+          const cx = makeCanonContext(scope, canon.options);
+          scope.core.funcs.push(makeErrorContextBuiltins(cx).debugMessage);
+          return;
+        }
+        case "error-context.drop": {
+          const cx = makeCanonContext(scope, {
+            stringEncoding: "utf8",
+            async: false,
+          });
+          scope.core.funcs.push(makeErrorContextBuiltins(cx).drop);
+          return;
+        }
         default:
           throw new UnsupportedFeatureError(`canon ${canon.kind}`);
       }
@@ -992,22 +1047,17 @@ async function evaluateDefinition(
       } else {
         const raw =
           provided !== undefined ? unwrapRawHostValue(provided) : undefined;
-        if (raw === undefined && definition.type.kind === "type") {
-          // Type imports without a host-provided implementation get a
-          // fresh (host) resource type or the declared bound.
-          entity = bindImport(
-            scope,
-            definition.name,
-            definition.type,
-            undefined,
-          );
-        } else {
-          trapIf(
-            raw === undefined,
-            `missing import: "${definition.name.name}"`,
-          );
-          entity = bindImport(scope, definition.name, definition.type, raw);
-        }
+        const optional =
+          definition.type.kind === "type" ||
+          definition.type.kind === "instance";
+        trapIf(
+          raw === undefined && !optional,
+          `missing import: "${definition.name.name}"`,
+        );
+        // Type imports get a fresh resource type / declared bound;
+        // instance imports bind lazily — an absent instance only traps
+        // if one of its functions is actually needed.
+        entity = bindImport(scope, definition.name, definition.type, raw);
       }
       pushEntity(scope, entity);
       return;
@@ -1143,6 +1193,11 @@ function coreSortValue(
       const global = scope.core.globals[idx];
       trapIf(global === undefined, `core global ${idx} out of range`);
       return global;
+    }
+    case "tag": {
+      const tag = scope.core.tags[idx];
+      trapIf(tag === undefined, `core tag ${idx} out of range`);
+      return tag as WebAssembly.ExportValue;
     }
     default:
       trap(`core sort ${sort} cannot appear in an inline export`);

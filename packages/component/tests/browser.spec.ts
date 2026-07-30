@@ -67,3 +67,44 @@ test.describe("canonical ABI echo suite", () => {
     expect(failures).toEqual([]);
   });
 });
+
+test.describe("wasmtime wast conformance", () => {
+  test("expected-clean suites pass in the browser", async ({ page }) => {
+    test.setTimeout(120000);
+    await ready(page);
+    const failures = await page.evaluate(async () => {
+      const { EXPECTED_CLEAN, runWastSuite } = await import(
+        "/tests/external/wast-harness.ts"
+      );
+      const manifest: { name: string; json: string }[] = await (
+        await fetch("/tests/fixtures/external/manifest.json")
+      ).json();
+      const simpleModule = new Uint8Array(
+        await (
+          await fetch("/tests/fixtures/external/simple-module.wasm")
+        ).arrayBuffer(),
+      );
+      const allFailures: string[] = [];
+      for (const entry of manifest) {
+        if (!EXPECTED_CLEAN.includes(entry.name)) continue;
+        const { commands } = await (
+          await fetch(`/tests/fixtures/external/${entry.json}`)
+        ).json();
+        const report = await runWastSuite(
+          entry.name,
+          commands,
+          async (file: string) =>
+            new Uint8Array(
+              await (
+                await fetch(`/tests/fixtures/external/${entry.name}/${file}`)
+              ).arrayBuffer(),
+            ),
+          simpleModule,
+        );
+        allFailures.push(...report.failures);
+      }
+      return allFailures;
+    });
+    expect(failures).toEqual([]);
+  });
+});

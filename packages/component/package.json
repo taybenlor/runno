@@ -37,9 +37,11 @@
     "build": "npm run build:vite",
     "test:server": "vite --port 5174",
     "test:unit": "node --experimental-strip-types --test tests/unit/*.test.ts",
-    "test:prepare": "node --experimental-strip-types scripts/prepare-tests.ts",
+    "test:prepare": "npm run test:fixtures && npm run test:external",
     "test": "playwright test",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:fixtures": "node --experimental-strip-types scripts/generate-echo-fixtures.ts",
+    "test:external": "node --experimental-strip-types scripts/fetch-external-suites.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",

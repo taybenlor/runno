@@ -20,6 +20,13 @@
       local.get 3
       i32.add
       global.set $next
+      (if (i32.ne (local.get 0) (i32.const 0))
+        (then
+          (memory.copy
+            (local.get $ptr)
+            (local.get 0)
+            (select (local.get 1) (local.get 3)
+              (i32.lt_u (local.get 1) (local.get 3))))))
       local.get $ptr)
     (data (i32.const 16) "Hello, ")
     (func $greet (export "greet") (param $ptr i32) (param $len i32) (result i32)

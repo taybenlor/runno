@@ -39,9 +39,23 @@ import {
 
 export type FlatValue = number | bigint;
 
+/**
+ * An error-context value (📝 gated feature): an immutable debug message
+ * created by the guest or host.
+ */
+export class ErrorContextValue {
+  message: string;
+  constructor(message: string) {
+    this.message = message;
+  }
+}
+
+/** An entry in a component instance's handles table. */
+export type HandleEntry = ResourceHandle | ErrorContextValue;
+
 /** State shared by every canon definition of one component instance. */
 export interface InstanceState {
-  handles: Table<ResourceHandle>;
+  handles: Table<HandleEntry>;
   mayLeave: boolean;
 }
 
@@ -72,17 +86,27 @@ function view(cx: CanonContext): DataView {
   return new DataView(cx.memory().buffer);
 }
 
+export function reallocate(
+  cx: CanonContext,
+  oldPtr: number,
+  oldSize: number,
+  align: number,
+  newSize: number,
+): number {
+  const realloc = cx.realloc?.();
+  trapIf(realloc === undefined, "realloc is required but was not provided");
+  const ptr = realloc!(oldPtr, oldSize, align, newSize) >>> 0;
+  trapIf(ptr !== alignTo(ptr, align), "realloc returned misaligned pointer");
+  trapIf(ptr + newSize > bytes(cx).length, "realloc returned out of bounds");
+  return ptr;
+}
+
 export function allocate(
   cx: CanonContext,
   align: number,
   size: number,
 ): number {
-  const realloc = cx.realloc?.();
-  trapIf(realloc === undefined, "realloc is required but was not provided");
-  const ptr = realloc!(0, 0, align, size) >>> 0;
-  trapIf(ptr !== alignTo(ptr, align), "realloc returned misaligned pointer");
-  trapIf(ptr + size > bytes(cx).length, "realloc returned out of bounds");
-  return ptr;
+  return reallocate(cx, 0, 0, align, size);
 }
 
 /* ------------------------------------------------------------------ */
@@ -221,52 +245,79 @@ function loadStringFromRange(
   }
 }
 
-/** Returns [ptr, taggedCodeUnits]. */
+/**
+ * Returns [ptr, taggedCodeUnits].
+ *
+ * Follows the spec's store_string algorithms, treating JS strings as
+ * UTF-16 sources: the speculative-allocate-then-grow realloc sequences
+ * are observable to the guest (hostile realloc implementations are
+ * exercised by wasmtime's strings.wast), so single-shot exact
+ * allocations are not equivalent.
+ */
 function storeStringIntoRange(cx: CanonContext, v: unknown): [number, number] {
   const s = String(v);
+  const units = s.length;
+  trapIf(2 * units > MAX_STRING_BYTE_LENGTH, "string too long");
   switch (cx.stringEncoding) {
     case "utf8": {
-      const encoded = UTF8_ENCODER.encode(s);
-      trapIf(encoded.length > MAX_STRING_BYTE_LENGTH, "string too long");
-      const ptr = allocate(cx, 1, encoded.length);
-      bytes(cx).set(encoded, ptr);
-      return [ptr, encoded.length];
+      // store_utf16_to_utf8: optimistically one byte per code unit,
+      // grow to the 3x worst case on the first non-ASCII unit.
+      let ptr = allocate(cx, 1, units);
+      for (let i = 0; i < units; i++) {
+        const c = s.charCodeAt(i);
+        if (c < 0x80) {
+          bytes(cx)[ptr + i] = c;
+          continue;
+        }
+        const worstCase = 3 * units;
+        ptr = reallocate(cx, ptr, units, 1, worstCase);
+        const encoded = UTF8_ENCODER.encode(s);
+        bytes(cx).set(encoded.subarray(i), ptr + i);
+        if (worstCase > encoded.length) {
+          ptr = reallocate(cx, ptr, worstCase, 1, encoded.length);
+        }
+        return [ptr, encoded.length];
+      }
+      return [ptr, units];
     }
     case "utf16": {
-      const byteLength = 2 * s.length;
-      trapIf(byteLength > MAX_STRING_BYTE_LENGTH, "string too long");
+      const byteLength = 2 * units;
       const ptr = allocate(cx, 2, byteLength);
       const dv = view(cx);
-      for (let i = 0; i < s.length; i++) {
+      for (let i = 0; i < units; i++) {
         dv.setUint16(ptr + 2 * i, s.charCodeAt(i), true);
       }
-      return [ptr, s.length];
+      return [ptr, units];
     }
     case "latin1+utf16": {
-      let isLatin1 = true;
-      for (let i = 0; i < s.length; i++) {
-        if (s.charCodeAt(i) > 0xff) {
-          isLatin1 = false;
-          break;
+      // store_string_to_latin1_or_utf16: speculate Latin-1, inflate in
+      // place (reverse order) when a non-Latin-1 unit appears.
+      let ptr = allocate(cx, 2, units);
+      let dstLength = 0;
+      for (let i = 0; i < units; i++) {
+        const c = s.charCodeAt(i);
+        if (c < 0x100) {
+          bytes(cx)[ptr + dstLength] = c;
+          dstLength++;
+          continue;
         }
-      }
-      if (isLatin1) {
-        trapIf(s.length > MAX_STRING_BYTE_LENGTH, "string too long");
-        const ptr = allocate(cx, 2, s.length);
+        const worstCase = 2 * units;
+        ptr = reallocate(cx, ptr, units, 2, worstCase);
         const memory = bytes(cx);
-        for (let i = 0; i < s.length; i++) {
-          memory[ptr + i] = s.charCodeAt(i);
+        for (let j = dstLength - 1; j >= 0; j--) {
+          memory[ptr + 2 * j] = memory[ptr + j];
+          memory[ptr + 2 * j + 1] = 0;
         }
-        return [ptr, s.length];
+        const dv = view(cx);
+        for (let k = dstLength; k < units; k++) {
+          dv.setUint16(ptr + 2 * k, s.charCodeAt(k), true);
+        }
+        return [ptr, units | UTF16_TAG];
       }
-      const byteLength = 2 * s.length;
-      trapIf(byteLength > MAX_STRING_BYTE_LENGTH, "string too long");
-      const ptr = allocate(cx, 2, byteLength);
-      const dv = view(cx);
-      for (let i = 0; i < s.length; i++) {
-        dv.setUint16(ptr + 2 * i, s.charCodeAt(i), true);
+      if (dstLength < units) {
+        ptr = reallocate(cx, ptr, units, 2, dstLength);
       }
-      return [ptr, s.length | UTF16_TAG];
+      return [ptr, dstLength];
     }
   }
 }
@@ -339,17 +390,21 @@ export class HostResourceTable {
 
 function liftOwn(cx: CanonContext, i: number, rt: RTResource): unknown {
   const h = cx.inst.handles.remove(i);
-  trapIf(h.rt !== rt, "own handle has wrong resource type");
-  trapIf(h.numLends !== 0, "own handle is currently lent");
-  trapIf(!h.own, "expected an own handle");
-  return repToJs(rt, h.rep, true);
+  trapIf(!(h instanceof ResourceHandle), "handle is not a resource");
+  const handle = h as ResourceHandle;
+  trapIf(handle.rt !== rt, "own handle has wrong resource type");
+  trapIf(handle.numLends !== 0, "own handle is currently lent");
+  trapIf(!handle.own, "expected an own handle");
+  return repToJs(rt, handle.rep, true);
 }
 
 function liftBorrow(cx: CanonContext, i: number, rt: RTResource): unknown {
   const h = cx.inst.handles.get(i);
-  trapIf(h.rt !== rt, "borrow handle has wrong resource type");
-  cx.scope?.addLender(h);
-  return repToJs(rt, h.rep, false);
+  trapIf(!(h instanceof ResourceHandle), "handle is not a resource");
+  const handle = h as ResourceHandle;
+  trapIf(handle.rt !== rt, "borrow handle has wrong resource type");
+  cx.scope?.addLender(handle);
+  return repToJs(rt, handle.rep, false);
 }
 
 function repToJs(rt: RTResource, rep: number, takeOwnership: boolean): unknown {
@@ -501,10 +556,28 @@ export function load(cx: CanonContext, ptr: number, t: RT): unknown {
     case "borrow":
       return liftBorrow(cx, dv.getUint32(ptr, true), t.resource);
     case "error-context":
+      return liftErrorContext(cx, dv.getUint32(ptr, true));
     case "stream":
     case "future":
       trap(`${t.k} values are not supported yet`);
   }
+}
+
+export function liftErrorContext(
+  cx: CanonContext,
+  i: number,
+): ErrorContextValue {
+  const e = cx.inst.handles.get(i);
+  trapIf(!(e instanceof ErrorContextValue), "handle is not an error-context");
+  return e as ErrorContextValue;
+}
+
+export function lowerErrorContext(cx: CanonContext, v: unknown): number {
+  const value =
+    v instanceof ErrorContextValue
+      ? v
+      : new ErrorContextValue(String((v as Error)?.message ?? v));
+  return cx.inst.handles.add(value);
 }
 
 function loadListFromRange(
@@ -749,6 +822,8 @@ export function store(cx: CanonContext, v: unknown, t: RT, ptr: number): void {
       dv.setUint32(ptr, lowerBorrow(cx, v, t.resource), true);
       return;
     case "error-context":
+      dv.setUint32(ptr, lowerErrorContext(cx, v), true);
+      return;
     case "stream":
     case "future":
       trap(`${t.k} values are not supported yet`);
@@ -934,6 +1009,7 @@ export function liftFlat(cx: CanonContext, vi: CoreValueIter, t: RT): unknown {
     case "borrow":
       return liftBorrow(cx, asU32(vi.next("i32")), t.resource);
     case "error-context":
+      return liftErrorContext(cx, asU32(vi.next("i32")));
     case "stream":
     case "future":
       trap(`${t.k} values are not supported yet`);
@@ -1095,10 +1171,38 @@ export function lowerFlat(cx: CanonContext, v: unknown, t: RT): FlatValue[] {
     case "borrow":
       return [lowerBorrow(cx, v, t.resource)];
     case "error-context":
+      return [lowerErrorContext(cx, v)];
     case "stream":
     case "future":
       trap(`${t.k} values are not supported yet`);
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Error-context builtins (📝)                                          */
+/* ------------------------------------------------------------------ */
+
+export function makeErrorContextBuiltins(cx: CanonContext) {
+  return {
+    new: (ptr: number, len: number): number => {
+      trapIf(!cx.inst.mayLeave, "cannot leave component instance");
+      const message = loadStringFromRange(cx, ptr >>> 0, len >>> 0);
+      return cx.inst.handles.add(new ErrorContextValue(message));
+    },
+    debugMessage: (i: number, retPtr: number): void => {
+      trapIf(!cx.inst.mayLeave, "cannot leave component instance");
+      const e = liftErrorContext(cx, i >>> 0);
+      store(cx, e.message, { k: "string" }, retPtr >>> 0);
+    },
+    drop: (i: number): void => {
+      trapIf(!cx.inst.mayLeave, "cannot leave component instance");
+      const e = cx.inst.handles.remove(i >>> 0);
+      trapIf(
+        !(e instanceof ErrorContextValue),
+        "handle is not an error-context",
+      );
+    },
+  };
 }
 
 /* ------------------------------------------------------------------ */
