@@ -1,0 +1,50 @@
+{
+  "name": "@runno/component",
+  "version": "0.1.0",
+  "author": "Ben Taylor <runno@taybenlor.com>",
+  "description": "WebAssembly Component Model runtime for browsers and JavaScript runtimes",
+  "website": "https://runno.dev",
+  "keywords": [
+    "wasm",
+    "wasi",
+    "component-model",
+    "browser"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/taybenlor/runno.git"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "types": "./dist/main.d.ts",
+  "module": "./dist/main.js",
+  "exports": {
+    ".": {
+      "types": "./dist/main.d.ts",
+      "import": "./dist/main.js",
+      "default": "./dist/main.js"
+    }
+  },
+  "scripts": {
+    "dev": "vite --port 5174",
+    "build:vite": "tsc --noEmit && vite build",
+    "build": "npm run build:vite",
+    "test:server": "vite --port 5174",
+    "test:unit": "node --experimental-strip-types --test tests/unit/*.test.ts",
+    "test:prepare": "node --experimental-strip-types scripts/prepare-tests.ts",
+    "test": "playwright test",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@rollup/plugin-typescript": "^12.1.2",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.3"
+  }
+}
