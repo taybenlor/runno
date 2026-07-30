@@ -1,6 +1,10 @@
 # WASIX support — technical design
 
-_Status: design phase. Describes the target architecture; revise as decisions land._
+_Status: implementation in progress. Slices 1–3.5 have landed (skeleton,
+clock/random providers, filesystem provider, module-instantiation
+surface). This document describes the target architecture plus the
+current validation reality; see [Slice roadmap](#slice-roadmap) for
+what's built and what's next._
 
 ## Goal
 
@@ -22,10 +26,14 @@ All of that is a host-side decision; the runtime is unaware.
   (they import both).
 - Clock and Random become overridable providers (enables deterministic
   execution).
-- **Pass the upstream WASIX integration test suite
-  ([`wasmerio/wasix-integration-tests`](https://github.com/wasmerio/wasix-integration-tests))**
-  using the simulation providers shipped with the package. See
-  [Validation](#validation).
+- **Pass the upstream WASIX C test suite (`wasmer/tests/wasix` in the
+  [wasmer repo](https://github.com/wasmerio/wasmer), vendored at a
+  pinned SHA)** using the simulation providers shipped with the
+  package. See [Validation](#validation). (An earlier revision named
+  `wasmerio/wasix-integration-tests` as the bar; that repo is a
+  Rust/snapshot-based suite and is NOT what the harness runs — it
+  remains a candidate source of extra coverage, see
+  [Coverage gaps](#coverage-gaps-in-the-upstream-suite).)
 
 Every WASIX syscall has a provider slot. Unwired slots return `ENOSYS`.
 
@@ -33,12 +41,22 @@ Every WASIX syscall has a provider slot. Unwired slots return `ENOSYS`.
 
 - Tests requiring Asyncify (or JSPI) instrumentation on the guest module —
   principally `proc_fork` asserting on post-fork execution, asynchronously
-  delivered signals that pre-empt running code, and cross-frame
-  `setjmp`/`longjmp` across a JS-imported call. These need the guest's call
-  stack and program counter reified from outside, which WebAssembly does not
-  expose to JS. A provider can't supply that at call time. Tracked as
-  known-skipped. See [Future: Asyncify opt-in](#future-asyncify-opt-in) for
-  the path to lifting this.
+  delivered signals that pre-empt running code, and userspace context
+  switching (`context_create` / `context_switch`). These need the guest's
+  call stack and program counter reified from outside, which WebAssembly
+  does not expose to JS. A provider can't supply that at call time.
+  Tracked as known-skipped. See
+  [Future: Asyncify opt-in](#future-asyncify-opt-in) for the path to
+  lifting this.
+
+  _Empirical amendment (2026-07):_ cross-frame `setjmp`/`longjmp` was
+  originally in this category, but binaries built with wasm-exceptions
+  (`wasixcc`'s exnref EH build, the upstream default for C++) implement
+  `setjmp`/`longjmp` on top of wasm EH — the upstream `setjmp-longjmp`
+  and `exception` tests **pass in all three browsers today** with no
+  Asyncify. Only the asyncify-build variants of those semantics remain
+  out of reach.
+
 - `proc_exec` and `proc_spawn` are **not** in this category — they start a
   fresh instance, which a provider can do. Expected to pass.
 - Real socket / process / thread implementations baked into the runtime _or_
@@ -84,11 +102,17 @@ export type {
 
 // Ergonomic providers — concrete classes hosts can drop in
 export {
-  HTTPProvider, // AsyncSocketsProvider (Fetch-style) — worker-only
-  FileSystemProvider, // wraps WASIDrive; sync + async variants
-  ConsoleTTYProvider, // TTYProvider (sync)
-} from "./wasix/providers/ergonomic.js";
+  HTTPProvider, // AsyncSocketsProvider (Fetch-style) — worker-only (planned)
+  WASIDriveFileSystemProvider, // wraps WASIDrive (landed; the plan's
+  // earlier name `FileSystemProvider` is the raw interface it implements)
+  ConsoleTTYProvider, // TTYProvider (sync) (planned)
+} from "./wasix/providers/ergonomic/...";
 ```
+
+Landed today: `WASIX`, `WASIXContext`, the `WASIX32v1` ABI namespace,
+`SystemClockProvider` / `SystemRandomProvider` / `FixedClockProvider` /
+`SeededRandomProvider`, and `WASIDriveFileSystemProvider`. The
+worker-host surface and remaining providers are future slices.
 
 Existing `WASI`, `WASIContext`, `WASIWorkerHost`, and the
 `WASISnapshotPreview1` namespace export are unchanged. This keeps a clean slot
@@ -443,8 +467,79 @@ No provider supplied → runtime falls back to `Date.now()` and
 
 ## Validation
 
-Correctness bar: [`wasmerio/wasix-integration-tests`](https://github.com/wasmerio/wasix-integration-tests),
-the upstream WASIX integration suite.
+Correctness bar: the upstream WASIX C suite at `wasmer/tests/wasix`
+(vendored at the SHA pinned in `tests/wasix-suite.constants.ts` — 42
+test directories at the current pin).
+
+### Validation contract
+
+The harness replicates what upstream's `test.sh` + per-test `run.sh`
+actually assert — verified by audit, because exit-code-only checking is
+provably insufficient (`closing-pre-opened-dirs` passed vacuously on
+exit code alone while printing an error the upstream diff would catch):
+
+- **Build parity.** Tests build exactly as upstream does: C tests with
+  `wasixcc -sWASM_EXCEPTIONS=false` + per-test `.flags`, C++ tests with
+  `wasix++`. (`tests/build-wasix-suite.ts`.)
+- **Every run line.** Each `$WASMER_RUN main.wasm …` line in `run.sh`
+  becomes one invocation (multi-invocation tests: `udp` ×4, `vfork` ×9,
+  …), with `--volume` mounts pre-seeded and filesystem state shared
+  across invocations within a test, mirroring the host mount.
+- **Exit codes obey `set -e`.** Scripts with `set -e` require exit 0
+  from every invocation (minus upstream's own `|| true` markers).
+  Scripts without it ignore guest exit codes — `exception` exits 42 by
+  design — and validate via the stdout diff.
+- **Stdout diffs.** The `printf "…" | diff -u output -` pattern in
+  run.sh becomes a byte-equality assertion on captured stdout.
+
+### Suite partition — the denominator stays visible
+
+Every vendored test directory is classified in exactly one of:
+
+- `WASIX_INCLUDE_DIRS` — built and executed (38 of 42 today).
+- `WASIX_BUILD_EXCLUDES` — not built, with a structured reason
+  (currently only the 4 `dl-*` dynamic-linking tests, which need a
+  multi-artifact `.so` build and runtime dynamic linking).
+
+`tests/wasix-suite-consistency.spec.ts` enforces the partition, that
+every runtime-skip entry refers to a built test, and that the lists stay
+alphabetised. A wasmer SHA bump that adds upstream tests fails CI until
+the new tests are classified — coverage can't silently shrink.
+
+Runtime skips use `test.fail(...)`, not `fixme`: skipped tests still
+execute, so the moment a capability lands, stale skip entries show up as
+"passed unexpectedly" in the report. (This mechanism found
+`mount-tmp-locally` passing the same day it was wired.)
+
+### Toolchain
+
+`wasix-org/wasixcc` v0.4.3 (the latest release, pinned in CI and in
+`tests/install-wasix-tools.sh`, which installs it locally on
+macOS/Linux via the release binaries) builds **everything in the
+vendored suite except the `dl-*` family** when invoked with upstream's
+flags. The earlier belief that fork/pthread/dlopen tests "cannot link"
+was wrong — it was an artifact of our build harness not using
+`-sWASM_EXCEPTIONS=false` / `wasix++`; all fork-family tests now build
+and run (and fail as classified, awaiting Asyncify — see the skip map).
+
+### Coverage gaps in the upstream suite
+
+The vendored C suite has **no tests at all** for threads
+(`thread_spawn` / pthreads), sockets beyond `udp` + `fd-close`, TTY,
+futex, or poll/epoll. The provider slices for those surfaces therefore
+cannot lean on the wasmer suite for validation. Per-slice validation
+comes from purpose-built fixtures instead:
+
+- Hand-written WAT/C fixtures under `programs/` (the existing
+  clock/random/errno pattern), compiled with the same pinned wasixcc.
+- Candidate supplementary source:
+  [`wasmerio/wasix-integration-tests`](https://github.com/wasmerio/wasix-integration-tests)
+  (Rust, snapshot-validated) — evaluate per slice whether vendoring
+  selected tests is worth the Rust toolchain dependency.
+
+Each future slice that adds a provider MUST land with its fixtures in
+the same PR; the wasmer suite alone is not an acceptance gate for
+threads/sockets/TTY/futex work.
 
 This shapes the design in two concrete ways.
 
@@ -484,25 +579,37 @@ ship those, because Runno is a sandbox.
 
 ### Known-skipped tests
 
-**Skip rule: a test is skipped iff it requires Asyncify (or JSPI)
-instrumentation on the guest module.** No other reason justifies a skip. If
-a simulation provider can be written to make a test pass, we write one.
+**End-state skip rule: a test is skipped iff it requires Asyncify (or
+JSPI) instrumentation on the guest module, or a drive feature
+deliberately deferred to the
+[drive feature workstream](#drive-feature-workstream).** If a
+simulation provider can be written to make a test pass, we write one.
 
-In practice that rule carves out exactly three categories:
+The Asyncify category covers:
 
-- `proc_fork` asserting on post-fork guest execution.
+- `proc_fork` asserting on post-fork guest execution (all fork-family
+  tests: `fork`, `pipes`, `shared-fd`, `share-tmp-*`, `proc-exec*`,
+  `cloexec`, `signal`).
 - Asynchronous signal pre-emption — a signal delivered from outside the
   guest's current call, pre-empting running code mid-frame.
-- Cross-frame `setjmp`/`longjmp` across a JS-imported call.
+- Userspace context switching (`context_create` / `context_switch`,
+  the `context-switching` test).
 
-See [the reasoning below](#why-those-tests-cant-be-passed-by-providers-alone)
-for why these three need Asyncify. Everything else — `proc_exec`,
-`proc_spawn`, threads, futex, sockets, TTY, self-raised signals at yield
-points, clocks, random — is implementable with simulation providers and
-expected to pass.
+(Cross-frame `setjmp`/`longjmp` left this category — see the empirical
+amendment under Non-goals.)
 
-The test harness carries an explicit skip list with a one-line
-"requires-Asyncify" justification per entry.
+The drive-feature category covers mmap/msync file mappings, symlinks,
+`mount`, and stdio/fd-table close semantics — each with a matching
+entry in the workstream.
+
+**Interim rule while slices land:** tests blocked only on a provider
+that hasn't shipped yet carry a `requires-provider-*` token
+(`popen`/`posix_spawn`/`vfork` → proc, `udp`/`fd-close` → sockets).
+These flip to passing as their slice lands — enforced automatically
+because skips run as `test.fail` and report "passed unexpectedly".
+
+The skip map lives in `tests/wasix-suite.skip.ts`; every entry names a
+token from the fixed vocabulary plus a one-line justification.
 
 ### Why those tests can't be passed by providers alone
 
@@ -537,9 +644,13 @@ The same limitation hits two related syscalls:
   handler, then resume where we were" has the same resume-at-frame need.
   Self-raised signals that happen at controlled yield points are fine;
   signals delivered from outside the guest's current call are not.
-- **Cross-frame `setjmp`/`longjmp`.** Unwinding from inside a JS-imported
-  call back to a target several WASM frames up requires popping the guest
-  stack from outside. Same blocker.
+- **Userspace context switching.** `context_create` / `context_switch`
+  swap between guest execution contexts — reifying and restoring the
+  stack is the whole operation. Same blocker.
+
+(Cross-frame `setjmp`/`longjmp` used to sit here too, but wasm-exceptions
+builds implement it inside the guest via wasm EH — no external stack
+manipulation needed — and those builds pass in browsers today.)
 
 In all three, the root cause is identical: **WASM execution state is not
 reifiable from JS**.
@@ -569,10 +680,90 @@ provider capability bit. Out of scope for v1.
 
 One provider configuration — the simulation set from
 [Simulation providers ship with the package](#simulation-providers-ship-with-the-package) —
-runs in CI against both Node and browser (Playwright, COOP/COEP). Because
-the sockets provider is loopback-only and all processes live in the same JS
-realm, there is nothing environment-specific to branch on. Both runs execute
-the same suite minus the Asyncify-only skip list.
+runs in CI under Playwright against chromium, firefox, and webkit (the
+dev server sets COOP/COEP so shared-memory imports instantiate). There
+is **no Node.js runtime test target today**; `@runno/wasi` is
+browser-focused and a Node harness is possible future work, not a
+current claim. The suite runs identically in all three browsers minus
+the skip map.
+
+### Testing layers
+
+Validation is spread across five Playwright spec layers, all runnable
+locally (`npm run wasix:install-tools`, `npm run test:prepare:wasix-suite`,
+`npx playwright test`):
+
+1. **Unit** (`wasix-unit.spec.ts`, Node-side, no browser) — the wasm
+   import-section parser (`lib/wasix/module-imports.ts`), memory/table
+   override validation, cwd path resolution (`lib/wasix/path-utils.ts`).
+2. **Error model** (`wasix-error-model.spec.ts`) — a WAT probe
+   (`wasix-errno.wat`) exits with `random_get`'s errno, proving
+   `WASIXError → its errno`, `any other throw → EIO`, and that nothing
+   propagates across the WASM boundary as a JS exception.
+3. **Smoke + determinism** (`wasix-smoke`, `wasix-clock-random`,
+   `wasix-fs-provider` specs) — hand-rolled WAT guests incl. the
+   golden-byte determinism check.
+4. **preview1-under-WASIX** (`wasix-preview1-corpus.spec.ts`) — the
+   full caspervonb corpus (core/libc/libstd) run through `WASIX.start`,
+   covering the overridden preview1 delegation surface and the
+   export-memory auto-detect path. Three documented expected-failures:
+   tests asserting `errno == ENOTCAPABLE` where WASIX deliberately
+   speaks POSIX (`ENOENT`).
+5. **Upstream wasix suite** (`wasix-suite.spec.ts` +
+   `wasix-suite-consistency.spec.ts`) — as described above.
+
+## Drive feature workstream
+
+Skip-map triage surfaced drive-level capabilities (not provider slots)
+that block vendored tests. Each is deliberate deferred work with an
+owner test set, so the "skipped iff Asyncify" end-state rule stays
+honest:
+
+- **mmap / msync file-backed mappings** — 8 tests (`msync-*`,
+  `munmap-sync-*`, `read-after-munmap`). Needs the drive to model
+  memory-mapped file ranges and write-back.
+- **Symlinks** — `symlink-open-read-write`. WASIDrive has no link
+  representation. (Also needs harness-side pre-seed of `target.txt`
+  and a host-side post-assert; noted in the skip entry.)
+- **mount / multiple preopen roots** — `fs-mount`. Runno currently has
+  a single preopen root plus `/home`.
+- **fd-table extraction** — `dup` (fd_renumber/fd_dup2), stdio close
+  semantics (`closing-pre-opened-dirs` expects `fclose(stdout)` to make
+  later writes vanish; stdio currently routes to host callbacks and
+  never closes). Planned as Slice 9.
+
+## Slice roadmap
+
+Landed:
+
+1. Skeleton + hello-world smoke (`WASIX`, `WASIXContext`, wasix_32v1
+   stub surface).
+2. Clock + Random providers (+ `FixedClockProvider`,
+   `SeededRandomProvider`, golden-byte determinism test).
+3. Filesystem provider (`WASIDriveFileSystemProvider`) + wasmer suite
+   harness.
+   3.5. Module-instantiation surface (env.memory/env.\_\_indirect_function_table
+   auto-detect, COOP/COEP, v2 stubs) + validation hardening (stdout-diff
+   contract, suite partition + consistency spec, preview1-corpus-under-WASIX,
+   unit + error-model specs).
+
+Upcoming (each lands with its own fixtures per
+[Coverage gaps](#coverage-gaps-in-the-upstream-suite)):
+
+4. Sockets provider (loopback simulation) — unskips `udp`, `fd-close`;
+   needs own fixtures for TCP/accept paths.
+5. Threads provider (cooperative + real-worker helper) + shared-memory
+   plumbing — no upstream tests exist; fixtures required.
+6. Futex provider — fixtures required.
+7. Proc provider (spawn/exec/join simulation) — unskips `popen`,
+   `posix_spawn`, `vfork`.
+8. Signals provider (self-raise at yield points) — fixtures required.
+9. fd-table extraction (fd_renumber/dup2/fdflags, stdio close) —
+   unskips `dup`-class behaviour and `closing-pre-opened-dirs`.
+10. TTY provider + `WASIXWorkerHost` + async syscall bridge.
+
+Drive features (mmap, symlinks, mount) slot in independently of the
+provider slices; sequence by demand.
 
 ## Error model
 
@@ -626,7 +817,17 @@ substrate backward into WASI in its own PR.
 
 ## Open questions
 
-- Exact ABI values and struct layouts for each WASIX syscall — pinned during
-  implementation against the WASIX C headers into `lib/wasix/wasix-32v1.ts`.
-- Exact skip list from `wasix-integration-tests`. Enumerate once the runtime
-  boots the suite end-to-end and apply the "requires Asyncify" rule per test.
+- Exact ABI values and struct layouts for the not-yet-wired WASIX
+  syscalls (sockets, threads, futex, proc, signals, TTY) — pinned per
+  slice against the WASIX C headers into `lib/wasix/wasix-32v1.ts`.
+  (FS/clock/random/cwd are pinned and validated.)
+- ~~Exact skip list.~~ Enumerated: see `tests/wasix-suite.skip.ts`
+  (runtime skips) and `WASIX_BUILD_EXCLUDES` in
+  `tests/wasix-suite.constants.ts` (build excludes); both are enforced
+  by the consistency spec.
+- Fixture format for the thread/socket/TTY slices — WAT vs C-on-wasixcc
+  per capability; decide in each slice PR (see
+  [Coverage gaps](#coverage-gaps-in-the-upstream-suite)).
+- Whether the `wasix_32v1` v2 fd-flags surface (`path_open2` fdflags2
+  bits, `fd_fdflags_*`) gets semantics in Slice 9 or stays stubbed until
+  a binary demands it.

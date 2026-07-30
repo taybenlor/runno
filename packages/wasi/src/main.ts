@@ -9,6 +9,7 @@ import {
   FixedClockProvider,
   SeededRandomProvider,
   WASIDriveFileSystemProvider,
+  WASIX32v1,
 } from "../lib/main.js";
 
 (window as any)["WASI"] = WASI;
@@ -20,6 +21,7 @@ import {
 (window as any)["FixedClockProvider"] = FixedClockProvider;
 (window as any)["SeededRandomProvider"] = SeededRandomProvider;
 (window as any)["WASIDriveFileSystemProvider"] = WASIDriveFileSystemProvider;
+(window as any)["WASIX32v1"] = WASIX32v1;
 
 const programSelect = document.getElementById("program")! as HTMLSelectElement;
 const argsInput = document.getElementById("args")! as HTMLInputElement;
