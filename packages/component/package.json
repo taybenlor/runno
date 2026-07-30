@@ -44,6 +44,7 @@
     "test:external": "node --experimental-strip-types scripts/fetch-external-suites.ts"
   },
   "devDependencies": {
+    "@bytecodealliance/preview2-shim": "^0.19.0",
     "@playwright/test": "^1.55.0",
     "@rollup/plugin-typescript": "^12.1.2",
     "typescript": "^5.8.3",

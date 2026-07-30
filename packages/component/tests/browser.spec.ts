@@ -108,3 +108,21 @@ test.describe("wasmtime wast conformance", () => {
     expect(failures).toEqual([]);
   });
 });
+
+test.describe("WASI 0.2", () => {
+  test("runs a Rust wasm32-wasip2 component with preview2-shim", async ({
+    page,
+  }) => {
+    await ready(page);
+    const output = await page.evaluate(async () => {
+      const { runHelloWasi } = await import("/tests/wasi/browser-run.ts");
+      const bytes = new Uint8Array(
+        await (await fetch("/tests/fixtures/wasi/hello.wasm")).arrayBuffer(),
+      );
+      return runHelloWasi(bytes);
+    });
+    expect(output).toContain("Hello from WASI 0.2!");
+    expect(output).toContain("args: one,two");
+    expect(output).toContain("env: it-works");
+  });
+});

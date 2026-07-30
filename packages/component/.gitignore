@@ -5,3 +5,4 @@ playwright-report
 # Downloaded external test suites (rebuilt by `npm run test:prepare`)
 tests/external/wast-src
 tests/fixtures/external
+programs/hello-wasi/target
