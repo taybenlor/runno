@@ -19,18 +19,22 @@
           ]
         },
         {
-          "source": "/langs/*",
+          "source": "/langs/**",
           "headers": [
             {
               "key": "Access-Control-Allow-Origin",
               "value": "*"
+            },
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=604800, s-maxage=31536000"
             }
           ]
         }
       ],
       "rewrites": [
         {
-          "source": "**",
+          "source": "!/langs/**",
           "destination": "/index.html"
         }
       ]
