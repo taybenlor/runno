@@ -2,8 +2,7 @@ name: Run Tests on PR
 "on": pull_request
 jobs:
   test:
-    # Playwright 1.55 has no browser builds for ubuntu-latest (26.04)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
